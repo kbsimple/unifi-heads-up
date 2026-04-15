@@ -54,9 +54,9 @@ Plans:
 **UI hint**: yes
 
 Plans:
-- [ ] 02-01-PLAN.md — API foundation (SWR, shadcn components, UniFi client)
-- [ ] 02-02-PLAN.md — Dashboard UI components
-- [ ] 02-03-PLAN.md — Integration with polling and checkpoint
+- [x] 02-01-PLAN.md — API foundation (SWR, shadcn components, UniFi client)
+- [x] 02-02-PLAN.md — Dashboard UI components
+- [x] 02-03-PLAN.md — Integration with polling and checkpoint
 
 ### Phase 3: Firewall Control
 **Goal**: Users can control network access by toggling firewall rules
