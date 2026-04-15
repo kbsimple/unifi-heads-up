@@ -54,10 +54,9 @@ Exceptions:
 | Body | 16px | 400 | 1.5 |
 | Label | 14px | 400 | 1.4 |
 | Heading | 20px | 600 | 1.2 |
-| Section Title | 24px | 600 | 1.2 |
 | Display (App Title) | 28px | 600 | 1.2 |
 
-**Note:** Inherits Phase 1 typography scale. Adds Section Title (24px) for dashboard section headers.
+**Note:** Inherits Phase 1 typography scale. Heading (20px) used for dashboard section headers.
 
 ---
 
@@ -126,6 +125,9 @@ pnpm dlx shadcn@latest add badge skeleton alert
 
 ## Layout Specifications
 
+### Focal Point
+The Traffic Badge (colored status indicator) is the primary visual anchor. Its color contrast against the dark theme draws immediate attention, communicating the device's traffic status at a glance.
+
 ### Dashboard Page Structure
 
 ```
@@ -135,7 +137,7 @@ pnpm dlx shadcn@latest add badge skeleton alert
 +------------------------------------------+
 | Main Content (p-6 = 24px padding)        |
 |                                          |
-| [Section Title: Network Clients]         |
+| [Heading: Network Clients]               |
 | [Last updated: 2m ago]  [Refresh button] |
 |                                          |
 | +--------------------------------------+ |

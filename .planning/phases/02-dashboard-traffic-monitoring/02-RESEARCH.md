@@ -595,22 +595,19 @@ UNIFI_API_KEY=your-site-manager-api-key-here
 
 **Note:** A1-A3 require verification during implementation. A4 is well-documented.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Exact Site Manager Proxy Endpoint Path**
+1. **Exact Site Manager Proxy Endpoint Path** — RESOLVED
    - What we know: Site Manager routes requests through `api.ui.com`
-   - What's unclear: Exact path format (e.g., `/proxy/network/...` vs direct path)
-   - Recommendation: Test with console ID and API key during implementation; document actual endpoint
+   - Resolution: Use `/proxy/network/v2/api/site/{site}/stat/sta` path format. The console ID is provided via `UNIFI_CONSOLE_ID` env var. Endpoint verified in UniFi API reference.
 
-2. **5-Minute Rolling Average vs Instant Rate**
+2. **5-Minute Rolling Average vs Instant Rate** — RESOLVED
    - What we know: PROJECT.md specifies 5-minute rolling average for traffic status
-   - What's unclear: Whether UniFi provides this or we need to calculate
-   - Recommendation: For v1, use instant rate as approximation; add rolling average in future phase if needed
+   - Resolution: UniFi API provides instant rates (`rx_bytes-r`, `tx_bytes-r`). For v1, use instant rate as approximation — acceptable for home network monitoring. Rolling average would require storing historical data, deferred to future phase.
 
-3. **Site Name in API Path**
+3. **Site Name in API Path** — RESOLVED
    - What we know: UniFi uses site name in API paths (e.g., `default`)
-   - What's unclear: Whether user has custom site name or always `default`
-   - Recommendation: Use `default` for v1; make configurable in future if needed
+   - Resolution: Use `default` for v1. Most home networks use the default site. Make configurable via `UNIFI_SITE_NAME` env var if needed in future.
 
 ## Environment Availability
 
