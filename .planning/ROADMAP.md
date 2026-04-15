@@ -37,7 +37,7 @@ Plans:
 - [x] 01-02-PLAN.md — Type definitions and session management (JWT)
 - [x] 01-03-PLAN.md — Data Access Layer and Server Actions (login/logout)
 - [x] 01-04-PLAN.md — Middleware route protection
-- [ ] 01-05-PLAN.md — Login page UI
+- [x] 01-05-PLAN.md — Login page UI
 - [ ] 01-06-PLAN.md — Dashboard layout and logout button
 
 ### Phase 2: Dashboard & Traffic Monitoring
@@ -85,7 +85,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & Authentication | 4/6 | In Progress|  |
+| 1. Foundation & Authentication | 5/6 | In Progress|  |
 | 2. Dashboard & Traffic Monitoring | 0/TBD | Not started | - |
 | 3. Firewall Control | 0/TBD | Not started | - |
 | 4. Enhanced Features | 0/TBD | Not started | - |
