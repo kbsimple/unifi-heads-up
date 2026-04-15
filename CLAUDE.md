@@ -106,7 +106,22 @@ A web application for monitoring home network traffic and managing firewall rule
 <!-- GSD:conventions-start source:CONVENTIONS.md -->
 ## Conventions
 
-Conventions not yet established. Will populate as patterns emerge during development.
+### Git Commit Author
+
+All commits must use:
+- **Author name:** Faiser
+- **Email:** keepbreakfastsimple@gmail.com
+
+Configure globally:
+```bash
+git config --global user.name "Faiser"
+git config --global user.email "keepbreakfastsimple@gmail.com"
+```
+
+Or per-commit:
+```bash
+git commit --author="Faiser <keepbreakfastsimple@gmail.com>" -m "message"
+```
 <!-- GSD:conventions-end -->
 
 <!-- GSD:architecture-start source:ARCHITECTURE.md -->
