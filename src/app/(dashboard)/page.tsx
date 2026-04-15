@@ -1,27 +1,26 @@
 // src/app/(dashboard)/page.tsx
 import { verifySession } from '@/lib/dal'
+import { getUnifiClients } from '@/lib/unifi/client'
+import { ClientList } from '@/components/dashboard/client-list'
 
 /**
- * Dashboard placeholder page
- * Phase 2 will add device list and traffic monitoring
+ * Dashboard page with network clients list
+ * Per DEVI-01: View all network clients with name, MAC, IP
+ * Per DEVI-05: Auto-refresh every 60 seconds via SWR polling
  */
 export default async function DashboardPage() {
   // Verify session (redirects to login if not authenticated)
-  const { username } = await verifySession()
+  await verifySession()
+
+  // Fetch initial data server-side (fast page load)
+  const initialClients = await getUnifiClients()
 
   return (
     <div className="space-y-4">
       <h2 className="text-2xl font-semibold text-zinc-100">
-        Welcome, {username}
+        Network Clients
       </h2>
-      <p className="text-zinc-400">
-        Dashboard content will be added in Phase 2 (Device List & Traffic Monitoring).
-      </p>
-      <div className="mt-8 p-8 rounded-lg bg-zinc-900 border border-zinc-800">
-        <p className="text-zinc-500 text-center">
-          Device list and traffic monitoring coming soon...
-        </p>
-      </div>
+      <ClientList initialData={initialClients} />
     </div>
   )
 }
