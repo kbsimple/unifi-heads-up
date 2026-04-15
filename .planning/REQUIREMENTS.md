@@ -9,10 +9,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Authentication
 
-- [ ] **AUTH-01**: User can log in with username and password
-- [ ] **AUTH-02**: User session persists across browser refreshes (7-day JWT)
-- [ ] **AUTH-03**: User can log out from any page
-- [ ] **AUTH-04**: Unauthenticated users are redirected to login page
+- [x] **AUTH-01**: User can log in with username and password
+- [x] **AUTH-02**: User session persists across browser refreshes (7-day JWT)
+- [x] **AUTH-03**: User can log out from any page
+- [x] **AUTH-04**: Unauthenticated users are redirected to login page
 
 ### Device Visibility
 
@@ -53,7 +53,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **UIUX-01**: Dashboard is usable on mobile devices (responsive design)
 - [ ] **UIUX-02**: Traffic status uses clear color coding (green=low, yellow=medium, red=high, gray=idle)
 - [ ] **UIUX-03**: Dashboard shows "last updated" timestamp so users know data freshness
-- [ ] **UIUX-04**: Dashboard displays meaningful error messages (not generic "API Error")
+- [x] **UIUX-04**: Dashboard displays meaningful error messages (not generic "API Error")
 - [ ] **UIUX-05**: Dashboard shows offline/unavailable state when cloud service is down
 
 ## v2 Requirements
@@ -89,10 +89,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | Phase 1 | Pending |
-| AUTH-02 | Phase 1 | Pending |
-| AUTH-03 | Phase 1 | Pending |
-| AUTH-04 | Phase 1 | Pending |
+| AUTH-01 | Phase 1 | Complete |
+| AUTH-02 | Phase 1 | Complete |
+| AUTH-03 | Phase 1 | Complete |
+| AUTH-04 | Phase 1 | Complete |
 | DEVI-01 | Phase 2 | Pending |
 | DEVI-02 | Phase 2 | Pending |
 | DEVI-03 | Phase 2 | Pending |
@@ -115,7 +115,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UIUX-01 | Phase 2 | Pending |
 | UIUX-02 | Phase 2 | Pending |
 | UIUX-03 | Phase 2 | Pending |
-| UIUX-04 | Phase 1 | Pending |
+| UIUX-04 | Phase 1 | Complete |
 | UIUX-05 | Phase 2 | Pending |
 
 **Coverage:**

@@ -33,7 +33,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **UI hint**: yes
 
 Plans:
-- [ ] 01-01-PLAN.md — Project initialization, dependencies, Vitest, shadcn/ui
+- [x] 01-01-PLAN.md — Project initialization, dependencies, Vitest, shadcn/ui
 - [ ] 01-02-PLAN.md — Type definitions and session management (JWT)
 - [ ] 01-03-PLAN.md — Data Access Layer and Server Actions (login/logout)
 - [ ] 01-04-PLAN.md — Middleware route protection
