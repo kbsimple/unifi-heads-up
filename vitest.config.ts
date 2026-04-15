@@ -10,6 +10,10 @@ export default defineConfig({
     setupFiles: ['./tests/setup.ts'],
     include: ['tests/**/*.test.ts'],
     globals: true,
+    env: {
+      SESSION_SECRET: 'test-secret-key-must-be-at-least-32-characters-long-for-hs256',
+      NODE_ENV: 'test',
+    },
   },
   resolve: {
     alias: {
