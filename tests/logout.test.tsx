@@ -1,5 +1,7 @@
 // tests/logout.test.ts
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { render, screen } from '@testing-library/react'
+import { LogoutButton } from '@/components/logout-button'
 
 // Mock next/headers
 vi.mock('next/headers', () => ({
@@ -31,5 +33,16 @@ describe('Logout (AUTH-03)', () => {
     } catch (error) {
       expect((error as Error).message).toContain('Redirect to /login')
     }
+  })
+
+  it('renders "Sign out" button', () => {
+    render(<LogoutButton />)
+    expect(screen.getByText('Sign out')).toBeInTheDocument()
+  })
+
+  it('has form element wrapping the button', () => {
+    const { container } = render(<LogoutButton />)
+    const form = container.querySelector('form')
+    expect(form).toBeInTheDocument()
   })
 })

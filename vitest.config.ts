@@ -8,7 +8,7 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: ['./tests/setup.ts'],
-    include: ['tests/**/*.test.ts'],
+    include: ['tests/**/*.test.{ts,tsx}'],
     globals: true,
     env: {
       SESSION_SECRET: 'test-secret-key-must-be-at-least-32-characters-long-for-hs256',
