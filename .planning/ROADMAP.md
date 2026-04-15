@@ -35,7 +35,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 Plans:
 - [x] 01-01-PLAN.md — Project initialization, dependencies, Vitest, shadcn/ui
 - [x] 01-02-PLAN.md — Type definitions and session management (JWT)
-- [ ] 01-03-PLAN.md — Data Access Layer and Server Actions (login/logout)
+- [x] 01-03-PLAN.md — Data Access Layer and Server Actions (login/logout)
 - [ ] 01-04-PLAN.md — Middleware route protection
 - [ ] 01-05-PLAN.md — Login page UI
 - [ ] 01-06-PLAN.md — Dashboard layout and logout button
