@@ -29,8 +29,16 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. User can log out from any page
   4. Unauthenticated users are redirected to login page
   5. User sees meaningful error messages when authentication or API fails
-**Plans**: TBD
+**Plans**: 6 plans in 4 waves
 **UI hint**: yes
+
+Plans:
+- [ ] 01-01-PLAN.md — Project initialization, dependencies, Vitest, shadcn/ui
+- [ ] 01-02-PLAN.md — Type definitions and session management (JWT)
+- [ ] 01-03-PLAN.md — Data Access Layer and Server Actions (login/logout)
+- [ ] 01-04-PLAN.md — Middleware route protection
+- [ ] 01-05-PLAN.md — Login page UI
+- [ ] 01-06-PLAN.md — Dashboard layout and logout button
 
 ### Phase 2: Dashboard & Traffic Monitoring
 **Goal**: Users can see real-time traffic status for all network devices at a glance
@@ -77,7 +85,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & Authentication | 0/TBD | Not started | - |
+| 1. Foundation & Authentication | 0/6 | Ready to execute | - |
 | 2. Dashboard & Traffic Monitoring | 0/TBD | Not started | - |
 | 3. Firewall Control | 0/TBD | Not started | - |
 | 4. Enhanced Features | 0/TBD | Not started | - |
