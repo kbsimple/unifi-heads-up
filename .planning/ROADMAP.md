@@ -38,7 +38,7 @@ Plans:
 - [x] 01-03-PLAN.md — Data Access Layer and Server Actions (login/logout)
 - [x] 01-04-PLAN.md — Middleware route protection
 - [x] 01-05-PLAN.md — Login page UI
-- [ ] 01-06-PLAN.md — Dashboard layout and logout button
+- [x] 01-06-PLAN.md — Dashboard layout and logout button
 
 ### Phase 2: Dashboard & Traffic Monitoring
 **Goal**: Users can see real-time traffic status for all network devices at a glance
