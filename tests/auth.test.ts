@@ -54,7 +54,27 @@ describe('Data Access Layer (DAL)', () => {
 })
 
 describe('Authentication (AUTH-01)', () => {
-  it('placeholder - login flow tests', () => {
-    expect(true).toBe(true)
+  describe('login', () => {
+    it('returns validation errors for empty fields', async () => {
+      const { login } = await import('@/app/actions/auth')
+      const formData = new FormData()
+      formData.set('username', '')
+      formData.set('password', '')
+
+      const result = await login({}, formData)
+      expect(result.errors).toBeDefined()
+      expect(result.errors?.username).toBeDefined()
+      expect(result.errors?.password).toBeDefined()
+    })
+
+    it('returns error for invalid credentials', async () => {
+      const { login } = await import('@/app/actions/auth')
+      const formData = new FormData()
+      formData.set('username', 'wronguser')
+      formData.set('password', 'wrongpassword')
+
+      const result = await login({}, formData)
+      expect(result.error).toBe('Invalid username or password')
+    })
   })
 })
