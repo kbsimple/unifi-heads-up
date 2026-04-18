@@ -74,7 +74,7 @@ export function TrafficChart({ data, title }: TrafficChartProps) {
                   color: '#f4f4f5',
                   fontSize: 12,
                 }}
-                formatter={(value: number) => [`${value.toFixed(2)} Mbps`, 'Bandwidth']}
+                formatter={(value) => [typeof value === 'number' ? `${value.toFixed(2)} Mbps` : `${value} Mbps`, 'Bandwidth']}
                 labelStyle={{ color: '#a1a1aa' }}
               />
               <Area
