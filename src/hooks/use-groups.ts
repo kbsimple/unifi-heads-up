@@ -11,7 +11,7 @@ const STORAGE_KEY = 'unifi-device-groups'
 
 interface UseGroupsReturn {
   groups: DeviceGroup[]
-  createGroup: (name: string) => void
+  createGroup: (name: string) => string
   addGroupDevice: (groupId: string, deviceId: string) => void
   removeGroupDevice: (groupId: string, deviceId: string) => void
   deleteGroup: (groupId: string) => void
@@ -25,13 +25,14 @@ interface UseGroupsReturn {
 export function useGroups(): UseGroupsReturn {
   const [groups, setGroups] = useLocalStorage<DeviceGroup[]>(STORAGE_KEY, [])
 
-  const createGroup = useCallback((name: string) => {
+  const createGroup = useCallback((name: string): string => {
     const newGroup: DeviceGroup = {
       id: crypto.randomUUID(),
       name,
       deviceIds: [],
     }
     setGroups((prev) => [...prev, newGroup])
+    return newGroup.id
   }, [setGroups])
 
   const addGroupDevice = useCallback((groupId: string, deviceId: string) => {
