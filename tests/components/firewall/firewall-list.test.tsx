@@ -10,7 +10,7 @@ const mockData = vi.fn()
 const mockError = vi.fn()
 
 vi.mock('swr', () => ({
-  default: vi.fn((key: string, fetcher: Function, options: object) => {
+  default: vi.fn((key: string, fetcher: Function, options: { fallbackData?: unknown }) => {
     const initialData = options?.fallbackData
     const isLoading = mockData() === undefined && initialData === undefined && !mockError()
     const data = mockData() ?? initialData
