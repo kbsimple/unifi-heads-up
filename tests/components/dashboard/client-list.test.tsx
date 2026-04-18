@@ -122,13 +122,21 @@ describe('ClientList', () => {
   describe('Test 5: ClientList shows ErrorState when SWR has error', () => {
     it('should render ErrorState when there is an error', async () => {
       // Override SWR mock to return error
+      // First call goes to TrafficHistoryProvider, second to ClientListInner
       const { default: useSWR } = await import('swr')
-      vi.mocked(useSWR).mockReturnValueOnce({
-        data: undefined,
-        error: new Error('Network error'),
-        isLoading: false,
-        mutate: vi.fn(),
-      } as any)
+      vi.mocked(useSWR)
+        .mockReturnValueOnce({
+          data: undefined,
+          error: undefined,
+          isLoading: false,
+          mutate: vi.fn(),
+        } as any)
+        .mockReturnValueOnce({
+          data: undefined,
+          error: new Error('Network error'),
+          isLoading: false,
+          mutate: vi.fn(),
+        } as any)
 
       render(<ClientList initialData={mockClientsResponse} />)
 
@@ -153,13 +161,21 @@ describe('ClientList', () => {
   describe('Test 7: ClientList passes isLoading to LastUpdated', () => {
     it('should show loading spinner when isLoading is true', async () => {
       // Override SWR mock to return loading state
+      // First call goes to TrafficHistoryProvider, second to ClientListInner
       const { default: useSWR } = await import('swr')
-      vi.mocked(useSWR).mockReturnValueOnce({
-        data: mockClientsResponse,
-        error: undefined,
-        isLoading: true,
-        mutate: vi.fn(),
-      } as any)
+      vi.mocked(useSWR)
+        .mockReturnValueOnce({
+          data: undefined,
+          error: undefined,
+          isLoading: false,
+          mutate: vi.fn(),
+        } as any)
+        .mockReturnValueOnce({
+          data: mockClientsResponse,
+          error: undefined,
+          isLoading: true,
+          mutate: vi.fn(),
+        } as any)
 
       render(<ClientList initialData={mockClientsResponse} />)
 

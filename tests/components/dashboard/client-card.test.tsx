@@ -1,8 +1,23 @@
 // tests/components/dashboard/client-card.test.tsx
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { ClientCard } from '@/components/dashboard/client-card'
+import { TrafficHistoryProvider } from '@/contexts/traffic-history-context'
 import type { NetworkClient } from '@/lib/unifi/types'
+
+// Mock SWR used inside TrafficHistoryProvider
+vi.mock('swr', () => ({
+  default: vi.fn(() => ({
+    data: undefined,
+    error: undefined,
+    isLoading: false,
+    mutate: vi.fn(),
+  })),
+}))
+
+function renderWithProvider(ui: React.ReactElement) {
+  return render(<TrafficHistoryProvider>{ui}</TrafficHistoryProvider>)
+}
 
 describe('ClientCard', () => {
   const mockClient: NetworkClient = {
@@ -19,7 +34,7 @@ describe('ClientCard', () => {
   }
 
   it('should display device name, IP, MAC, and badge', () => {
-    render(<ClientCard client={mockClient} />)
+    renderWithProvider(<ClientCard client={mockClient} />)
 
     expect(screen.getByText('Test Device')).toBeInTheDocument()
     expect(screen.getByText(/192.168.1.100/)).toBeInTheDocument()
@@ -29,13 +44,13 @@ describe('ClientCard', () => {
 
   it('should show "No IP" when ip is null', () => {
     const clientNoIp = { ...mockClient, ip: null }
-    render(<ClientCard client={clientNoIp} />)
+    renderWithProvider(<ClientCard client={clientNoIp} />)
 
     expect(screen.getByText(/No IP/)).toBeInTheDocument()
   })
 
   it('should show last active time', () => {
-    render(<ClientCard client={mockClient} />)
+    renderWithProvider(<ClientCard client={mockClient} />)
 
     expect(screen.getByText(/Last active:/)).toBeInTheDocument()
   })
