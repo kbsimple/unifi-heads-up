@@ -90,10 +90,7 @@ export function FirewallList({ initialData }: FirewallListProps) {
         <FirewallCard
           key={policy._id}
           policy={policy}
-          onToggle={(policyId, enabled) => {
-            // Optimistic update handled by RuleToggle component
-            // This callback is for potential future use
-          }}
+          policies={policies}
         />
       ))}
     </div>

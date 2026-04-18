@@ -1,12 +1,12 @@
 // src/components/firewall/firewall-card.tsx
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Switch } from '@/components/ui/switch'
+import { RuleToggle } from './rule-toggle'
 import type { FirewallPolicy } from '@/lib/unifi/types'
 
 interface FirewallCardProps {
   policy: FirewallPolicy
-  onToggle: (policyId: string, enabled: boolean) => void
+  policies: FirewallPolicy[]
 }
 
 /**
@@ -15,7 +15,7 @@ interface FirewallCardProps {
  * Per D-04: Badge variant based on enabled state
  * Per D-08: Minimal display fields - _id, name, enabled
  */
-export function FirewallCard({ policy, onToggle }: FirewallCardProps) {
+export function FirewallCard({ policy, policies }: FirewallCardProps) {
   return (
     <Card className="bg-zinc-900 border-zinc-800 rounded-lg">
       <CardContent className="p-4">
@@ -28,11 +28,7 @@ export function FirewallCard({ policy, onToggle }: FirewallCardProps) {
             <Badge variant={policy.enabled ? 'default' : 'secondary'}>
               {policy.enabled ? 'Enabled' : 'Disabled'}
             </Badge>
-            <Switch
-              checked={policy.enabled}
-              onCheckedChange={(checked) => onToggle(policy._id, checked)}
-              aria-label={`Toggle ${policy.name}`}
-            />
+            <RuleToggle policy={policy} policies={policies} />
           </div>
         </div>
       </CardContent>
