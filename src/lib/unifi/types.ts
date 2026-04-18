@@ -53,3 +53,33 @@ export interface ClientsResponse {
   clients: NetworkClient[]
   timestamp: number
 }
+
+/**
+ * Zod schema for UniFi firewall policy
+ * Per D-08: Minimal display fields only - _id, name, enabled
+ */
+export const FirewallPolicySchema = z.object({
+  _id: z.string(),
+  name: z.string(),
+  enabled: z.boolean(),
+})
+
+/**
+ * Firewall policy from UniFi API
+ * Per D-08: Minimal fields for toggle UI
+ */
+export type FirewallPolicy = z.infer<typeof FirewallPolicySchema>
+
+/**
+ * Schema for firewall policy API responses
+ * Handles both wrapped { data: [...] } and direct array responses
+ * Per D-11: API may return either format
+ */
+export const FirewallPolicyResponseSchema = z.union([
+  // Wrapped response: { data: [...] }
+  z.object({
+    data: z.array(FirewallPolicySchema),
+  }).transform(obj => obj.data),
+  // Direct array response: [...]
+  z.array(FirewallPolicySchema),
+])
