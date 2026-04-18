@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation & Authentication** - Establish secure API layer and user authentication
 - [x] **Phase 2: Dashboard & Traffic Monitoring** - Display device list with real-time traffic status
-- [ ] **Phase 3: Firewall Control** - Toggle firewall rules to control network access
+- [x] **Phase 3: Firewall Control** - Toggle firewall rules to control network access (completed 2026-04-18)
 - [ ] **Phase 4: Enhanced Features** - Device groups and historical traffic trends
 
 ## Phase Details
@@ -70,10 +70,10 @@ Plans:
 **Plans**: 4 plans in 4 waves
 
 Plans:
-- [ ] 03-01-PLAN.md — Install Switch component, add FirewallPolicy types, extend UniFi client with firewall functions
-- [ ] 03-02-PLAN.md — Create firewall API route with GET/PUT handlers
-- [ ] 03-03-PLAN.md — Create firewall UI foundation (navigation tabs, FirewallCard, RuleToggle)
-- [ ] 03-04-PLAN.md — Create FirewallList component and firewall page with server-side data fetch
+- [x] 03-01-PLAN.md — Install Switch component, add FirewallPolicy types, extend UniFi client with firewall functions
+- [x] 03-02-PLAN.md — Create firewall API route with GET/PUT handlers
+- [x] 03-03-PLAN.md — Create firewall UI foundation (navigation tabs, FirewallCard, RuleToggle)
+- [x] 03-04-PLAN.md — Create FirewallList component and firewall page with server-side data fetch
 
 ### Phase 4: Enhanced Features
 **Goal**: Users can organize devices into groups and view traffic history
@@ -98,5 +98,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Foundation & Authentication | 6/6 | Complete | 2026-04-15 |
 | 2. Dashboard & Traffic Monitoring | 3/3 | Complete | 2026-04-15 |
-| 3. Firewall Control | 0/4 | Not started | - |
+| 3. Firewall Control | 4/4 | Complete    | 2026-04-18 |
 | 4. Enhanced Features | 0/TBD | Not started | - |
