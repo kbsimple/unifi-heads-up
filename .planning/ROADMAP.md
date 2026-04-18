@@ -67,12 +67,13 @@ Plans:
   2. User can toggle a rule on/off with a simple switch control
   3. Rule status changes appear immediately in the UI after toggle
   4. User sees clear error message if toggle operation fails
-**Plans**: 3 plans in 3 waves
+**Plans**: 4 plans in 4 waves
 
 Plans:
 - [ ] 03-01-PLAN.md — Install Switch component, add FirewallPolicy types, extend UniFi client with firewall functions
 - [ ] 03-02-PLAN.md — Create firewall API route with GET/PUT handlers
-- [ ] 03-03-PLAN.md — Create firewall UI components and page with optimistic updates
+- [ ] 03-03-PLAN.md — Create firewall UI foundation (navigation tabs, FirewallCard, RuleToggle)
+- [ ] 03-04-PLAN.md — Create FirewallList component and firewall page with server-side data fetch
 
 ### Phase 4: Enhanced Features
 **Goal**: Users can organize devices into groups and view traffic history
@@ -97,5 +98,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Foundation & Authentication | 6/6 | Complete | 2026-04-15 |
 | 2. Dashboard & Traffic Monitoring | 3/3 | Complete | 2026-04-15 |
-| 3. Firewall Control | 0/3 | Not started | - |
+| 3. Firewall Control | 0/4 | Not started | - |
 | 4. Enhanced Features | 0/TBD | Not started | - |
