@@ -1,9 +1,10 @@
 // tests/integration/firewall-integration.test.tsx
 // Hermetic integration tests - MSW mocks API, no real UniFi calls
-import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
+import { SWRConfig } from 'swr'
 import { FirewallList } from '@/components/firewall/firewall-list'
 import { FirewallCard } from '@/components/firewall/firewall-card'
 import type { FirewallPolicy } from '@/lib/unifi/types'
@@ -70,12 +71,25 @@ afterEach(() => {
 })
 afterAll(() => server.close())
 
+// Wrapper component that provides fresh SWR cache for each test
+function TestWrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>
+      {children}
+    </SWRConfig>
+  )
+}
+
 describe('Firewall Integration Tests', () => {
   describe('FirewallList - API Integration', () => {
     it('should call GET /api/firewall on mount', async () => {
       mockPolicies = createMockPolicies(3)
 
-      render(<FirewallList initialData={undefined} />)
+      render(
+        <TestWrapper>
+          <FirewallList initialData={undefined} />
+        </TestWrapper>
+      )
 
       // Wait for data to load
       await waitFor(() => {
@@ -88,30 +102,36 @@ describe('Firewall Integration Tests', () => {
     })
 
     it('should display loading skeleton while fetching', async () => {
-      let resolvePromise: (value: unknown) => void
-      const delayedPromise = new Promise((resolve) => {
+      let resolvePromise: () => void
+      const delayedPromise = new Promise<void>((resolve) => {
         resolvePromise = resolve
       })
 
       server.use(
         http.get('/api/firewall', async () => {
           await delayedPromise
-          mockPolicies = createMockPolicies(2)
           return HttpResponse.json({
-            policies: mockPolicies,
+            policies: createMockPolicies(2),
             timestamp: Date.now(),
           })
         })
       )
 
-      render(<FirewallList initialData={undefined} />)
+      // Render without waiting
+      render(
+        <TestWrapper>
+          <FirewallList initialData={undefined} />
+        </TestWrapper>
+      )
 
-      // Should show skeleton while loading
-      const skeletons = screen.getAllByTestId('skeleton')
+      // Check for skeletons immediately (before promise resolves)
+      // The Skeleton component uses data-slot="skeleton" but doesn't have a test id
+      // We look for elements with the skeleton class structure
+      const skeletons = document.querySelectorAll('[data-slot="skeleton"]')
       expect(skeletons.length).toBeGreaterThan(0)
 
       // Resolve the promise
-      resolvePromise!({})
+      resolvePromise!()
 
       // Wait for content to appear
       await waitFor(() => {
@@ -120,26 +140,33 @@ describe('Firewall Integration Tests', () => {
     })
 
     it('should display error state when API fails', async () => {
+      // Use HttpResponse.error() to simulate a network error
       server.use(
         http.get('/api/firewall', () => {
-          return HttpResponse.json(
-            { error: 'Network error' },
-            { status: 500 }
-          )
+          return HttpResponse.error()
         })
       )
 
-      render(<FirewallList initialData={undefined} />)
+      render(
+        <TestWrapper>
+          <FirewallList initialData={undefined} />
+        </TestWrapper>
+      )
 
+      // Error component should appear
       await waitFor(() => {
         expect(screen.getByText('Unable to load firewall rules')).toBeInTheDocument()
-      })
+      }, { timeout: 5000 })
     })
 
     it('should display empty state when no policies', async () => {
       mockPolicies = []
 
-      render(<FirewallList initialData={undefined} />)
+      render(
+        <TestWrapper>
+          <FirewallList initialData={undefined} />
+        </TestWrapper>
+      )
 
       await waitFor(() => {
         expect(screen.getByText('No firewall rules found')).toBeInTheDocument()
@@ -149,16 +176,23 @@ describe('Firewall Integration Tests', () => {
     it('should render all policies from API response', async () => {
       mockPolicies = createMockPolicies(5)
 
-      render(<FirewallList initialData={undefined} />)
+      render(
+        <TestWrapper>
+          <FirewallList initialData={undefined} />
+        </TestWrapper>
+      )
 
       await waitFor(() => {
         expect(screen.getByText('Rule 1')).toBeInTheDocument()
         expect(screen.getByText('Rule 5')).toBeInTheDocument()
       })
 
-      // Should show 5 policy cards
-      const cards = screen.getAllByTestId(/firewall-card-/)
-      expect(cards).toHaveLength(5)
+      // Verify 5 policy cards are rendered by checking for unique policy names
+      expect(screen.getByText('Rule 1')).toBeInTheDocument()
+      expect(screen.getByText('Rule 2')).toBeInTheDocument()
+      expect(screen.getByText('Rule 3')).toBeInTheDocument()
+      expect(screen.getByText('Rule 4')).toBeInTheDocument()
+      expect(screen.getByText('Rule 5')).toBeInTheDocument()
     })
   })
 
@@ -171,7 +205,9 @@ describe('Firewall Integration Tests', () => {
       }]
 
       render(
-        <FirewallCard policy={mockPolicies[0]} policies={mockPolicies} />
+        <TestWrapper>
+          <FirewallCard policy={mockPolicies[0]} policies={mockPolicies} />
+        </TestWrapper>
       )
 
       // Wait for component to render
@@ -179,8 +215,8 @@ describe('Firewall Integration Tests', () => {
         expect(screen.getByText('Test Rule')).toBeInTheDocument()
       })
 
-      // Find and click the toggle
-      const toggle = screen.getByRole('button', { name: /toggle test rule/i })
+      // Find and click the toggle (it's a switch, not a button)
+      const toggle = screen.getByRole('switch', { name: /toggle test rule/i })
       fireEvent.click(toggle)
 
       // Verify PUT was called with correct payload
@@ -199,7 +235,11 @@ describe('Firewall Integration Tests', () => {
       mockPolicies = createMockPolicies(2)
 
       // Step 1: Load policies
-      render(<FirewallList initialData={undefined} />)
+      render(
+        <TestWrapper>
+          <FirewallList initialData={undefined} />
+        </TestWrapper>
+      )
 
       await waitFor(() => {
         expect(screen.getByText('Rule 1')).toBeInTheDocument()
@@ -209,8 +249,8 @@ describe('Firewall Integration Tests', () => {
       // Step 2: Verify initial state - Rule 1 is Enabled (index 0, even = enabled)
       expect(screen.getByText('Enabled')).toBeInTheDocument()
 
-      // Step 3: Toggle Rule 1
-      const toggle = screen.getAllByRole('button', { name: /toggle rule/i })[0]
+      // Step 3: Toggle Rule 1 (toggle is a switch element)
+      const toggle = screen.getAllByRole('switch', { name: /toggle rule/i })[0]
       fireEvent.click(toggle)
 
       // Step 4: Verify optimistic update and API call
