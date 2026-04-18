@@ -466,12 +466,12 @@ export async function PUT(request: Request) {
 
 **Verification needed:** Test `site-feature-migration` and `firewall-policies` endpoints via Site Manager Proxy during implementation. The enuno/unifi-mcp-server reference implementation indicates these work with local API; Site Manager Proxy compatibility should be confirmed.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Site Manager Proxy vs Local API for Firewall Policies**
    - What we know: `firewall-policies` endpoint documented for v2 API local access
    - What's unclear: Whether Site Manager Proxy forwards these requests or blocks them
-   - Recommendation: Test endpoint during implementation; if blocked, may need alternative approach (document in plan as risk mitigation)
+   - **RESOLVED:** Test endpoint during implementation; Plan 03-02-01 includes fallback handling. If Site Manager Proxy blocks `/firewall-policies`, the error handler will surface a clear message. Implementation proceeds with Site Manager Proxy as primary path, local API fallback documented as risk mitigation.
 
 ## Environment Availability
 
