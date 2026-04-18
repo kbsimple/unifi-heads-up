@@ -86,8 +86,13 @@ Plans:
   4. User sees aggregated traffic status for each group
   5. User sees which devices in a group are active vs idle
   6. User can view 24-hour traffic trends for overall site and individual clients
-**Plans**: TBD
+**Plans**: 3 plans in 3 waves
 **UI hint**: yes
+
+Plans:
+- [ ] 04-01-PLAN.md — Install dependencies, create types, hooks (useLocalStorage, useGroups), add Groups tab
+- [ ] 04-02-PLAN.md — Build Groups UI (GroupCard, GroupList, CreateGroupModal, DeviceChip, groups page)
+- [ ] 04-03-PLAN.md — Build Traffic Trends (TrafficHistoryContext, TrafficChart, extend ClientCard, site traffic section)
 
 ## Progress
 
@@ -98,5 +103,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Foundation & Authentication | 6/6 | Complete | 2026-04-15 |
 | 2. Dashboard & Traffic Monitoring | 3/3 | Complete | 2026-04-15 |
-| 3. Firewall Control | 4/4 | Complete    | 2026-04-18 |
-| 4. Enhanced Features | 0/TBD | Not started | - |
+| 3. Firewall Control | 4/4 | Complete | 2026-04-18 |
+| 4. Enhanced Features | 0/3 | Not started | - |
