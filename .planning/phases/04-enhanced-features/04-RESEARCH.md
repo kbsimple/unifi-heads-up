@@ -469,17 +469,17 @@ export function GroupCard({ group, devices, onRemoveDevice, onDelete }: GroupCar
 
 **If this table is empty:** All claims in this research were verified or cited.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **How to handle client history data?**
    - What we know: Context accumulates site-wide totals, SWR has per-client data
    - What's unclear: Should we also accumulate per-client history (more memory) or compute on-demand from site totals?
-   - Recommendation: Start with site-wide history only; add per-client if performance allows
+   - **RESOLVED:** Site-wide history only for MVP (D-17, D-18). Per-client history is deferred as "future enhancement" per CONTEXT.md. HIST-02 scope is per-client chart display, not accumulation — client history panel shows the same 24-hour window derived from site totals when expanded.
 
 2. **Hourly vs minute-level granularity?**
    - What we know: D-16 specifies 24 points for 24-hour window (hourly)
    - What's unclear: Polling is every 60s, so should we sample every minute and aggregate to hourly?
-   - Recommendation: For MVP, accumulate 24 samples at 60s intervals = 24 minutes. Expand to hourly later.
+   - **RESOLVED:** Implement hourly aggregation per D-16. Accumulate samples every 60 seconds, then aggregate into hourly buckets (24 buckets for 24-hour window). Each hourly bucket contains the average of 60 samples (60 minutes). This delivers the user's decision for a true 24-hour window.
 
 ## Environment Availability
 
