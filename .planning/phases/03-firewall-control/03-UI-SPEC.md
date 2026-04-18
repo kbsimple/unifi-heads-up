@@ -52,15 +52,16 @@ Exceptions: None
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Body | 14px | 400 (normal) | 1.5 |
-| Label | 12px | 500 (medium) | 1.5 |
+| Label | 12px | 400 (normal) | 1.5 |
 | Heading | 20px | 600 (semibold) | 1.3 |
 | Display | 24px | 600 (semibold) | 1.2 |
 
+**Note:** Limited to 2 font weights per design system constraints. Label uses normal weight (not medium) to stay within limit.
+
 **Source:** Pre-populated from Phase 2 patterns:
 - `text-xl font-semibold` for headings (20px)
-- `text-lg font-medium` for subheadings (18px)
 - `text-sm` for secondary text (14px)
-- `text-xs` for metadata (12px)
+- `text-xs` for metadata and labels (12px)
 
 ---
 
@@ -228,14 +229,14 @@ Accent reserved for:
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: FLAG (focal point implicit in card pattern)
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved
 
 ---
 
