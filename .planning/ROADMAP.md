@@ -13,7 +13,7 @@ A phased journey from foundation to enhanced features, delivering visibility and
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation & Authentication** - Establish secure API layer and user authentication
-- [ ] **Phase 2: Dashboard & Traffic Monitoring** - Display device list with real-time traffic status
+- [x] **Phase 2: Dashboard & Traffic Monitoring** - Display device list with real-time traffic status
 - [ ] **Phase 3: Firewall Control** - Toggle firewall rules to control network access
 - [ ] **Phase 4: Enhanced Features** - Device groups and historical traffic trends
 
@@ -67,7 +67,12 @@ Plans:
   2. User can toggle a rule on/off with a simple switch control
   3. Rule status changes appear immediately in the UI after toggle
   4. User sees clear error message if toggle operation fails
-**Plans**: TBD
+**Plans**: 3 plans in 3 waves
+
+Plans:
+- [ ] 03-01-PLAN.md — Install Switch component, add FirewallPolicy types, extend UniFi client with firewall functions
+- [ ] 03-02-PLAN.md — Create firewall API route with GET/PUT handlers
+- [ ] 03-03-PLAN.md — Create firewall UI components and page with optimistic updates
 
 ### Phase 4: Enhanced Features
 **Goal**: Users can organize devices into groups and view traffic history
@@ -91,6 +96,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation & Authentication | 6/6 | Complete | 2026-04-15 |
-| 2. Dashboard & Traffic Monitoring | 0/3 | Not started | - |
-| 3. Firewall Control | 0/TBD | Not started | - |
+| 2. Dashboard & Traffic Monitoring | 3/3 | Complete | 2026-04-15 |
+| 3. Firewall Control | 0/3 | Not started | - |
 | 4. Enhanced Features | 0/TBD | Not started | - |
