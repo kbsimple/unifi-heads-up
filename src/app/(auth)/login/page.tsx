@@ -1,7 +1,8 @@
 // src/app/(auth)/login/page.tsx
 'use client'
 
-import { useFormState, useFormStatus } from 'react-dom'
+import { useActionState } from 'react'
+import { useFormStatus } from 'react-dom'
 import { login } from '@/app/actions/auth'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -21,7 +22,7 @@ function SubmitButton() {
 }
 
 export default function LoginPage() {
-  const [state, formAction] = useFormState(login, {})
+  const [state, formAction] = useActionState(login, {})
   const formRef = useRef<HTMLFormElement>(null)
 
   // Show error toast when login fails (per D-07)

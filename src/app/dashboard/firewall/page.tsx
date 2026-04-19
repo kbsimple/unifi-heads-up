@@ -1,19 +1,16 @@
-// src/app/(dashboard)/firewall/page.tsx
 import { verifySession } from '@/lib/dal'
 import { getFirewallPolicies } from '@/lib/unifi/client'
 import { FirewallList } from '@/components/firewall/firewall-list'
 
-/**
- * Firewall page with firewall rules list
- * Per D-01: Firewall tab in main navigation
- * Per D-02: Route /firewall for firewall rules
- */
 export default async function FirewallPage() {
-  // Verify session (redirects to login if not authenticated)
   await verifySession()
 
-  // Fetch initial data server-side (fast page load)
-  const initialPolicies = await getFirewallPolicies()
+  let initialPolicies
+  try {
+    initialPolicies = await getFirewallPolicies()
+  } catch {
+    initialPolicies = []
+  }
 
   return (
     <div className="space-y-4">
