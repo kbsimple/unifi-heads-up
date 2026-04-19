@@ -12,14 +12,14 @@ A web application for monitoring home network traffic and managing firewall rule
 
 ### Validated
 
-(None yet — ship to validate)
+- [x] User can authenticate to access the dashboard — Validated in Phase 1: Foundation & Authentication
+- [x] User can view real-time traffic status (high/medium/low/idle) for all network clients — Validated in Phase 2: Dashboard & Traffic Monitoring
+- [x] User can toggle (enable/disable) pre-existing firewall rules — Validated in Phase 3: Firewall Control
+- [x] User can view traffic status for configured device groups — Validated in Phase 4: Enhanced Features
 
 ### Active
 
-- [ ] User can view real-time traffic status (high/medium/low/idle) for all network clients
-- [ ] User can view traffic status for configured device groups
-- [ ] User can toggle (enable/disable) pre-existing firewall rules
-- [ ] User can authenticate to access the dashboard
+(All v1.0 requirements validated)
 
 ### Out of Scope
 
@@ -85,4 +85,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-14 after initialization*
+*Last updated: 2026-04-18 — Phase 4 complete, all v1.0 requirements validated*
