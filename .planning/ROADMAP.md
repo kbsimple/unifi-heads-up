@@ -90,9 +90,9 @@ Plans:
 **UI hint**: yes
 
 Plans:
-- [ ] 04-01-PLAN.md — Install dependencies, create types, hooks (useLocalStorage, useGroups), add Groups tab
-- [ ] 04-02-PLAN.md — Build Groups UI (GroupCard, GroupList, CreateGroupModal, DeviceChip, groups page)
-- [ ] 04-03-PLAN.md — Build Traffic Trends (TrafficHistoryContext, TrafficChart, extend ClientCard, site traffic section)
+- [x] 04-01-PLAN.md — Install dependencies, create types, hooks (useLocalStorage, useGroups), add Groups tab
+- [x] 04-02-PLAN.md — Build Groups UI (GroupCard, GroupList, CreateGroupModal, DeviceChip, groups page)
+- [x] 04-03-PLAN.md — Build Traffic Trends (TrafficHistoryContext, TrafficChart, extend ClientCard, site traffic section)
 
 ## Progress
 
