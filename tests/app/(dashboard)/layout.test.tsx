@@ -19,7 +19,7 @@ describe('DashboardLayout Navigation', () => {
 
   describe('Test 1: Layout renders Dashboard and Firewall navigation tabs', () => {
     it('should render both Dashboard and Firewall navigation tabs', async () => {
-      const { default: DashboardLayout } = await import('@/app/(dashboard)/layout')
+      const { default: DashboardLayout } = await import('@/app/dashboard/layout')
 
       render(
         <DashboardLayout>
@@ -40,7 +40,7 @@ describe('DashboardLayout Navigation', () => {
 
       // Re-import after mock update
       vi.resetModules()
-      const { default: DashboardLayout } = await import('@/app/(dashboard)/layout')
+      const { default: DashboardLayout } = await import('@/app/dashboard/layout')
 
       render(
         <DashboardLayout>
@@ -62,7 +62,7 @@ describe('DashboardLayout Navigation', () => {
       }))
 
       vi.resetModules()
-      const { default: DashboardLayout } = await import('@/app/(dashboard)/layout')
+      const { default: DashboardLayout } = await import('@/app/dashboard/layout')
 
       render(
         <DashboardLayout>
@@ -84,7 +84,7 @@ describe('DashboardLayout Navigation', () => {
       }))
 
       vi.resetModules()
-      const { default: DashboardLayout } = await import('@/app/(dashboard)/layout')
+      const { default: DashboardLayout } = await import('@/app/dashboard/layout')
 
       render(
         <DashboardLayout>
@@ -100,7 +100,7 @@ describe('DashboardLayout Navigation', () => {
 
   describe('Test 5: Logout button remains on right side', () => {
     it('should keep LogoutButton in the header', async () => {
-      const { default: DashboardLayout } = await import('@/app/(dashboard)/layout')
+      const { default: DashboardLayout } = await import('@/app/dashboard/layout')
 
       render(
         <DashboardLayout>

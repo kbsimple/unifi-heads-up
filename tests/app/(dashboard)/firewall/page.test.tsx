@@ -32,7 +32,7 @@ describe('FirewallPage', () => {
   describe('Test 1: Page verifies session before rendering', () => {
     it('should call verifySession before rendering', async () => {
       const { verifySession } = await import('@/lib/dal')
-      const { default: FirewallPage } = await import('@/app/(dashboard)/firewall/page')
+      const { default: FirewallPage } = await import('@/app/dashboard/firewall/page')
 
       render(await FirewallPage())
 
@@ -43,7 +43,7 @@ describe('FirewallPage', () => {
   describe('Test 2: Page fetches initial data via getFirewallPolicies', () => {
     it('should call getFirewallPolicies to fetch initial data', async () => {
       const { getFirewallPolicies } = await import('@/lib/unifi/client')
-      const { default: FirewallPage } = await import('@/app/(dashboard)/firewall/page')
+      const { default: FirewallPage } = await import('@/app/dashboard/firewall/page')
 
       render(await FirewallPage())
 
@@ -53,7 +53,7 @@ describe('FirewallPage', () => {
 
   describe('Test 3: Page passes initialData to FirewallList', () => {
     it('should pass initial policies to FirewallList component', async () => {
-      const { default: FirewallPage } = await import('@/app/(dashboard)/firewall/page')
+      const { default: FirewallPage } = await import('@/app/dashboard/firewall/page')
 
       render(await FirewallPage())
 
@@ -65,7 +65,7 @@ describe('FirewallPage', () => {
 
   describe('Test 4: Page renders FirewallList component', () => {
     it('should render FirewallList component', async () => {
-      const { default: FirewallPage } = await import('@/app/(dashboard)/firewall/page')
+      const { default: FirewallPage } = await import('@/app/dashboard/firewall/page')
 
       render(await FirewallPage())
 

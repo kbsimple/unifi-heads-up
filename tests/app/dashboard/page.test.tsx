@@ -45,7 +45,7 @@ describe('DashboardPage', () => {
   describe('Test 1: Dashboard page renders ClientList with initial data', () => {
     it('should render ClientList component with fetched data', async () => {
       // Dynamic import to apply mocks
-      const { default: DashboardPage } = await import('@/app/(dashboard)/page')
+      const { default: DashboardPage } = await import('@/app/dashboard/page')
 
       render(await DashboardPage())
 
@@ -57,7 +57,7 @@ describe('DashboardPage', () => {
   describe('Test 2: Dashboard page calls verifySession', () => {
     it('should verify user session before rendering', async () => {
       const { verifySession } = await import('@/lib/dal')
-      const { default: DashboardPage } = await import('@/app/(dashboard)/page')
+      const { default: DashboardPage } = await import('@/app/dashboard/page')
 
       render(await DashboardPage())
 
@@ -67,7 +67,7 @@ describe('DashboardPage', () => {
 
   describe('Test 3: Dashboard page shows section title', () => {
     it('should display Network Clients heading', async () => {
-      const { default: DashboardPage } = await import('@/app/(dashboard)/page')
+      const { default: DashboardPage } = await import('@/app/dashboard/page')
 
       render(await DashboardPage())
 
