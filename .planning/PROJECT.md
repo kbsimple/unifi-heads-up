@@ -55,6 +55,16 @@ A web application for monitoring home network traffic and managing firewall rule
 - **Authentication:** Family/household users (simple auth, not enterprise)
 - **API Rate Limits:** Site Manager API has rate limits (10,000 req/min for v1 stable)
 
+## Current Milestone: v1.1 Dev Mocking
+
+**Goal:** Make the app fully usable in dev without a real UniFi console by introducing a mock layer activated via `UNIFI_MOCK=true`.
+
+**Target features:**
+- `UNIFI_MOCK=true` env var activates mock mode (wired into dev.sh)
+- Mock firewall rules — realistic set, toggle state persists in-memory per session
+- Mock network clients — varied static set covering High/Medium/Low/Idle statuses
+- Mock intercepts at the UniFi client layer — API routes and UI exercise real code paths
+
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
@@ -88,4 +98,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-20 after v1.0 milestone*
+*Last updated: 2026-04-20 — v1.1 Dev Mocking milestone started*
