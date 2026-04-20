@@ -99,6 +99,7 @@ None yet.
 |---|-------------|------|--------|-----------|
 | 260418-ocd | Update README with comprehensive instructions for starting and testing the application | 2026-04-19 | 528fb15 | [260418-ocd-update-readme-with-comprehensive-instruc](./quick/260418-ocd-update-readme-with-comprehensive-instruc/) |
 | 260419-ci0 | Write Vitest+RTL tests covering all 5 phase-04 UAT scenarios | 2026-04-19 | cde8211 | [260419-ci0-write-vitest-rtl-tests-covering-all-5-ph](./quick/260419-ci0-write-vitest-rtl-tests-covering-all-5-ph/) |
+| 260420-dev | Create dev startup script with test passwords | 2026-04-20 | — | [260420-dev-startup-script-with-test-passwords](./quick/260420-dev-startup-script-with-test-passwords/) |
 
 ### Blockers/Concerns
 
