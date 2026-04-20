@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.0
-milestone_name: milestone
-status: executing
-stopped_at: "Completed quick task 260419-ci0: Write Vitest RTL tests covering all 5 phase-04 UAT scenarios"
-last_updated: "2026-04-19T20:07:48.413Z"
-last_activity: "2026-04-19 - Completed quick task 260418-ocd: Update README with comprehensive instructions for starting and testing the application"
+milestone_name: MVP
+status: complete
+stopped_at: ~
+last_updated: "2026-04-20T00:50:00.000Z"
+last_activity: "2026-04-20 - Milestone v1.0 MVP archived"
 progress:
   total_phases: 4
   completed_phases: 4
@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-14)
 
 **Core value:** Visibility and control over home network traffic — users must be able to see which devices are actively using bandwidth and pause/resume internet access for specific devices or groups.
-**Current focus:** Phase 04 — Enhanced Features
+**Current focus:** Planning next milestone
 
 ## Current Position
 
@@ -105,8 +105,21 @@ None yet.
 - **Phase 1:** ZBF endpoint discovery — test `/site-feature-migration` response format during implementation
 - **Phase 1:** Authentication method — Site Manager API key (stateless) vs local admin auth (requires CSRF, session persistence)
 
+## Deferred Items
+
+Items acknowledged and deferred at milestone close on 2026-04-20:
+
+| Category | Item | Status |
+|----------|------|--------|
+| uat_gap | Phase 04: 04-HUMAN-UAT.md | automated — human UAT replaced by Vitest+RTL automated tests |
+| verification_gap | Phase 04: 04-VERIFICATION.md | human_needed — final human verification not performed |
+| quick_task | 260418-ocd-update-readme-with-comprehensive-instruc | missing status file (task completed per STATE.md) |
+| quick_task | 260419-ci0-write-vitest-rtl-tests-covering-all-5-ph | missing status file (task completed per STATE.md) |
+
+Known deferred items at close: 4 (see above)
+
 ## Session Continuity
 
-Last session: 2026-04-19T20:07:48.410Z
-Stopped at: Completed quick task 260419-ci0: Write Vitest RTL tests covering all 5 phase-04 UAT scenarios
+Last session: 2026-04-20T00:48:55.429Z
+Stopped at: context exhaustion at 92% (2026-04-20)
 Resume file: None

@@ -59,11 +59,14 @@ A web application for monitoring home network traffic and managing firewall rule
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Site Manager Proxy over VPN | Simpler setup, no firewall config, works behind CGNAT | — Pending |
-| Next.js + Vercel | Full-stack framework with easy deployment | — Pending |
-| Polling over WebSocket | 5-min averages don't need real-time streaming | — Pending |
-| Default thresholds | Start simple, add configuration if needed later | — Pending |
-| Toggle existing rules only | Lower complexity, user already has rules configured | — Pending |
+| Site Manager Proxy over VPN | Simpler setup, no firewall config, works behind CGNAT | ✓ Good — worked as expected |
+| Next.js + Vercel | Full-stack framework with easy deployment | ✓ Good — zero-config deploy, Server Components reduced client JS |
+| Polling over WebSocket | 5-min averages don't need real-time streaming | ✓ Good — SWR 60s polling sufficient |
+| Default thresholds | Start simple, add configuration if needed later | ✓ Good — no user requests for customization yet |
+| Toggle existing rules only | Lower complexity, user already has rules configured | ✓ Good — correct scope for family use |
+| localStorage for groups | No database needed for single-user family app | ✓ Good — simple and effective |
+| useRef for traffic history accumulation | Avoids re-renders on every SWR poll | ✓ Good — clean context pattern |
+| Vitest + RTL over Playwright | Faster, easier for component-level UAT coverage | ✓ Good — all 5 UAT scenarios automated |
 
 ---
 
@@ -85,4 +88,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-18 — Phase 4 complete, all v1.0 requirements validated*
+*Last updated: 2026-04-20 after v1.0 milestone*
