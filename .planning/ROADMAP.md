@@ -35,7 +35,12 @@ Full archive: `.planning/milestones/v1.0-ROADMAP.md`
   3. The firewall page displays at least 3 rules with varied names and mixed enabled/disabled states
   4. Toggling a firewall rule in the UI flips its enabled state and the change persists for the remainder of the dev session (survives page refresh, resets on server restart)
   5. Disabling UNIFI_MOCK (or running against production) uses the real UniFi client code with zero changes to client.ts exports
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 05-01-PLAN.md — Create mock.ts + index.ts facade, update API route imports and dev.sh
+- [ ] 05-02-PLAN.md — Write mock unit tests and repair route test vi.mock targets
+
 **UI hint**: yes
 
 ## Progress
@@ -46,4 +51,4 @@ Full archive: `.planning/milestones/v1.0-ROADMAP.md`
 | 2. Dashboard & Traffic Monitoring | v1.0 | 3/3 | Complete | 2026-04-15 |
 | 3. Firewall Control | v1.0 | 4/4 | Complete | 2026-04-18 |
 | 4. Enhanced Features | v1.0 | 3/3 | Complete | 2026-04-19 |
-| 5. Dev Mock Layer | v1.1 | 0/? | Not started | - |
+| 5. Dev Mock Layer | v1.1 | 0/2 | Not started | - |
