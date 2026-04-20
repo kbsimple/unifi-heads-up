@@ -38,14 +38,14 @@ Requirements for the Dev Mocking milestone. Each maps to a roadmap phase.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| MOCK-01 | — | Pending |
-| MOCK-02 | — | Pending |
-| MOCK-03 | — | Pending |
-| MOCK-04 | — | Pending |
-| MOCK-05 | — | Pending |
-| MOCK-06 | — | Pending |
-| MOCK-07 | — | Pending |
-| MOCK-08 | — | Pending |
+| MOCK-01 | Phase 5 | Pending |
+| MOCK-02 | Phase 5 | Pending |
+| MOCK-03 | Phase 5 | Pending |
+| MOCK-04 | Phase 5 | Pending |
+| MOCK-05 | Phase 5 | Pending |
+| MOCK-06 | Phase 5 | Pending |
+| MOCK-07 | Phase 5 | Pending |
+| MOCK-08 | Phase 5 | Pending |
 
 ---
 *Requirements defined: 2026-04-20*
