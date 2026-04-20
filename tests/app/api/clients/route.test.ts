@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { GET } from '@/app/api/clients/route'
 
 // Mock the UniFi client
-vi.mock('@/lib/unifi/client', () => ({
+vi.mock('@/lib/unifi', () => ({
   getUnifiClients: vi.fn(),
 }))
 
@@ -15,7 +15,7 @@ vi.mock('@/lib/session', () => ({
 // Mock server-only
 vi.mock('server-only', () => ({}))
 
-import { getUnifiClients } from '@/lib/unifi/client'
+import { getUnifiClients } from '@/lib/unifi'
 import { getSession } from '@/lib/session'
 
 describe('GET /api/clients', () => {

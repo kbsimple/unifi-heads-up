@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { GET, PUT } from '@/app/api/firewall/route'
 
 // Mock the UniFi client
-vi.mock('@/lib/unifi/client', () => ({
+vi.mock('@/lib/unifi', () => ({
   getFirewallPolicies: vi.fn(),
   updateFirewallPolicy: vi.fn(),
 }))
@@ -16,7 +16,7 @@ vi.mock('@/lib/session', () => ({
 // Mock server-only
 vi.mock('server-only', () => ({}))
 
-import { getFirewallPolicies, updateFirewallPolicy } from '@/lib/unifi/client'
+import { getFirewallPolicies, updateFirewallPolicy } from '@/lib/unifi'
 import { getSession } from '@/lib/session'
 
 describe('GET /api/firewall', () => {
