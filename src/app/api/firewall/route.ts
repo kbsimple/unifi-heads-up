@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getSession } from '@/lib/session'
-import { getFirewallPolicies, updateFirewallPolicy } from '@/lib/unifi/client'
+import { getFirewallPolicies, updateFirewallPolicy } from '@/lib/unifi'
 import { ERROR_MESSAGES } from '@/lib/definitions'
 
 /**

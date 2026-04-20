@@ -1,7 +1,7 @@
 // src/app/api/clients/route.ts
 import { NextResponse } from 'next/server'
 import { getSession } from '@/lib/session'
-import { getUnifiClients } from '@/lib/unifi/client'
+import { getUnifiClients } from '@/lib/unifi'
 import { ERROR_MESSAGES } from '@/lib/definitions'
 
 /**
