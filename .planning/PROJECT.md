@@ -12,14 +12,19 @@ A web application for monitoring home network traffic and managing firewall rule
 
 ### Validated
 
-- [x] User can authenticate to access the dashboard — Validated in Phase 1: Foundation & Authentication
-- [x] User can view real-time traffic status (high/medium/low/idle) for all network clients — Validated in Phase 2: Dashboard & Traffic Monitoring
-- [x] User can toggle (enable/disable) pre-existing firewall rules — Validated in Phase 3: Firewall Control
-- [x] User can view traffic status for configured device groups — Validated in Phase 4: Enhanced Features
+- ✓ User can authenticate to access the dashboard — v1.0 (Phase 1)
+- ✓ User can view real-time traffic status (high/medium/low/idle) for all network clients — v1.0 (Phase 2)
+- ✓ User can toggle (enable/disable) pre-existing firewall rules — v1.0 (Phase 3)
+- ✓ User can view traffic status for configured device groups — v1.0 (Phase 4)
+- ✓ `UNIFI_MOCK=true` activates mock data layer; app runs in dev without real UniFi console — v1.1 (Phase 5)
+- ✓ Real UniFi client code is unchanged — mock intercepts at the same function interface — v1.1 (Phase 5)
+- ✓ `dev.sh` sets `UNIFI_MOCK=true` automatically — v1.1 (Phase 5)
+- ✓ Mock returns ≥3 firewall rules with varied names and mixed enabled states; toggle persists in-memory — v1.1 (Phase 5)
+- ✓ Mock returns ≥6 network clients covering High/Medium/Low/Idle statuses with name, MAC, IP, bytes/s — v1.1 (Phase 5)
 
 ### Active
 
-(All v1.0 requirements validated)
+(All v1.0 and v1.1 requirements validated — next milestone TBD)
 
 ### Out of Scope
 
@@ -55,15 +60,13 @@ A web application for monitoring home network traffic and managing firewall rule
 - **Authentication:** Family/household users (simple auth, not enterprise)
 - **API Rate Limits:** Site Manager API has rate limits (10,000 req/min for v1 stable)
 
-## Current Milestone: v1.1 Dev Mocking
+## Current State
 
-**Goal:** Make the app fully usable in dev without a real UniFi console by introducing a mock layer activated via `UNIFI_MOCK=true`.
+**Shipped:** v1.1 Dev Mocking (2026-04-19)
 
-**Target features:**
-- `UNIFI_MOCK=true` env var activates mock mode (wired into dev.sh)
-- Mock firewall rules — realistic set, toggle state persists in-memory per session
-- Mock network clients — varied static set covering High/Medium/Low/Idle statuses
-- Mock intercepts at the UniFi client layer — API routes and UI exercise real code paths
+The app is fully functional with a complete mock layer for local development. All 13 requirements across v1.0 and v1.1 are validated. Next milestone is TBD — run `/gsd-new-milestone` to define it.
+
+**Codebase:** ~2,800 LOC TypeScript/TSX. Next.js 15 + Tailwind CSS 4 + shadcn/ui. 31 test files, 167 tests passing.
 
 ## Key Decisions
 
@@ -77,6 +80,9 @@ A web application for monitoring home network traffic and managing firewall rule
 | localStorage for groups | No database needed for single-user family app | ✓ Good — simple and effective |
 | useRef for traffic history accumulation | Avoids re-renders on every SWR poll | ✓ Good — clean context pattern |
 | Vitest + RTL over Playwright | Faster, easier for component-level UAT coverage | ✓ Good — all 5 UAT scenarios automated |
+| Facade at index.ts (not per-request) | Evaluate UNIFI_MOCK once at module init — simpler, server restart to flip | ✓ Good — clean and predictable |
+| In-memory toggle state (module-level var) | Resets on server restart (intentional) — no persistence needed for dev | ✓ Good — correct scope, MOCK-05 satisfied |
+| Mock intercepts at client interface | Real client.ts unchanged — zero production risk from mock layer | ✓ Good — clean separation, routes exercise real code paths |
 
 ---
 
@@ -98,4 +104,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-20 — v1.1 Dev Mocking milestone started*
+*Last updated: 2026-04-19 after v1.1 Dev Mocking milestone*

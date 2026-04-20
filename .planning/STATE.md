@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Dev Mocking
-status: planning
+status: complete
 stopped_at: ~
-last_updated: "2026-04-20T01:00:00.000Z"
-last_activity: "2026-04-20 - Roadmap created for v1.1 Dev Mocking (Phase 5)"
+last_updated: "2026-04-19T00:00:00.000Z"
+last_activity: "2026-04-19 - v1.1 milestone archived, all 8 MOCK requirements shipped"
 progress:
   total_phases: 1
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  completed_phases: 1
+  total_plans: 2
+  completed_plans: 2
+  percent: 100
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-20)
 
 **Core value:** Visibility and control over home network traffic — users must be able to see which devices are actively using bandwidth and pause/resume internet access for specific devices or groups.
-**Current focus:** v1.1 Dev Mocking — Phase 5: Dev Mock Layer
+**Current focus:** v1.1 complete — run `/gsd-new-milestone` to start next milestone
 
 ## Current Position
 
 Phase: 5 — Dev Mock Layer
-Plan: —
-Status: Not started
-Last activity: 2026-04-20 - Roadmap created for v1.1 Dev Mocking
+Plan: 05-02 (final)
+Status: Complete
+Last activity: 2026-04-19 - v1.1 milestone archived
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 

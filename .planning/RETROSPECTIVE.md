@@ -44,8 +44,49 @@
 
 ---
 
+---
+
+## Milestone: v1.1 — Dev Mocking
+
+**Shipped:** 2026-04-19
+**Phases:** 1 (Phase 5) | **Plans:** 2
+
+### What Was Built
+
+- Module-level UNIFI_MOCK facade (index.ts) switching between mock and real client at module init
+- mock.ts with 6 network clients (all 4 traffic bands) and 3 firewall policies with in-memory toggle state
+- dev.sh wired with `UNIFI_MOCK=true` — no credentials required for local development
+- 15 new Vitest tests: 11 mock unit tests (MOCK-04–08) + 4 facade smoke tests
+- Repaired 2 route test vi.mock targets broken by the facade introduction
+
+### What Worked
+
+- Two-plan structure was exactly right — implementation (05-01) and tests (05-02) as separate units
+- Facade pattern kept production code untouched — zero risk to real client
+- Self-contained toggle tests (read/flip/assert/restore) avoided beforeEach complexity
+- yolo mode + tight plan scope = ~18 min total execution for both plans
+
+### What Was Inefficient
+
+- Three pre-existing test failures (layout/page tests referencing `(dashboard)` path) were carried through both plans and only fixed at the very end — could have been caught and fixed in 05-01
+- REQUIREMENTS.md traceability not updated during execution (same pattern as v1.0)
+
+### Patterns Established
+
+- Conditional re-export facade at index.ts for environment-switched implementations
+- vi.mock hoisting with server-only + both client/mock modules to prevent real network access in tests
+- Self-contained toggle test pattern: read → flip → assert → restore (no global state leakage)
+
+### Key Lessons
+
+- Fix obviously broken existing tests at the start of the phase, not the end — they cause noise throughout
+- Update REQUIREMENTS.md traceability table during phase execution (still not doing this)
+
+---
+
 ## Cross-Milestone Trends
 
 | Milestone | Phases | Plans | Days | LOC | Req Coverage |
 |-----------|--------|-------|------|-----|--------------|
-| v1.0 MVP  | 4      | 16    | 5    | ~7,076 | 28/28 |
+| v1.0 MVP  | 4      | 16    | 5    | ~7,076 | 8/8 reqs |
+| v1.1 Dev Mocking | 1 | 2 | 1 | ~9 files | 8/8 reqs |
