@@ -6,11 +6,12 @@ interface ClientTableProps {
   clients: NetworkClient[]
 }
 
-function formatLastActive(date: Date | null): string {
+function formatLastActive(date: Date | string | null): string {
   if (!date) return 'Unknown'
 
+  const d = date instanceof Date ? date : new Date(date)
   const now = Date.now()
-  const then = date.getTime()
+  const then = d.getTime()
   const diffMs = now - then
   const diffMins = Math.floor(diffMs / (1000 * 60))
   const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
