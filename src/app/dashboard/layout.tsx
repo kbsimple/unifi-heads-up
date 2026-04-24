@@ -31,9 +31,9 @@ export default function DashboardLayout({
           {/* Navigation tabs - per D-01, D-02: Dashboard, Firewall, Groups */}
           <nav className="flex items-center gap-4">
             <Link
-              href="/"
+              href="/dashboard"
               className={`text-sm font-medium transition-colors ${
-                pathname === '/'
+                pathname === '/dashboard'
                   ? 'text-sky-600 border-b-2 border-sky-600'
                   : 'text-zinc-400 hover:text-zinc-100'
               }`}
@@ -41,9 +41,9 @@ export default function DashboardLayout({
               Dashboard
             </Link>
             <Link
-              href="/firewall"
+              href="/dashboard/firewall"
               className={`text-sm font-medium transition-colors ${
-                pathname === '/firewall'
+                pathname === '/dashboard/firewall'
                   ? 'text-sky-600 border-b-2 border-sky-600'
                   : 'text-zinc-400 hover:text-zinc-100'
               }`}
@@ -51,9 +51,9 @@ export default function DashboardLayout({
               Firewall
             </Link>
             <Link
-              href="/groups"
+              href="/dashboard/groups"
               className={`text-sm font-medium transition-colors ${
-                pathname === '/groups'
+                pathname === '/dashboard/groups'
                   ? 'text-sky-600 border-b-2 border-sky-600'
                   : 'text-zinc-400 hover:text-zinc-100'
               }`}
