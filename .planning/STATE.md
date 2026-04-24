@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-20)
 Phase: 5 — Dev Mock Layer
 Plan: 05-02 (final)
 Status: Complete
-Last activity: 2026-04-19 - v1.1 milestone archived
+Last activity: 2026-04-23 - Completed quick task 260423-moc: Vercel UAT mock mode setup
 
 Progress: [██████████] 100%
 
@@ -76,6 +76,7 @@ None.
 | 260418-ocd | Update README with comprehensive instructions for starting and testing the application | 2026-04-19 | 528fb15 | [260418-ocd-update-readme-with-comprehensive-instruc](./quick/260418-ocd-update-readme-with-comprehensive-instruc/) |
 | 260419-ci0 | Write Vitest+RTL tests covering all 5 phase-04 UAT scenarios | 2026-04-19 | cde8211 | [260419-ci0-write-vitest-rtl-tests-covering-all-5-ph](./quick/260419-ci0-write-vitest-rtl-tests-covering-all-5-ph/) |
 | 260420-dev | Create dev startup script with test passwords | 2026-04-20 | — | [260420-dev-startup-script-with-test-passwords](./quick/260420-dev-startup-script-with-test-passwords/) |
+| 260423-moc | Add .env.vercel-mock + Vercel UAT mock mode instructions | 2026-04-23 | d79a0f2 | [260423-moc-mock-mode-vercel-uat-setup](./quick/260423-moc-mock-mode-vercel-uat-setup/) |
 
 ### Blockers/Concerns
 
