@@ -32,6 +32,8 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# UAT mock env is safe to commit — no real secrets
+!.env.vercel-mock
 
 # vercel
 .vercel
