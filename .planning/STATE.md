@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: Dev Mocking
-status: complete
-stopped_at: ~
-last_updated: "2026-04-19T00:00:00.000Z"
-last_activity: "2026-04-19 - v1.1 milestone archived, all 8 MOCK requirements shipped"
+milestone: v1.0
+milestone_name: milestone
+status: completed
+stopped_at: context exhaustion at 90% (2026-04-24)
+last_updated: "2026-04-24T03:37:39.165Z"
+last_activity: "2026-04-23 - Completed quick task 260423-las: Fix dashboard lastSeen Date crash"
 progress:
-  total_phases: 1
-  completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_phases: 5
+  completed_phases: 5
+  total_plans: 18
+  completed_plans: 18
   percent: 100
 ---
 
@@ -77,6 +77,7 @@ None.
 | 260419-ci0 | Write Vitest+RTL tests covering all 5 phase-04 UAT scenarios | 2026-04-19 | cde8211 | [260419-ci0-write-vitest-rtl-tests-covering-all-5-ph](./quick/260419-ci0-write-vitest-rtl-tests-covering-all-5-ph/) |
 | 260420-dev | Create dev startup script with test passwords | 2026-04-20 | — | [260420-dev-startup-script-with-test-passwords](./quick/260420-dev-startup-script-with-test-passwords/) |
 | 260423-moc | Add .env.vercel-mock + Vercel UAT mock mode instructions | 2026-04-23 | d79a0f2 | [260423-moc-mock-mode-vercel-uat-setup](./quick/260423-moc-mock-mode-vercel-uat-setup/) |
+| 260423-las | Fix dashboard crash: lastSeen Date becomes ISO string after SWR revalidation | 2026-04-23 | 920efe9 | [260423-las-fix-dashboard-lastseen-date-crash](./quick/260423-las-fix-dashboard-lastseen-date-crash/) |
 
 ### Blockers/Concerns
 
@@ -95,6 +96,6 @@ Items acknowledged and deferred at milestone close on 2026-04-20 (v1.0):
 
 ## Session Continuity
 
-Last session: 2026-04-20
-Stopped at: roadmap created, Phase 5 ready for planning
+Last session: 2026-04-24T03:37:39.163Z
+Stopped at: context exhaustion at 90% (2026-04-24)
 Resume file: None
