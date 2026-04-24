@@ -1,5 +1,5 @@
 import { verifySession } from '@/lib/dal'
-import { getFirewallPolicies } from '@/lib/unifi/client'
+import { getFirewallPolicies } from '@/lib/unifi'
 import { FirewallList } from '@/components/firewall/firewall-list'
 import type { FirewallPolicy } from '@/lib/unifi/types'
 

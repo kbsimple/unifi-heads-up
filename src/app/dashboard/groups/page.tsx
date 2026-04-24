@@ -1,5 +1,5 @@
 import { verifySession } from '@/lib/dal'
-import { getUnifiClients } from '@/lib/unifi/client'
+import { getUnifiClients } from '@/lib/unifi'
 import { GroupList } from '@/components/groups/group-list'
 
 export default async function GroupsPage() {
