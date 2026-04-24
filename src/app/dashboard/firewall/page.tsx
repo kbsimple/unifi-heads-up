@@ -1,11 +1,12 @@
 import { verifySession } from '@/lib/dal'
 import { getFirewallPolicies } from '@/lib/unifi/client'
 import { FirewallList } from '@/components/firewall/firewall-list'
+import type { FirewallPolicy } from '@/lib/unifi/types'
 
 export default async function FirewallPage() {
   await verifySession()
 
-  let initialPolicies
+  let initialPolicies: FirewallPolicy[]
   try {
     initialPolicies = await getFirewallPolicies()
   } catch {
