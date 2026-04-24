@@ -36,6 +36,11 @@ export default async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL('/dashboard', req.nextUrl))
   }
 
+  // Redirect unauthenticated root visits to login
+  if (path === '/' && !session?.username) {
+    return NextResponse.redirect(new URL('/login', req.nextUrl))
+  }
+
   return NextResponse.next()
 }
 
