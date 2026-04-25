@@ -34,6 +34,8 @@ yarn-error.log*
 .env*
 # UAT mock env is safe to commit — no real secrets
 !.env.vercel-mock
+# Example env template is safe to commit — placeholders only, no real secrets
+!.env.local.example
 
 # vercel
 .vercel
