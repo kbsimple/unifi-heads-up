@@ -11,7 +11,7 @@ import { ERROR_MESSAGES } from '@/lib/definitions'
  * Per threat model T-02-04: Requires session verification
  * Per UIUX-05: Returns structured error responses
  */
-export async function GET() {
+export async function GET(req: Request) {
   // Verify session (per threat model T-02-04)
   const session = await getSession()
 
@@ -28,17 +28,34 @@ export async function GET() {
   } catch (error) {
     // Structured error handling per Phase 1 pattern
     const message = error instanceof Error ? error.message : 'Unknown error'
+    const stack = error instanceof Error ? error.stack : undefined
 
     // Distinguish between network errors and API errors (per UIUX-05)
     if (message.includes('fetch') || message.includes('network')) {
       return NextResponse.json(
-        { error: 'NETWORK_ERROR', message: ERROR_MESSAGES.NETWORK_ERROR },
+        {
+          error: 'NETWORK_ERROR',
+          message: ERROR_MESSAGES.NETWORK_ERROR,
+          path: req.url,
+          details: {
+            originalError: message,
+            stack: stack,
+          },
+        },
         { status: 503 }
       )
     }
 
     return NextResponse.json(
-      { error: 'API_ERROR', message: ERROR_MESSAGES.UNKNOWN },
+      {
+        error: 'API_ERROR',
+        message: ERROR_MESSAGES.UNKNOWN,
+        path: req.url,
+        details: {
+          originalError: message,
+          stack: stack,
+        },
+      },
       { status: 500 }
     )
   }
