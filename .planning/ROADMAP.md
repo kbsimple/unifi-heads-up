@@ -65,9 +65,9 @@ Full archive: `.planning/milestones/v1.1-ROADMAP.md`
   4. The built Docker image contains no secrets — `UNIFI_HOST`, `UNIFI_API_KEY`, and `SESSION_SECRET` are injected at runtime via an env file
   5. A household member with no prior context can follow the written setup instructions and reach the running app on the LAN
 **Plans**: 3 plans
-  - [ ] 07-01-PLAN.md — next.config.ts standalone + health endpoint + .gitignore exception
-  - [ ] 07-02-PLAN.md — Dockerfile, docker-compose.yml, .dockerignore, .env.prod.example
-  - [ ] 07-03-PLAN.md — README Self-Hosted/Docker section + 07-HUMAN-UAT.md
+  - [x] 07-01-PLAN.md — next.config.ts standalone + health endpoint + .gitignore exception
+  - [x] 07-02-PLAN.md — Dockerfile, docker-compose.yml, .dockerignore, .env.prod.example
+  - [x] 07-03-PLAN.md — README Self-Hosted/Docker section + 07-HUMAN-UAT.md
 
 ---
 
@@ -80,5 +80,5 @@ Full archive: `.planning/milestones/v1.1-ROADMAP.md`
 | 3. Firewall Control | v1.0 | 4/4 | Complete | 2026-04-18 |
 | 4. Enhanced Features | v1.0 | 3/3 | Complete | 2026-04-19 |
 | 5. Dev Mock Layer | v1.1 | 2/2 | Complete | 2026-04-19 |
-| 6. Local API Client | v2.0 | 2/3 | In Progress|  |
-| 7. Docker Deployment | v2.0 | 0/3 | Not started | - |
+| 6. Local API Client | v2.0 | 3/3 | Complete (live-hw UAT deferred) | 2026-04-24 |
+| 7. Docker Deployment | v2.0 | 3/3 | Complete (live-Docker UAT deferred) | 2026-04-24 |
