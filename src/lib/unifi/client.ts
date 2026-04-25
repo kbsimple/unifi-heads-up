@@ -57,7 +57,7 @@ export async function getUnifiClients(): Promise<ClientsResponse> {
   }
 
   const response = await ky
-    .get(`${SITE_MANAGER_BASE}/proxy/network/v2/api/site/default/stat/sta`, {
+    .get(`${SITE_MANAGER_BASE}/ea/console/${consoleId}/proxy/network/v2/api/site/default/stat/sta`, {
       headers: {
         'X-API-KEY': apiKey,
         'Content-Type': 'application/json',
@@ -101,7 +101,7 @@ export async function isZoneBasedFirewallEnabled(): Promise<boolean> {
   }
 
   const response = await ky
-    .get(`${SITE_MANAGER_BASE}/proxy/network/v2/api/site/default/site-feature-migration`, {
+    .get(`${SITE_MANAGER_BASE}/ea/console/${consoleId}/proxy/network/v2/api/site/default/site-feature-migration`, {
       headers: {
         'X-API-KEY': apiKey,
         'Content-Type': 'application/json',
@@ -130,7 +130,7 @@ export async function getFirewallPolicies(): Promise<FirewallPolicy[]> {
   }
 
   const response = await ky
-    .get(`${SITE_MANAGER_BASE}/proxy/network/v2/api/site/default/firewall-policies`, {
+    .get(`${SITE_MANAGER_BASE}/ea/console/${consoleId}/proxy/network/v2/api/site/default/firewall-policies`, {
       headers: {
         'X-API-KEY': apiKey,
         'Content-Type': 'application/json',
@@ -163,7 +163,7 @@ export async function updateFirewallPolicy(
   }
 
   const response = await ky
-    .put(`${SITE_MANAGER_BASE}/proxy/network/v2/api/site/default/firewall-policies/${policyId}`, {
+    .put(`${SITE_MANAGER_BASE}/ea/console/${consoleId}/proxy/network/v2/api/site/default/firewall-policies/${policyId}`, {
       headers: {
         'X-API-KEY': apiKey,
         'Content-Type': 'application/json',
