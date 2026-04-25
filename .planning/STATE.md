@@ -1,36 +1,35 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: completed
-stopped_at: context exhaustion at 90% (2026-04-24)
-last_updated: "2026-04-24T03:37:39.165Z"
-last_activity: "2026-04-24 - Completed quick task 260424-262: Fix UniFi API URLs to include consoleId in path"
+milestone: v2.0
+milestone_name: Local Edition
+status: in_progress
+last_updated: "2026-04-24"
+last_activity: "2026-04-24 - Milestone v2.0 started"
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 18
-  completed_plans: 18
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-20)
+See: .planning/PROJECT.md (updated 2026-04-24)
 
 **Core value:** Visibility and control over home network traffic — users must be able to see which devices are actively using bandwidth and pause/resume internet access for specific devices or groups.
-**Current focus:** v1.1 complete — run `/gsd-new-milestone` to start next milestone
+**Current focus:** v2.0 Local Edition — replacing Site Manager Proxy with direct local UniFi API client
 
 ## Current Position
 
-Phase: 5 — Dev Mock Layer
-Plan: 05-02 (final)
-Status: Complete
-Last activity: 2026-04-23 - Completed quick task 260423-moc: Vercel UAT mock mode setup
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-04-24 — Milestone v2.0 started
 
-Progress: [██████████] 100%
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 

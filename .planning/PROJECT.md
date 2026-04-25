@@ -24,7 +24,12 @@ A web application for monitoring home network traffic and managing firewall rule
 
 ### Active
 
-(All v1.0 and v1.1 requirements validated — next milestone TBD)
+- [ ] Direct local UniFi API client replaces Site Manager Proxy — API key auth over LAN
+- [ ] App self-hosted locally (home server, NAS, or Dream Machine OS container)
+- [ ] Traffic status dashboard delivers real working data via local client
+- [ ] Firewall rule toggles work via local client
+- [ ] Device groups function unchanged
+- [ ] 24h traffic history charts function unchanged
 
 ### Out of Scope
 
@@ -60,11 +65,24 @@ A web application for monitoring home network traffic and managing firewall rule
 - **Authentication:** Family/household users (simple auth, not enterprise)
 - **API Rate Limits:** Site Manager API has rate limits (10,000 req/min for v1 stable)
 
+## Current Milestone: v2.0 Local Edition
+
+**Goal:** Replace the broken Site Manager Proxy integration with a direct local UniFi console API client, and re-host the app on the local network instead of Vercel.
+
+**Target features:**
+- New local UniFi API client (API key auth, direct LAN access) replacing Site Manager Proxy entirely
+- Traffic status dashboard — same behavior, working data
+- Firewall rule toggles — same UI, working data
+- Device groups — unchanged logic
+- 24h traffic history — unchanged charts/logic
+- Local deployment packaging (home server or Dream Machine OS)
+
 ## Current State
 
 **Shipped:** v1.1 Dev Mocking (2026-04-19)
+**In Progress:** v2.0 Local Edition — replacing Site Manager Proxy with direct local API
 
-The app is fully functional with a complete mock layer for local development. All 13 requirements across v1.0 and v1.1 are validated. Next milestone is TBD — run `/gsd-new-milestone` to define it.
+The Site Manager Proxy integration did not work. v2.0 replaces it wholesale with a direct local UniFi console client. The app will be self-hosted on the LAN (home server, NAS, or Dream Machine OS container) instead of Vercel.
 
 **Codebase:** ~2,800 LOC TypeScript/TSX. Next.js 15 + Tailwind CSS 4 + shadcn/ui. 31 test files, 167 tests passing.
 
