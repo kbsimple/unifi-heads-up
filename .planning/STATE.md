@@ -4,9 +4,9 @@ milestone: v2.0
 milestone_name: Local Edition
 status: in_progress
 last_updated: "2026-04-24"
-last_activity: "2026-04-24 - Milestone v2.0 started"
+last_activity: "2026-04-24 - Roadmap created for v2.0 (Phases 6-7)"
 progress:
-  total_phases: 0
+  total_phases: 2
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-04-24)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: Phase 6 — Local API Client (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-04-24 — Milestone v2.0 started
+Status: Roadmap defined — ready to plan Phase 6
+Last activity: 2026-04-24 — Roadmap created (Phases 6–7, 10 requirements mapped)
 
 Progress: [░░░░░░░░░░] 0%
 

@@ -55,6 +55,15 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
+| AUTH-01 | Phase 1 | Complete |
+| DASH-01 | Phase 2 | Complete |
+| FW-01 | Phase 3 | Complete |
+| GRP-01 | Phase 4 | Complete |
+| MOCK-01 | Phase 5 | Complete |
+| MOCK-02 | Phase 5 | Complete |
+| MOCK-03 | Phase 5 | Complete |
+| MOCK-04 | Phase 5 | Complete |
+| MOCK-05 | Phase 5 | Complete |
 | LOCAL-01 | Phase 6 | Pending |
 | LOCAL-02 | Phase 6 | Pending |
 | LOCAL-03 | Phase 6 | Pending |
@@ -73,4 +82,4 @@
 
 ---
 *Requirements defined: 2026-04-24*
-*Last updated: 2026-04-24 after initial v2.0 definition*
+*Last updated: 2026-04-24 — traceability updated after v2.0 roadmap creation*

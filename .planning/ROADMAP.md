@@ -4,6 +4,7 @@
 
 - ✅ **v1.0 MVP** — Phases 1–4 (shipped 2026-04-19)
 - ✅ **v1.1 Dev Mocking** — Phase 5 (shipped 2026-04-19)
+- 🔄 **v2.0 Local Edition** — Phases 6–7 (in progress)
 
 ## Phases
 
@@ -28,25 +29,39 @@ Full archive: `.planning/milestones/v1.1-ROADMAP.md`
 
 </details>
 
-## Planned: v2.0 Local Hosting + Real API Connectivity
+### v2.0 Local Edition
 
-**Problem:** The Ubiquiti cloud REST API (`api.ui.com`) does not expose connected client data or per-device bandwidth statistics. The official web app retrieves this data via WebRTC + MQTT, which is incompatible with Vercel serverless functions. See [docs/UNIFI-API-FINDINGS.md](../docs/UNIFI-API-FINDINGS.md) for full research findings.
+- [ ] **Phase 6: Local API Client** - Rewrite client.ts for direct LAN access and validate on real hardware
+- [ ] **Phase 7: Docker Deployment** - Package app for self-hosted LAN deployment with Docker
 
-**Solution:** Move hosting to a device on the home LAN (Raspberry Pi, NAS, or similar) with direct access to the UDR's local controller API. This unlocks:
+---
 
-- `POST /proxy/network/api/s/default/stat/report/5minutes.user` — per-device 5-minute bandwidth buckets (`rx_bytes`, `tx_bytes`) sufficient for high/medium/low/idle classification
-- `GET /proxy/network/api/s/default/stat/sta` — real-time active client list with live traffic rates
-- Full firewall policy control without cloud proxy limitations
+## Phase Details
 
-**Proposed phases:**
+### Phase 6: Local API Client
+**Goal**: The app communicates directly with the UniFi console over LAN and all features deliver real data
+**Depends on**: Phase 5 (mock layer remains intact as fallback)
+**Requirements**: LOCAL-01, LOCAL-02, LOCAL-03, LOCAL-04, LOCAL-05
+**Success Criteria** (what must be TRUE):
+  1. App authenticates to the local UniFi console using `X-API-KEY` — no cloud proxy involved, confirmed by a successful API response from the console LAN IP
+  2. The scoped `undici` Agent handles the console's self-signed TLS certificate without affecting any other HTTPS requests made by the app
+  3. Traffic status dashboard shows real device data (High/Medium/Low/Idle badges, 24h history, device groups) sourced from the live local console
+  4. A firewall rule toggled in the app is reflected as changed in the UniFi OS admin UI — confirmed by visual inspection, not just the API response
+  5. Running with `UNIFI_MOCK=true` still produces mock data — the local dev workflow is unchanged from v1.1
+**Plans**: TBD
+**UI hint**: yes
 
-| Phase | Description |
-|-------|-------------|
-| 6. Local Deployment | Dockerise the Next.js app; document deployment to a Raspberry Pi or NAS on the home LAN; replace `UNIFI_CONSOLE_ID` + cloud proxy URLs with local UDR IP + site name |
-| 7. Real Client Data | Replace mock/cloud client fetching with `stat/report/5minutes.user` and `stat/sta`; restore per-device traffic classification (high/medium/low/idle) |
-| 8. Firewall via Local API | Wire firewall toggle to local controller API (`/proxy/network/api/s/default/rest/firewallrule`) for lower latency and no cloud dependency |
-
-**Decision gate:** Confirm local hosting target (device, OS, Docker availability) before starting Phase 6.
+### Phase 7: Docker Deployment
+**Goal**: The app runs as a self-hosted container on the local network with documented setup
+**Depends on**: Phase 6
+**Requirements**: DEPLOY-01, DEPLOY-02, DEPLOY-03, DEPLOY-04, DEPLOY-05
+**Success Criteria** (what must be TRUE):
+  1. `next build` completes with `output: 'standalone'` and the `.next/standalone` directory is present
+  2. `docker build` produces a runnable image and `docker run` starts the app responding on the expected port
+  3. `docker-compose up -d` starts the container; stopping and rebooting the host brings it back automatically
+  4. The built Docker image contains no secrets — `UNIFI_HOST`, `UNIFI_API_KEY`, and `AUTH_SECRET` are injected at runtime via an env file
+  5. A household member with no prior context can follow the written setup instructions and reach the running app on the LAN
+**Plans**: TBD
 
 ---
 
@@ -59,3 +74,5 @@ Full archive: `.planning/milestones/v1.1-ROADMAP.md`
 | 3. Firewall Control | v1.0 | 4/4 | Complete | 2026-04-18 |
 | 4. Enhanced Features | v1.0 | 3/3 | Complete | 2026-04-19 |
 | 5. Dev Mock Layer | v1.1 | 2/2 | Complete | 2026-04-19 |
+| 6. Local API Client | v2.0 | 0/? | Not started | - |
+| 7. Docker Deployment | v2.0 | 0/? | Not started | - |
