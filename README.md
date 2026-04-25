@@ -295,3 +295,131 @@ The container runs as the `node` user (non-root). If you see permission errors o
 
 **Container shows as unhealthy**
 The healthcheck pings `/api/health` every 30 seconds. If the app takes more than 10 seconds to start (slow hardware), it may briefly show as `starting`. Run `docker compose logs app` to see startup output.
+
+---
+
+## Self-Hosted / PM2
+
+Run the app directly with [PM2](https://pm2.keymetrics.io/) — no Docker required. Works on Ubuntu Server and macOS (Mac Mini).
+
+### Prerequisites
+
+- **Node.js 22** — [nodejs.org](https://nodejs.org/)
+- **PM2** — `npm install -g pm2`
+
+### 1. Build the app
+
+```bash
+npm install
+npm run build
+```
+
+This produces `.next/standalone/server.js` — a self-contained Node.js server.
+
+### 2. Configure environment
+
+Copy the example and fill in your values:
+
+```bash
+cp .env.prod.example .env.prod
+```
+
+Edit `.env.prod`:
+
+| Variable | Description |
+|----------|-------------|
+| `UNIFI_HOST` | LAN IP or hostname of your UniFi console, e.g. `192.168.1.1` |
+| `UNIFI_API_KEY` | API key from UniFi OS > Settings > API |
+| `ADMIN_USER` | Admin login username |
+| `ADMIN_PASSWORD` | bcrypt hash of admin password |
+| `FAMILY_USER` | Family login username |
+| `FAMILY_PASSWORD` | bcrypt hash of family password |
+| `SESSION_SECRET` | Random string, minimum 32 characters |
+| `PORT` | Port to listen on (default: `3000`) |
+
+Generate bcrypt password hashes:
+```bash
+node -e "console.log(require('bcryptjs').hashSync('your-password', 10))"
+```
+
+Generate a session secret:
+```bash
+openssl rand -hex 32
+```
+
+### 3. Start with PM2
+
+Load your environment and start the app:
+
+```bash
+set -a; source .env.prod; set +a
+pm2 start ecosystem.config.cjs
+pm2 save
+```
+
+`pm2 save` persists the running process (including environment) so it survives reboots.
+
+Open the app: `http://<host-machine-ip>:3000`
+
+Replace `<host-machine-ip>` with the LAN IP of the machine running PM2 (not your UniFi console IP).
+
+### 4. Auto-start on boot
+
+**Ubuntu Server (systemd):**
+
+```bash
+pm2 startup systemd
+```
+
+Copy and run the command PM2 prints (it starts with `sudo env PATH=...`). Then:
+
+```bash
+sudo systemctl enable pm2-$USER
+```
+
+**macOS (Mac Mini — launchd):**
+
+```bash
+pm2 startup launchd
+```
+
+Copy and run the command PM2 prints.
+
+After either setup, the app starts automatically when the machine boots.
+
+### Updating
+
+Pull the latest code and rebuild:
+
+```bash
+git pull
+npm install
+npm run build
+pm2 restart unifi-api
+```
+
+### Stopping
+
+```bash
+pm2 stop unifi-api
+```
+
+To remove from PM2 entirely:
+
+```bash
+pm2 delete unifi-api
+pm2 save
+```
+
+### Troubleshooting PM2
+
+**App is not reachable from another device**
+Check that port 3000 is open. On Ubuntu Server: `sudo ufw allow 3000`. On macOS, the firewall dialog may prompt when PM2 first binds the port — allow it.
+
+**Environment variables are missing after reboot**
+Run `pm2 env 0` to inspect the saved environment. If variables are missing, source `.env.prod` again and re-run `pm2 restart unifi-api && pm2 save`.
+
+**Checking logs**
+```bash
+pm2 logs unifi-api
+```
