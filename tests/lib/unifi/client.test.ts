@@ -1,28 +1,25 @@
 // tests/lib/unifi/client.test.ts
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
-// Mock ky for API client tests
-vi.mock('ky', () => ({
-  default: Object.assign(
-    vi.fn(),
-    {
-      get: vi.fn(),
-    }
-  ),
+// Mock undici for API client tests
+vi.mock('undici', () => ({
+  Agent: vi.fn().mockImplementation(() => ({})),
+  fetch: vi.fn(),
 }))
 
 // Mock server-only
 vi.mock('server-only', () => ({}))
 
-import ky from 'ky'
+import { fetch, Agent } from 'undici'
 import { getUnifiClients } from '@/lib/unifi/client'
 
 describe('getUnifiClients', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     // Set required env vars
-    process.env.UNIFI_CONSOLE_ID = 'test-console-id'
+    process.env.UNIFI_HOST = '192.168.1.1'
     process.env.UNIFI_API_KEY = 'test-api-key'
+    delete process.env.UNIFI_CONSOLE_ID
   })
 
   afterEach(() => {
@@ -46,9 +43,12 @@ describe('getUnifiClients', () => {
       },
     ]
 
-    vi.mocked(ky.get).mockReturnValue({
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
       json: () => Promise.resolve(mockResponse),
-    } as unknown as ReturnType<typeof ky.get>)
+    } as unknown as Response)
 
     const result = await getUnifiClients()
 
@@ -68,9 +68,7 @@ describe('getUnifiClients', () => {
   })
 
   it('should handle API error and throw', async () => {
-    vi.mocked(ky.get).mockReturnValue({
-      json: () => Promise.reject(new Error('Network error')),
-    } as unknown as ReturnType<typeof ky.get>)
+    vi.mocked(fetch).mockRejectedValue(new Error('Network error'))
 
     await expect(getUnifiClients()).rejects.toThrow()
   })
@@ -91,9 +89,12 @@ describe('getUnifiClients', () => {
       },
     ]
 
-    vi.mocked(ky.get).mockReturnValue({
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
       json: () => Promise.resolve(mockResponse),
-    } as unknown as ReturnType<typeof ky.get>)
+    } as unknown as Response)
 
     const result = await getUnifiClients()
 
@@ -116,12 +117,51 @@ describe('getUnifiClients', () => {
       },
     ]
 
-    vi.mocked(ky.get).mockReturnValue({
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
       json: () => Promise.resolve(mockResponse),
-    } as unknown as ReturnType<typeof ky.get>)
+    } as unknown as Response)
 
     const result = await getUnifiClients()
 
     expect(result.clients[0].displayName).toBe('aa:bb:cc:dd:ee:11')
+  })
+
+  it('creates undici Agent with rejectUnauthorized: false', async () => {
+    // Re-import to ensure module evaluation captures the Agent call
+    vi.resetModules()
+    const { Agent } = await import('undici')
+    await import('@/lib/unifi/client')
+    expect(Agent).toHaveBeenCalledWith({
+      connect: { rejectUnauthorized: false },
+    })
+  })
+
+  it('throws when UNIFI_HOST is missing', async () => {
+    delete process.env.UNIFI_HOST
+    await expect(getUnifiClients()).rejects.toThrow(
+      'UNIFI_HOST and UNIFI_API_KEY environment variables are required'
+    )
+  })
+
+  it('sends X-API-KEY header to UNIFI_HOST-based URL', async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      json: () => Promise.resolve([]),
+    } as unknown as Response)
+    await getUnifiClients()
+    expect(fetch).toHaveBeenCalledWith(
+      'https://192.168.1.1/proxy/network/v2/api/site/default/stat/sta',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          'X-API-KEY': 'test-api-key',
+          'Content-Type': 'application/json',
+        }),
+      })
+    )
   })
 })
