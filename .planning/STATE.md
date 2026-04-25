@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Local Edition
 status: planning
-stopped_at: Completed 06-local-api-client-01-PLAN.md
-last_updated: "2026-04-25T04:20:10.721Z"
+stopped_at: Completed 06-local-api-client-02-PLAN.md
+last_updated: "2026-04-25T04:24:07.413Z"
 last_activity: 2026-04-24 — Roadmap created (Phases 6–7, 10 requirements mapped)
 progress:
   total_phases: 2
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
-  percent: 33
+  completed_plans: 2
+  percent: 67
 ---
 
 # Project State
@@ -53,6 +53,7 @@ Progress: [░░░░░░░░░░] 0%
 
 *Updated after each plan completion*
 | Phase 06-local-api-client P01 | 8 | 3 tasks | 4 files |
+| Phase 06-local-api-client P02 | 12 | 1 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -67,6 +68,8 @@ Recent decisions affecting current work:
 - dev.sh wires `UNIFI_MOCK=true` automatically — no manual env var management needed in dev
 - [Phase 06-local-api-client]: Wave 0 tests RED against ky client — intentional, turns GREEN after Plan 02 ships undici client
 - [Phase 06-local-api-client]: .env.local.example added to .gitignore exception (placeholders only, safe to commit)
+- [Phase 06-local-api-client]: undici.Agent singleton at module init — not per request (D-03); rejectUnauthorized: false scoped to Agent only, no NODE_TLS_REJECT_UNAUTHORIZED (D-02)
+- [Phase 06-local-api-client]: baseUrl() reads process.env.UNIFI_HOST inside function body so tests can mutate process.env between cases
 
 ### Pending Todos
 
@@ -100,6 +103,6 @@ Items acknowledged and deferred at milestone close on 2026-04-20 (v1.0):
 
 ## Session Continuity
 
-Last session: 2026-04-25T04:20:10.719Z
-Stopped at: Completed 06-local-api-client-01-PLAN.md
+Last session: 2026-04-25T04:24:07.410Z
+Stopped at: Completed 06-local-api-client-02-PLAN.md
 Resume file: None
