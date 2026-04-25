@@ -88,6 +88,7 @@ None.
 | 260423-moc | Add .env.vercel-mock + Vercel UAT mock mode instructions | 2026-04-23 | d79a0f2 | [260423-moc-mock-mode-vercel-uat-setup](./quick/260423-moc-mock-mode-vercel-uat-setup/) |
 | 260423-las | Fix dashboard crash: lastSeen Date becomes ISO string after SWR revalidation | 2026-04-23 | 920efe9 | [260423-las-fix-dashboard-lastseen-date-crash](./quick/260423-las-fix-dashboard-lastseen-date-crash/) |
 | 260424-262 | Fix UniFi API URLs to include consoleId in path | 2026-04-24 | 2f94bb2 | [260424-262-fix-unifi-api-urls-console-id](./quick/260424-262-fix-unifi-api-urls-console-id/) |
+| 260425-pm2 | Add PM2 as a deployment option alongside Docker | 2026-04-25 | 085b28b | [260425-pm2-add-pm2-deployment-option](./quick/260425-pm2-add-pm2-deployment-option/) |
 
 ### Blockers/Concerns
 
