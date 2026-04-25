@@ -209,3 +209,89 @@ Verify that `UNIFI_API_KEY` is still valid in Unifi Site Manager and that `UNIFI
 
 **Hot reload not picking up `.env.local` changes**
 Environment files are read at startup. Stop and restart `npm run dev` after any `.env.local` edit.
+
+---
+
+## Self-Hosted / Docker
+
+Run the dashboard as a permanent container on a computer that stays on your home network (a Mac mini, NAS, or any always-on machine). Once running, anyone on the network can open the app in a browser without the host machine running a dev server.
+
+### Prerequisites
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running
+- The repository cloned locally (see [Installation](#installation))
+
+### 1. Copy the env template
+
+```bash
+cp .env.prod.example .env.prod
+```
+
+Open `.env.prod` and fill in every value. The file is gitignored — your secrets will not be committed.
+
+| Variable | What to put | How to get it |
+|---|---|---|
+| `UNIFI_HOST` | LAN IP or hostname of your UniFi console (e.g. `192.168.1.1`) | Your router's admin page, or UniFi OS settings |
+| `UNIFI_API_KEY` | API key from your UniFi console | UniFi OS → Settings → API → Create API Key |
+| `ADMIN_USER` | Username for the admin account | Choose any (e.g. `admin`) |
+| `ADMIN_PASSWORD` | bcrypt hash of the admin password | See command below |
+| `FAMILY_USER` | Username for the family account | Choose any (e.g. `family`) |
+| `FAMILY_PASSWORD` | bcrypt hash of the family password | See command below |
+| `SESSION_SECRET` | 32+ character random string | See command below |
+| `PORT` | Port to expose the app on (default: `3000`) | Leave as `3000` unless port 3000 is taken |
+
+**Generate a bcrypt password hash:**
+```bash
+node -e "console.log(require('bcryptjs').hashSync('your-password', 10))"
+```
+
+**Generate SESSION_SECRET:**
+```bash
+openssl rand -hex 32
+```
+
+### 2. Build and start the container
+
+```bash
+docker compose up -d --build
+```
+
+This builds the image and starts the container in the background. The first build takes a few minutes. Subsequent starts are instant.
+
+### 3. Open the app
+
+Open a browser on any device on the same network and go to:
+
+```
+http://<host-machine-ip>:3000
+```
+
+Replace `<host-machine-ip>` with the LAN IP of the computer running Docker (not your UniFi console IP). Log in with the username and plaintext password you set in `.env.prod`.
+
+### Updating
+
+When you pull new code, rebuild the image:
+
+```bash
+git pull
+docker compose up -d --build
+```
+
+### Stopping
+
+```bash
+docker compose down
+```
+
+The container restarts automatically if the host machine reboots (`restart: unless-stopped` in `docker-compose.yml`). To prevent that, run `docker compose down` before rebooting.
+
+### Troubleshooting Docker
+
+**Container starts but app is not reachable from another device**
+This usually means the host machine's firewall is blocking port 3000. On macOS, Docker Desktop handles this automatically. On Linux, you may need to allow port 3000: `sudo ufw allow 3000`.
+
+**"permission denied" errors in docker logs**
+The container runs as the `node` user (non-root). If you see permission errors on mounted volumes, check that the volume path is accessible.
+
+**Container shows as unhealthy**
+The healthcheck pings `/api/health` every 30 seconds. If the app takes more than 10 seconds to start (slow hardware), it may briefly show as `starting`. Run `docker compose logs app` to see startup output.
