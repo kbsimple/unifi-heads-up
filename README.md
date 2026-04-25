@@ -6,7 +6,7 @@ Visibility and control over home network traffic. See which devices are actively
 
 Unifi Network Dashboard is a personal web application for monitoring home network traffic and managing firewall rules on a Unifi OS console. It shows at-a-glance bandwidth status (high / medium / low / idle) per device and device group, and exposes simple toggle controls for pre-existing firewall rules.
 
-Built for a family household. Connects to the Unifi Site Manager Proxy at `api.ui.com` — no VPN and no direct controller access required.
+Built for a family household. Communicates directly with the UniFi console over LAN using the local API. See [docs/unifi-client.md](docs/unifi-client.md) for how the API client works.
 
 ## Tech Stack
 
@@ -423,3 +423,9 @@ Run `pm2 env 0` to inspect the saved environment. If variables are missing, sour
 ```bash
 pm2 logs unifi-api
 ```
+
+---
+
+## License
+
+[MIT](LICENSE) © Faiser
