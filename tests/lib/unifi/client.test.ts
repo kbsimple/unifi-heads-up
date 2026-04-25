@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 // Mock undici for API client tests
 vi.mock('undici', () => ({
-  Agent: vi.fn().mockImplementation(() => ({})),
+  Agent: vi.fn().mockImplementation(function () { return {} }),
   fetch: vi.fn(),
 }))
 

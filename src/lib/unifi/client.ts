@@ -1,6 +1,16 @@
+/**
+ * Direct LAN client to the UniFi console — replaces the Site Manager Proxy of v1.x.
+ *
+ * Module-level undici Agent provides scoped TLS bypass (rejectUnauthorized: false)
+ * for the console's self-signed certificate, without affecting other HTTPS traffic
+ * in the process.
+ *
+ * When UNIFI_MOCK=true, src/lib/unifi/index.ts routes to ./mock.ts and this file
+ * is never invoked.
+ */
 // src/lib/unifi/client.ts
 import 'server-only'
-import ky from 'ky'
+import { fetch, Agent } from 'undici'
 import { z } from 'zod'
 import {
   UnifiClientSchema,
@@ -12,7 +22,19 @@ import {
 } from './types'
 import { calculateTrafficStatus } from './traffic'
 
-const SITE_MANAGER_BASE = 'https://api.ui.com'
+// Singleton Agent — scoped TLS bypass (D-02, D-03)
+// rejectUnauthorized: false handles the console's self-signed cert only —
+// this Agent is passed as `dispatcher` only to fetches targeting ${UNIFI_HOST}.
+const agent = new Agent({
+  connect: { rejectUnauthorized: false },
+})
+
+// D-09: UNIFI_HOST may include port (e.g., 192.168.1.1:8443)
+// e.g. UNIFI_HOST=192.168.1.1 → https://192.168.1.1/proxy/...
+// e.g. UNIFI_HOST=192.168.1.1:8443 → https://192.168.1.1:8443/proxy/...
+function baseUrl(): string {
+  return `https://${process.env.UNIFI_HOST}/proxy/network/v2/api/site/default`
+}
 
 /**
  * Transform UniFi API client to NetworkClient format
@@ -39,35 +61,40 @@ function transformClient(apiClient: z.infer<typeof UnifiClientSchema>): NetworkC
 }
 
 /**
- * Get all network clients via UniFi Site Manager Proxy
+ * Get all network clients via UniFi direct LAN API
  * Per DEVI-01: Returns name, MAC, IP for each client
  * Per DEVI-02: Returns rx_bytes-r and tx_bytes-r for traffic calculation
  * Per DEVI-04: Returns last_seen timestamp
  *
  * Requires environment variables:
- * - UNIFI_CONSOLE_ID: Console ID from Site Manager URL
- * - UNIFI_API_KEY: Site Manager API key
+ * - UNIFI_HOST: Console LAN IP or hostname (e.g., 192.168.1.1 or 192.168.1.1:8443)
+ * - UNIFI_API_KEY: API key from UniFi OS Settings > API
  */
 export async function getUnifiClients(): Promise<ClientsResponse> {
-  const consoleId = process.env.UNIFI_CONSOLE_ID
+  const host = process.env.UNIFI_HOST
   const apiKey = process.env.UNIFI_API_KEY
 
-  if (!consoleId || !apiKey) {
-    throw new Error('UNIFI_CONSOLE_ID and UNIFI_API_KEY environment variables are required')
+  if (!host || !apiKey) {
+    throw new Error('UNIFI_HOST and UNIFI_API_KEY environment variables are required')
   }
 
-  const response = await ky
-    .get(`${SITE_MANAGER_BASE}/ea/console/${consoleId}/proxy/network/v2/api/site/default/stat/sta`, {
-      headers: {
-        'X-API-KEY': apiKey,
-        'Content-Type': 'application/json',
-      },
-      timeout: 10000, // 10 second timeout
-    })
-    .json<unknown>()
+  const response = await fetch(`${baseUrl()}/stat/sta`, {
+    dispatcher: agent,
+    signal: AbortSignal.timeout(10_000),
+    headers: {
+      'X-API-KEY': apiKey,
+      'Content-Type': 'application/json',
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error(`UniFi API error: ${response.status} ${response.statusText}`)
+  }
+
+  const data = await response.json() as unknown
 
   // Validate response with Zod schema (per threat model T-02-02)
-  const clients = UnifiClientSchema.array().parse(response)
+  const clients = UnifiClientSchema.array().parse(data)
 
   return {
     clients: clients.map(transformClient),
@@ -91,56 +118,73 @@ const FeatureMigrationSchema = z.array(
  * Per D-10: Detect ZBF mode for UI adaptation
  *
  * @returns true if ZONE_BASED_FIREWALL feature is enabled, false otherwise
+ *
+ * Requires environment variables:
+ * - UNIFI_HOST: Console LAN IP or hostname
+ * - UNIFI_API_KEY: API key from UniFi OS Settings > API
  */
 export async function isZoneBasedFirewallEnabled(): Promise<boolean> {
-  const consoleId = process.env.UNIFI_CONSOLE_ID
+  const host = process.env.UNIFI_HOST
   const apiKey = process.env.UNIFI_API_KEY
 
-  if (!consoleId || !apiKey) {
-    throw new Error('UNIFI_CONSOLE_ID and UNIFI_API_KEY environment variables are required')
+  if (!host || !apiKey) {
+    throw new Error('UNIFI_HOST and UNIFI_API_KEY environment variables are required')
   }
 
-  const response = await ky
-    .get(`${SITE_MANAGER_BASE}/ea/console/${consoleId}/proxy/network/v2/api/site/default/site-feature-migration`, {
-      headers: {
-        'X-API-KEY': apiKey,
-        'Content-Type': 'application/json',
-      },
-      timeout: 10000,
-    })
-    .json<unknown>()
+  const response = await fetch(`${baseUrl()}/site-feature-migration`, {
+    dispatcher: agent,
+    signal: AbortSignal.timeout(10_000),
+    headers: {
+      'X-API-KEY': apiKey,
+      'Content-Type': 'application/json',
+    },
+  })
 
-  const features = FeatureMigrationSchema.parse(response)
+  if (!response.ok) {
+    throw new Error(`UniFi API error: ${response.status} ${response.statusText}`)
+  }
+
+  const data = await response.json() as unknown
+  const features = FeatureMigrationSchema.parse(data)
   return features.some(f => f.feature === 'ZONE_BASED_FIREWALL' && f.enabled === true)
 }
 
 /**
- * Get all firewall policies via UniFi Site Manager Proxy
+ * Get all firewall policies via UniFi direct LAN API
  * Per D-11: Returns policies for toggle UI
  * Per D-08: Minimal fields (_id, name, enabled) for display
  *
  * @returns Array of FirewallPolicy objects
+ *
+ * Requires environment variables:
+ * - UNIFI_HOST: Console LAN IP or hostname
+ * - UNIFI_API_KEY: API key from UniFi OS Settings > API
  */
 export async function getFirewallPolicies(): Promise<FirewallPolicy[]> {
-  const consoleId = process.env.UNIFI_CONSOLE_ID
+  const host = process.env.UNIFI_HOST
   const apiKey = process.env.UNIFI_API_KEY
 
-  if (!consoleId || !apiKey) {
-    throw new Error('UNIFI_CONSOLE_ID and UNIFI_API_KEY environment variables are required')
+  if (!host || !apiKey) {
+    throw new Error('UNIFI_HOST and UNIFI_API_KEY environment variables are required')
   }
 
-  const response = await ky
-    .get(`${SITE_MANAGER_BASE}/ea/console/${consoleId}/proxy/network/v2/api/site/default/firewall-policies`, {
-      headers: {
-        'X-API-KEY': apiKey,
-        'Content-Type': 'application/json',
-      },
-      timeout: 10000,
-    })
-    .json<unknown>()
+  const response = await fetch(`${baseUrl()}/firewall-policies`, {
+    dispatcher: agent,
+    signal: AbortSignal.timeout(10_000),
+    headers: {
+      'X-API-KEY': apiKey,
+      'Content-Type': 'application/json',
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error(`UniFi API error: ${response.status} ${response.statusText}`)
+  }
+
+  const data = await response.json() as unknown
 
   // Handle both wrapped { data: [...] } and direct array responses
-  return FirewallPolicyResponseSchema.parse(response)
+  return FirewallPolicyResponseSchema.parse(data)
 }
 
 /**
@@ -150,28 +194,37 @@ export async function getFirewallPolicies(): Promise<FirewallPolicy[]> {
  * @param policyId - The policy ID to update
  * @param enabled - The new enabled state
  * @returns The updated FirewallPolicy
+ *
+ * Requires environment variables:
+ * - UNIFI_HOST: Console LAN IP or hostname
+ * - UNIFI_API_KEY: API key from UniFi OS Settings > API
  */
 export async function updateFirewallPolicy(
   policyId: string,
   enabled: boolean
 ): Promise<FirewallPolicy> {
-  const consoleId = process.env.UNIFI_CONSOLE_ID
+  const host = process.env.UNIFI_HOST
   const apiKey = process.env.UNIFI_API_KEY
 
-  if (!consoleId || !apiKey) {
-    throw new Error('UNIFI_CONSOLE_ID and UNIFI_API_KEY environment variables are required')
+  if (!host || !apiKey) {
+    throw new Error('UNIFI_HOST and UNIFI_API_KEY environment variables are required')
   }
 
-  const response = await ky
-    .put(`${SITE_MANAGER_BASE}/ea/console/${consoleId}/proxy/network/v2/api/site/default/firewall-policies/${policyId}`, {
-      headers: {
-        'X-API-KEY': apiKey,
-        'Content-Type': 'application/json',
-      },
-      json: { enabled },
-      timeout: 10000,
-    })
-    .json<unknown>()
+  const response = await fetch(`${baseUrl()}/firewall-policies/${policyId}`, {
+    dispatcher: agent,
+    method: 'PUT',
+    signal: AbortSignal.timeout(10_000),
+    headers: {
+      'X-API-KEY': apiKey,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ enabled }),
+  })
 
-  return FirewallPolicySchema.parse(response)
+  if (!response.ok) {
+    throw new Error(`UniFi API error: ${response.status} ${response.statusText}`)
+  }
+
+  const data = await response.json() as unknown
+  return FirewallPolicySchema.parse(data)
 }

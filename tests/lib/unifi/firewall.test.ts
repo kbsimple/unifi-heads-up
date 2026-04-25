@@ -5,21 +5,16 @@ import {
   FirewallPolicyResponseSchema,
 } from '@/lib/unifi/types'
 
-// Mock ky for API client tests
-vi.mock('ky', () => ({
-  default: Object.assign(
-    vi.fn(),
-    {
-      get: vi.fn(),
-      put: vi.fn(),
-    }
-  ),
+// Mock undici for API client tests
+vi.mock('undici', () => ({
+  Agent: vi.fn().mockImplementation(function () { return {} }),
+  fetch: vi.fn(),
 }))
 
 // Mock server-only
 vi.mock('server-only', () => ({}))
 
-import ky from 'ky'
+import { fetch } from 'undici'
 import {
   isZoneBasedFirewallEnabled,
   getFirewallPolicies,
@@ -131,8 +126,9 @@ describe('isZoneBasedFirewallEnabled', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     // Set required env vars
-    process.env.UNIFI_CONSOLE_ID = 'test-console-id'
+    process.env.UNIFI_HOST = '192.168.1.1'
     process.env.UNIFI_API_KEY = 'test-api-key'
+    delete process.env.UNIFI_CONSOLE_ID
   })
 
   afterEach(() => {
@@ -145,9 +141,12 @@ describe('isZoneBasedFirewallEnabled', () => {
       { feature: 'OTHER_FEATURE', enabled: false },
     ]
 
-    vi.mocked(ky.get).mockReturnValue({
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
       json: () => Promise.resolve(mockResponse),
-    } as unknown as ReturnType<typeof ky.get>)
+    } as unknown as Response)
 
     const result = await isZoneBasedFirewallEnabled()
 
@@ -159,9 +158,12 @@ describe('isZoneBasedFirewallEnabled', () => {
       { feature: 'OTHER_FEATURE', enabled: true },
     ]
 
-    vi.mocked(ky.get).mockReturnValue({
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
       json: () => Promise.resolve(mockResponse),
-    } as unknown as ReturnType<typeof ky.get>)
+    } as unknown as Response)
 
     const result = await isZoneBasedFirewallEnabled()
 
@@ -171,9 +173,12 @@ describe('isZoneBasedFirewallEnabled', () => {
   it('should return false when features array is empty', async () => {
     const mockResponse: unknown[] = []
 
-    vi.mocked(ky.get).mockReturnValue({
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
       json: () => Promise.resolve(mockResponse),
-    } as unknown as ReturnType<typeof ky.get>)
+    } as unknown as Response)
 
     const result = await isZoneBasedFirewallEnabled()
 
@@ -185,8 +190,9 @@ describe('getFirewallPolicies', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     // Set required env vars
-    process.env.UNIFI_CONSOLE_ID = 'test-console-id'
+    process.env.UNIFI_HOST = '192.168.1.1'
     process.env.UNIFI_API_KEY = 'test-api-key'
+    delete process.env.UNIFI_CONSOLE_ID
   })
 
   afterEach(() => {
@@ -199,9 +205,12 @@ describe('getFirewallPolicies', () => {
       { _id: 'policy-2', name: 'Rule 2', enabled: false },
     ]
 
-    vi.mocked(ky.get).mockReturnValue({
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
       json: () => Promise.resolve(mockResponse),
-    } as unknown as ReturnType<typeof ky.get>)
+    } as unknown as Response)
 
     const result = await getFirewallPolicies()
 
@@ -220,9 +229,12 @@ describe('getFirewallPolicies', () => {
       ],
     }
 
-    vi.mocked(ky.get).mockReturnValue({
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
       json: () => Promise.resolve(mockResponse),
-    } as unknown as ReturnType<typeof ky.get>)
+    } as unknown as Response)
 
     const result = await getFirewallPolicies()
 
@@ -235,9 +247,12 @@ describe('getFirewallPolicies', () => {
       { _id: 'policy-1', name: 'Rule 1', enabled: true },
     ]
 
-    vi.mocked(ky.get).mockReturnValue({
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
       json: () => Promise.resolve(mockResponse),
-    } as unknown as ReturnType<typeof ky.get>)
+    } as unknown as Response)
 
     const result = await getFirewallPolicies()
 
@@ -250,8 +265,9 @@ describe('updateFirewallPolicy', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     // Set required env vars
-    process.env.UNIFI_CONSOLE_ID = 'test-console-id'
+    process.env.UNIFI_HOST = '192.168.1.1'
     process.env.UNIFI_API_KEY = 'test-api-key'
+    delete process.env.UNIFI_CONSOLE_ID
   })
 
   afterEach(() => {
@@ -265,21 +281,22 @@ describe('updateFirewallPolicy', () => {
       enabled: false,
     }
 
-    const putMock = vi.fn().mockReturnValue({
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
       json: () => Promise.resolve(mockResponse),
-    })
-
-    vi.mocked(ky.put).mockImplementation(putMock)
+    } as unknown as Response)
 
     const result = await updateFirewallPolicy('policy-1', false)
 
-    expect(putMock).toHaveBeenCalled()
-    // Verify the URL includes the policy ID
-    const callArgs = putMock.mock.calls[0]
-    expect(callArgs[0]).toContain('policy-1')
-    // Verify the body includes enabled
-    const options = callArgs[1] as { json?: { enabled: boolean } }
-    expect(options.json.enabled).toBe(false)
+    expect(fetch).toHaveBeenCalledWith(
+      'https://192.168.1.1/proxy/network/v2/api/site/default/firewall-policies/policy-1',
+      expect.objectContaining({
+        method: 'PUT',
+        body: JSON.stringify({ enabled: false }),
+      })
+    )
     expect(result.enabled).toBe(false)
   })
 
@@ -290,9 +307,12 @@ describe('updateFirewallPolicy', () => {
       enabled: true,
     }
 
-    vi.mocked(ky.put).mockReturnValue({
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
       json: () => Promise.resolve(mockResponse),
-    } as unknown as ReturnType<typeof ky.put>)
+    } as unknown as Response)
 
     const result = await updateFirewallPolicy('policy-1', true)
 
