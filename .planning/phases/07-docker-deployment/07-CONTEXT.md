@@ -22,7 +22,7 @@ New features (richer data, new UI) are out of scope — this is a packaging and 
 - **D-02:** Multi-stage Dockerfile with `builder` and `runner` stages. Base image: `node:22-alpine` for both stages (required by DEPLOY-02).
 - **D-03:** Builder stage: installs dependencies, runs `next build`. Runner stage: copies only `.next/standalone`, `.next/static` (into `.next/static`), and `public` (into `public`) from the builder — minimal final image, no dev dependencies, no source code.
 - **D-04:** `WORKDIR /app` in both stages. Runner stage sets `ENV NODE_ENV=production` and runs `node server.js` (the standalone entry point).
-- **D-05:** No `ENV` directives for `UNIFI_HOST`, `UNIFI_API_KEY`, or `AUTH_SECRET` in the Dockerfile — these are injected at runtime only (required by DEPLOY-04).
+- **D-05:** No `ENV` directives for `UNIFI_HOST`, `UNIFI_API_KEY`, or `SESSION_SECRET` in the Dockerfile — these are injected at runtime only (required by DEPLOY-04).
 - **D-06:** Add `.dockerignore` covering: `node_modules`, `.next`, `.env*`, `.git`, `README.md`, `.planning`.
 
 ### Docker Compose
@@ -34,7 +34,7 @@ New features (richer data, new UI) are out of scope — this is a packaging and 
 
 ### Secret Management
 - **D-10:** `.env.prod` file: consumed by docker-compose at runtime, never baked into the image, added to `.gitignore`.
-- **D-11:** `.env.prod.example` committed to the repo as a template with placeholder values — documents required vars (`UNIFI_HOST`, `UNIFI_API_KEY`, `AUTH_SECRET`, `PORT=3000`) so setup is self-guided.
+- **D-11:** `.env.prod.example` committed to the repo as a template with placeholder values — documents required vars (`UNIFI_HOST`, `UNIFI_API_KEY`, `SESSION_SECRET`, `PORT=3000`) so setup is self-guided. Note: the session secret env var is `SESSION_SECRET` (confirmed in `src/lib/session.ts:12`), not `AUTH_SECRET`.
 
 ### Documentation
 - **D-12:** Update `README.md` with a "Self-Hosted / Docker" section (required by DEPLOY-05). Content: prerequisites (Docker + Docker Compose), step-by-step from `git clone` to browser-accessible app on the LAN, required env vars with example values, how to update (pull + rebuild), how to stop.
