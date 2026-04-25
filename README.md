@@ -94,11 +94,30 @@ Copy the output and set it as `SESSION_SECRET`.
 
 ## Running the App (Development)
 
+**Quick start — no setup needed:**
+
+```bash
+./dev.sh
+```
+
+Starts the dev server with mock data and baked-in test credentials:
+
+| Username | Password |
+|----------|----------|
+| `admin`  | `admin`  |
+| `family` | `family` |
+
+Open http://localhost:3000. No `.env.local` required — `UNIFI_MOCK=true` is set automatically so no real UniFi console is needed.
+
+**With a real UniFi console:**
+
+Create `.env.local` with your `UNIFI_HOST` and `UNIFI_API_KEY`, then:
+
 ```bash
 npm run dev
 ```
 
-Open http://localhost:3000 in a browser. Log in with the username from `ADMIN_USER` or `FAMILY_USER` and the **plaintext** password that corresponds to the bcrypt hash you stored (i.e. the password you hashed, not the hash itself).
+Log in with the username/password you configured in `.env.local`.
 
 ## Testing
 
