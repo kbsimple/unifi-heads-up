@@ -1,148 +1,110 @@
 # Project Research Summary
 
-**Project:** Unifi Network Dashboard
-**Domain:** Network Monitoring Dashboard (Home/Consumer)
-**Researched:** 2026-04-14
-**Confidence:** HIGH
+**Project:** UniFi Network Dashboard — v2.0 Local Edition
+**Domain:** Home network monitoring dashboard with direct local API integration
+**Researched:** 2026-04-24
+**Confidence:** MEDIUM (local API behavior on target hardware not yet empirically validated)
+
+---
 
 ## Executive Summary
 
-This is a family-focused network monitoring dashboard that integrates with Ubiquiti's UniFi Site Manager Proxy API. The product differentiates itself from UniFi's native UI by providing simplified, non-technical-friendly visibility into network traffic with device grouping and firewall rule toggling capabilities. Experts build this type of application using Next.js with Server Components for optimal data fetching, a Backend-for-Frontend (BFF) pattern to keep API keys server-side, and polling-based updates rather than real-time WebSockets.
+v2.0 replaces the broken Site Manager Proxy (`api.ui.com`) with a direct local UniFi console API client. The core codebase (Next.js 16, Tailwind 4, shadcn/ui, SWR, Zod, ky) is unchanged — the migration is a targeted rewrite of `src/lib/unifi/client.ts` plus three infrastructure additions: a Dockerfile, an `output: 'standalone'` config line, and a replacement env var (`UNIFI_HOST` in place of `UNIFI_CONSOLE_ID`). No new npm packages are required.
 
-The recommended approach is a monolithic Next.js 15 application deployed to Vercel, using Server Components by default for data-heavy dashboard pages, with a custom UniFi API client in the service layer. Authentication should use simple JWT-based auth (suitable for 2-5 family members), not enterprise Auth.js. Key risks include: (1) Zone-Based Firewall breaking legacy endpoints, (2) cloud dependency on api.ui.com availability, and (3) rate/bytes confusion in API responses.
+The local UniFi API uses the same `X-API-KEY` header and the same URL path suffix already in the codebase. The Site Manager Proxy was a cloud pass-through to the same paths; removing the cloud prefix and pointing directly at the console LAN IP is the entirety of the client change. The one new technical challenge is the console's self-signed TLS certificate — fixed with a scoped `undici` Agent (`rejectUnauthorized: false`) applied only to UniFi requests. `undici` ships with Node.js 18+, so no npm install is needed.
+
+The primary risk is empirical: X-API-KEY auth on the classic `/proxy/network/v2/api/` path, the shape of `rx_bytes-r`/`tx_bytes-r` fields from the local endpoint, and availability of the `/firewall-policies` v2 path locally are all MEDIUM-confidence findings based on community sources. These need validation on real hardware.
+
+---
 
 ## Key Findings
 
-### Recommended Stack
+### Stack Additions (no new npm packages)
 
-Next.js 15 + React 19 + TypeScript 6 + Tailwind CSS 4. No Node.js library supports Site Manager Proxy — a custom UniFi client is required. Use `ky` for HTTP, `jose` for JWT auth, `shadcn/ui` for components, `Recharts` for visualization. Server Components by default, Client Components only for interactivity.
+| Change | Where | Why |
+|--------|-------|-----|
+| `output: 'standalone'` | `next.config.ts` | Enables Docker deployment without full node_modules |
+| `Dockerfile` (multi-stage, Node 22 Alpine) | project root | Builds and runs standalone output |
+| `.dockerignore` | project root | Excludes node_modules, .next from build context |
+| `UNIFI_HOST` env var | `.env.local`, docker run | Replaces `UNIFI_CONSOLE_ID`; points to console LAN IP |
+| Scoped `undici` Agent | `src/lib/unifi/client.ts` | Self-signed cert bypass for UniFi HTTPS only |
 
-**Core technologies:**
-- **Next.js 15**: Full-stack framework — App Router mature, React 19 support, optimal for Vercel
-- **Custom UniFi Client**: API wrapper — No library supports Site Manager Proxy; build thin wrapper around fetch/ky
-- **jose + http-only cookies**: JWT auth — Simple auth for 2-5 family members; ~50 lines of code
-- **Tailwind CSS 4 + shadcn/ui**: Styling — CSS-first config, 3.5x faster builds, copy-paste components
-- **Recharts**: Visualization — Lightweight (~45KB) for bandwidth charts
+### Removals
 
-### Expected Features
+| Change | Why |
+|--------|-----|
+| `UNIFI_CONSOLE_ID` env var | No longer needed — no cloud proxy, no console ID |
+| `api.ui.com` base URL and cloud proxy prefix | Replaced by `https://{UNIFI_HOST}/proxy/network` |
 
-**Must have (table stakes):**
-- Device List — users expect to see what's on their network
-- Real-Time Status (H/M/L/Idle) — core value: at-a-glance traffic visibility
-- Device Naming — identify devices without MAC addresses
-- Simple Authentication — private dashboard needs access control
-- Mobile-Friendly UI — home users check from phones
-- Clear Visual Indicators — red/yellow/green status at a glance
+### Local API: URL Pattern
 
-**Should have (competitive):**
-- Device Groups — organize by family member or function
-- Group Traffic Aggregation — see "Kids" bandwidth as aggregate
-- Firewall Rule Toggling — pause internet for groups without complex UI
-- Historical Trend View — see if bandwidth has been high for past hour/day
+```
+Old (Site Manager Proxy):
+  https://api.ui.com/ea/console/{consoleId}/proxy/network/v2/api/site/default/stat/sta
 
-**Defer (v2+):**
-- Per-Device Threshold Customization — smart defaults cover 95%
-- Alert Notifications — dashboard check is sufficient for now
-- Bandwidth Limiting — let native UI handle QoS
+New (direct local):
+  https://{UNIFI_HOST}/proxy/network/v2/api/site/default/stat/sta
+```
 
-### Architecture Approach
-
-Backend-for-Frontend (BFF) pattern with all API calls server-side. Data Access Layer (DAL) for authorized data fetching with React `cache()`. Server Actions for mutations with Zod validation. Polling via `router.refresh()` for updates (30-60s intervals sufficient for 5-min averages).
-
-**Major components:**
-1. **Service Layer** (`lib/services/unifi-client.ts`) — Site Manager Proxy client with rate limiting, error handling, ZBF detection
-2. **Data Access Layer** (`lib/dal/`) — Authorized data fetching with caching, transforms API responses to minimal DTOs
-3. **Server Components** — Dashboard pages that fetch directly via DAL
-4. **Server Actions** — Mutations (firewall toggle) with revalidation
+All endpoint suffixes after `/proxy/network` are **unchanged**. Auth header is the same `X-API-KEY`.
 
 ### Critical Pitfalls
 
-1. **Zone-Based Firewall Breaks Legacy Endpoints** — Detect ZBF mode via `/site-feature-migration`, route to v2 endpoints when enabled
-2. **Rate vs Cumulative Bytes Confusion** — Use `rx_bytes-r`/`tx_bytes-r` for rates (bytes/sec), not cumulative counters
-3. **Authentication Throttling Lockout** — Use Site Manager API key (stateless), persist sessions if using local admin auth
-4. **CSRF Token Required for Writes** — Include `x-csrf-token` header for all PUT/POST/DELETE with local auth (not needed for API key)
-5. **Cloud Dependency** — Implement graceful degradation for api.ui.com outages; cache last-known-good data
+1. **Zone-Based Firewall (ZBF) — legacy endpoint returns empty on Network 9.0+.**
+   The codebase already uses `/proxy/network/v2/api/site/default/firewall-policies` (the correct ZBF-era path). Verify this path works locally. Detection: `GET /proxy/network/v2/api/site/default/site-feature-migration`.
 
-## Implications for Roadmap
+2. **CSRF token on write operations — NOT needed for API key auth.**
+   CSRF only applies to session-cookie-based local admin auth. The app uses `X-API-KEY` (stateless). Do not add CSRF handling.
 
-Based on research, suggested phase structure:
+3. **Traffic rate fields: `-r` suffix is bytes/second, not cumulative.**
+   `rx_bytes-r` / `tx_bytes-r` are live rate gauges. The existing Zod schema uses these — correct. Verify local endpoint returns same field shape.
 
-### Phase 1: Foundation & Authentication
-**Rationale:** Must establish API layer and auth before any feature work; addresses all 6 critical pitfalls upfront
-**Delivers:** UnifiClient service layer with rate limiting, ZBF detection, CSRF handling; JWT auth; error boundaries
-**Addresses:** All PITFALLS (ZBF, auth throttling, CSRF, rate confusion, cloud dependency)
-**Avoids:** Building features on shaky foundation; discovering API issues late
+4. **Do NOT use `NODE_TLS_REJECT_UNAUTHORIZED=0` globally.**
+   The scoped `undici` Agent is the correct approach — it disables TLS verification only for UniFi requests, not all outbound HTTPS.
 
-### Phase 2: Dashboard & Traffic Monitoring
-**Rationale:** Validate API integration with safe GET requests before mutations; deliver core visibility value
-**Delivers:** Device list, traffic status (H/M/L/Idle), device naming, mobile-responsive UI, polling hook
-**Uses:** Next.js 15 Server Components, Recharts, shadcn/ui Card/Badge components
-**Implements:** DAL getClients/getTrafficStats, Server Components for dashboard pages
+---
 
-### Phase 3: Firewall Control
-**Rationale:** Key differentiator after read paths work; adds control capability
-**Delivers:** Firewall rule list, enable/disable toggle, ZBF-aware endpoint routing
-**Uses:** Server Actions with Zod validation, revalidation after mutations
-**Implements:** DAL getFirewallRules, Server Action toggleFirewallRule
+## Recommended Build Order
 
-### Phase 4: Enhanced Features
-**Rationale:** Competitive features after core is validated; adds grouping capability
-**Delivers:** Device groups (local storage), group traffic aggregation, historical trends
-**Uses:** Client Components for group management, localStorage for persistence
-**Implements:** Group CRUD, aggregation calculations, trend caching
+1. **Local Client Rewrite** — Replace base URL, remove `consoleId`, add undici TLS Agent; validate on real hardware empirically
+2. **Docker Packaging** — `output: 'standalone'` + Dockerfile + documented env vars; standard pattern
+3. **End-to-End Validation** — Smoke test all features against live console in Docker; confirm and close milestone
 
-### Phase Ordering Rationale
+---
 
-- Phase 1 addresses all critical pitfalls before any feature work — prevents rework
-- Phase 2 validates API integration with safe GET requests before mutations — lower risk
-- Phase 3 adds key differentiator after read paths work — builds on stable foundation
-- Phase 4 adds competitive features after core is validated — incremental value
+## Open Questions (need real-hardware validation)
 
-### Research Flags
+| Question | Fallback if fails |
+|----------|-------------------|
+| X-API-KEY accepted on local `/proxy/network/v2/api/` path? | Session-cookie auth + CSRF handling |
+| `rx_bytes-r` / `tx_bytes-r` present in local `stat/sta` response? | Schema + traffic logic needs adjustment |
+| `/firewall-policies` endpoint available locally? | Classic `/rest/firewallrule` fallback |
+| Console port (expected 443)? | `UNIFI_HOST` becomes `{IP}:{port}` |
 
-Phases likely needing deeper research during planning:
-- **Phase 1:** ZBF endpoint discovery — test `/site-feature-migration` response format, verify v2 firewall policy endpoints
-- **Phase 3:** ZBF toggle behavior — verify PATCH works on ZBF-enabled sites, document response format
-
-Phases with standard patterns (skip research-phase):
-- **Phase 2:** Server Components and polling are well-documented Next.js patterns
-- **Phase 4:** Group persistence is client-side localStorage — standard web patterns
+---
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Official docs for Next.js 15, React 19, Tailwind 4; Site Manager API documented |
-| Features | HIGH | Clear P1/P2/P3 prioritization with anti-features identified |
-| Architecture | HIGH | BFF and DAL patterns well-documented in Next.js ecosystem |
-| Pitfalls | HIGH | Multiple GitHub issues confirm ZBF, auth, rate confusion |
+| Stack changes | HIGH | Official Next.js patterns; Docker is standard |
+| Local API URL structure | MEDIUM | Path mirroring implied; not explicitly documented by Ubiquiti |
+| X-API-KEY on local v2 path | MEDIUM | Community-confirmed; official docs inaccessible during research |
+| ZBF / firewall endpoint | MEDIUM | Codebase already uses correct v2 path; local availability unconfirmed |
+| Traffic field shape locally | MEDIUM | Expected to match proxy response; not validated on real hardware |
+| Feature scope | HIGH | v2.0 is a connectivity migration; feature scope locked from v1.x |
+| Architecture | HIGH | Existing layered pattern unchanged; only client.ts changes |
 
-**Overall confidence:** HIGH
-
-### Gaps to Address
-
-- **Device Group Persistence:** Research suggests local storage; decide during planning if server-side persistence needed for multi-device sync
-- **Traffic Thresholds:** Define "high/medium/low" Mbps defaults during planning — recommend high >100Mbps for gigabit connections
-- **Polling Interval:** Start with 60s default, add configuration if users request faster updates
-- **ZBF Detection Schema:** Test `/site-feature-migration` endpoint during Phase 1 to document exact response format
+---
 
 ## Sources
 
-### Primary (HIGH confidence)
-- [Next.js 15 Production Guide](https://nextjs.org/docs/15/app/guides/production-checklist) — framework patterns
-- [UniFi Site Manager API Docs](https://developer.ui.com/site-manager-api/list-sites) — API endpoints
-- [Art-of-WiFi UniFi-API-client](https://github.com/Art-of-WiFi/UniFi-API-client) — API patterns, pitfalls
-- [UniFi API Authentication Methods](https://artofwifi.net/blog/unifi-api-authentication-local-admin-vs-api-key-vs-site-manager) — auth comparison
-
-### Secondary (MEDIUM confidence)
-- [Next.js Architecture Patterns](https://nextjs.org/docs/14/app/building-your-application/data-fetching/patterns) — DAL, Server Actions
-- [Tailwind CSS v4 Release](https://tailwindcss.com/blog/tailwindcss-v4) — styling approach
-- [shadcn/ui Installation](https://ui.shadcn.com/docs/installation/next) — component setup
-- [Network Monitoring Dashboard Best Practices](https://moldstud.com/articles/p-best-practices-and-tools-for-building-a-network-monitoring-dashboard) — feature landscape
-
-### Tertiary (LOW confidence)
-- [Home Network Dashboard Examples](https://medium.com/@planedrop/pfsense-vs-unifi-in-depth-testing-and-experience-cce36ab72441) — UX patterns from community
+- **Next.js Self-Hosting Guide** — nextjs.org/docs/app/guides/self-hosting — HIGH
+- **Next.js Deploying Guide** — nextjs.org/docs/app/getting-started/deploying — HIGH
+- **undici Agent / rejectUnauthorized** — github.com/vercel/next.js/discussions/74187 — HIGH
+- **Art-of-WiFi API auth comparison** — artofwifi.net/blog/unifi-api-authentication-local-admin-vs-api-key-vs-site-manager — MEDIUM
+- **ubntwiki Classic API Reference** — ubntwiki.com/products/software/unifi-controller/api — MEDIUM
+- **Ubiquiti Help Center API key setup** — help.ui.com/hc/en-us/articles/30076656117655 — MEDIUM (403 during research)
 
 ---
-*Research completed: 2026-04-14*
-*Ready for roadmap: yes*
+*Researched: 2026-04-24 | Supersedes: v1.0 summary (2026-04-14) | Ready for roadmap: yes*
