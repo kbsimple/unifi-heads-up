@@ -122,6 +122,10 @@ Or per-commit:
 ```bash
 git commit --author="Faiser <keepbreakfastsimple@gmail.com>" -m "message"
 ```
+
+### Git Push
+
+Always commit all pending changes before pushing. Run `git status` first — if there are uncommitted modifications, commit them in a single commit before running `git push`.
 <!-- GSD:conventions-end -->
 
 <!-- GSD:architecture-start source:ARCHITECTURE.md -->

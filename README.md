@@ -192,6 +192,10 @@ tests/              # Vitest test suite
 .planning/          # GSD workflow artifacts (phases, state)
 ```
 
+## API Research
+
+For detailed findings on what the UniFi cloud REST API actually exposes — including what works, what doesn't, and the architectural implications for per-device traffic monitoring — see [docs/UNIFI-API-FINDINGS.md](docs/UNIFI-API-FINDINGS.md).
+
 ## Troubleshooting
 
 **"Invalid credentials" on login**
