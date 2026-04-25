@@ -1,0 +1,9 @@
+node_modules
+.next
+.env*
+.git
+.planning
+README.md
+*.pem
+.DS_Store
+coverage
