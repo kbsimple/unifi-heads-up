@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Local Edition
-status: in_progress
-last_updated: "2026-04-24"
-last_activity: "2026-04-24 - Roadmap created for v2.0 (Phases 6-7)"
+status: planning
+stopped_at: Completed 06-local-api-client-01-PLAN.md
+last_updated: "2026-04-25T04:20:10.721Z"
+last_activity: 2026-04-24 — Roadmap created (Phases 6–7, 10 requirements mapped)
 progress:
   total_phases: 2
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_plans: 3
+  completed_plans: 1
+  percent: 33
 ---
 
 # Project State
@@ -51,6 +52,7 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: N/A
 
 *Updated after each plan completion*
+| Phase 06-local-api-client P01 | 8 | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -63,6 +65,8 @@ Recent decisions affecting current work:
 - Mock intercepts at client.ts level — `getNetworkClients()`, `getFirewallPolicies()`, `updateFirewallPolicy()` replaced when `UNIFI_MOCK=true`
 - In-memory toggle state: module-level variable in mock module, resets on server restart (intentional)
 - dev.sh wires `UNIFI_MOCK=true` automatically — no manual env var management needed in dev
+- [Phase 06-local-api-client]: Wave 0 tests RED against ky client — intentional, turns GREEN after Plan 02 ships undici client
+- [Phase 06-local-api-client]: .env.local.example added to .gitignore exception (placeholders only, safe to commit)
 
 ### Pending Todos
 
@@ -96,6 +100,6 @@ Items acknowledged and deferred at milestone close on 2026-04-20 (v1.0):
 
 ## Session Continuity
 
-Last session: 2026-04-24T03:37:39.163Z
-Stopped at: context exhaustion at 90% (2026-04-24)
+Last session: 2026-04-25T04:20:10.719Z
+Stopped at: Completed 06-local-api-client-01-PLAN.md
 Resume file: None

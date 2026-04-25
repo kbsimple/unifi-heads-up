@@ -49,7 +49,7 @@ Full archive: `.planning/milestones/v1.1-ROADMAP.md`
   4. A firewall rule toggled in the app is reflected as changed in the UniFi OS admin UI — confirmed by visual inspection, not just the API response
   5. Running with `UNIFI_MOCK=true` still produces mock data — the local dev workflow is unchanged from v1.1
 **Plans**: 3 plans
-  - [ ] 06-01-PLAN.md — Wave 0 test mock swap (ky → undici) + env var update + .env.local.example
+  - [x] 06-01-PLAN.md — Wave 0 test mock swap (ky → undici) + env var update + .env.local.example
   - [ ] 06-02-PLAN.md — Rewrite src/lib/unifi/client.ts using undici.fetch + scoped Agent
   - [ ] 06-03-PLAN.md — Phase verification gate (full suite + human UAT for live hardware)
 **UI hint**: yes
@@ -80,5 +80,5 @@ Full archive: `.planning/milestones/v1.1-ROADMAP.md`
 | 3. Firewall Control | v1.0 | 4/4 | Complete | 2026-04-18 |
 | 4. Enhanced Features | v1.0 | 3/3 | Complete | 2026-04-19 |
 | 5. Dev Mock Layer | v1.1 | 2/2 | Complete | 2026-04-19 |
-| 6. Local API Client | v2.0 | 0/3 | Not started | - |
+| 6. Local API Client | v2.0 | 1/3 | In Progress|  |
 | 7. Docker Deployment | v2.0 | 0/? | Not started | - |

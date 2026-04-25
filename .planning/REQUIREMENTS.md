@@ -23,11 +23,11 @@
 
 ### API Client
 
-- [ ] **LOCAL-01**: App authenticates with the UniFi console via `X-API-KEY` header over a direct LAN HTTPS connection (no cloud proxy)
-- [ ] **LOCAL-02**: App handles the console's self-signed TLS certificate via a scoped `undici` Agent with `rejectUnauthorized: false` — not a global `NODE_TLS_REJECT_UNAUTHORIZED=0` bypass
+- [x] **LOCAL-01**: App authenticates with the UniFi console via `X-API-KEY` header over a direct LAN HTTPS connection (no cloud proxy)
+- [x] **LOCAL-02**: App handles the console's self-signed TLS certificate via a scoped `undici` Agent with `rejectUnauthorized: false` — not a global `NODE_TLS_REJECT_UNAUTHORIZED=0` bypass
 - [ ] **LOCAL-03**: Traffic status dashboard displays real client data from the local API (High/Medium/Low/Idle badges, 24h history, device groups all functional)
-- [ ] **LOCAL-04**: Firewall rule toggles persist on the console — confirmed via UniFi UI, not just API response
-- [ ] **LOCAL-05**: `UNIFI_MOCK=true` mock layer remains functional for local development
+- [x] **LOCAL-04**: Firewall rule toggles persist on the console — confirmed via UniFi UI, not just API response
+- [x] **LOCAL-05**: `UNIFI_MOCK=true` mock layer remains functional for local development
 
 ### Deployment
 
@@ -64,11 +64,11 @@
 | MOCK-03 | Phase 5 | Complete |
 | MOCK-04 | Phase 5 | Complete |
 | MOCK-05 | Phase 5 | Complete |
-| LOCAL-01 | Phase 6 | Pending |
-| LOCAL-02 | Phase 6 | Pending |
+| LOCAL-01 | Phase 6 | Complete |
+| LOCAL-02 | Phase 6 | Complete |
 | LOCAL-03 | Phase 6 | Pending |
-| LOCAL-04 | Phase 6 | Pending |
-| LOCAL-05 | Phase 6 | Pending |
+| LOCAL-04 | Phase 6 | Complete |
+| LOCAL-05 | Phase 6 | Complete |
 | DEPLOY-01 | Phase 7 | Pending |
 | DEPLOY-02 | Phase 7 | Pending |
 | DEPLOY-03 | Phase 7 | Pending |
