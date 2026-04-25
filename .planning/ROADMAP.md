@@ -61,13 +61,13 @@ Full archive: `.planning/milestones/v1.1-ROADMAP.md`
 **Success Criteria** (what must be TRUE):
   1. `next build` completes with `output: 'standalone'` and the `.next/standalone` directory is present
   2. `docker build` produces a runnable image and `docker run` starts the app responding on the expected port
-  3. `docker-compose up -d` starts the container; stopping and rebooting the host brings it back automatically
-  4. The built Docker image contains no secrets — `UNIFI_HOST`, `UNIFI_API_KEY`, and `AUTH_SECRET` are injected at runtime via an env file
+  3. `docker compose up -d` starts the container; stopping and rebooting the host brings it back automatically
+  4. The built Docker image contains no secrets — `UNIFI_HOST`, `UNIFI_API_KEY`, and `SESSION_SECRET` are injected at runtime via an env file
   5. A household member with no prior context can follow the written setup instructions and reach the running app on the LAN
 **Plans**: 3 plans
-  - [x] 06-01-PLAN.md — Wave 0 test mock swap (ky → undici) + env var update + .env.local.example
-  - [x] 06-02-PLAN.md — Rewrite src/lib/unifi/client.ts using undici.fetch + scoped Agent
-  - [ ] 06-03-PLAN.md — Phase verification gate (full suite + human UAT for live hardware)
+  - [ ] 07-01-PLAN.md — next.config.ts standalone + health endpoint + .gitignore exception
+  - [ ] 07-02-PLAN.md — Dockerfile, docker-compose.yml, .dockerignore, .env.prod.example
+  - [ ] 07-03-PLAN.md — README Self-Hosted/Docker section + 07-HUMAN-UAT.md
 
 ---
 
@@ -81,4 +81,4 @@ Full archive: `.planning/milestones/v1.1-ROADMAP.md`
 | 4. Enhanced Features | v1.0 | 3/3 | Complete | 2026-04-19 |
 | 5. Dev Mock Layer | v1.1 | 2/2 | Complete | 2026-04-19 |
 | 6. Local API Client | v2.0 | 2/3 | In Progress|  |
-| 7. Docker Deployment | v2.0 | 0/? | Not started | - |
+| 7. Docker Deployment | v2.0 | 0/3 | Not started | - |
