@@ -51,7 +51,7 @@ Full archive: `.planning/milestones/v1.1-ROADMAP.md`
 **Plans**: 3 plans
   - [x] 06-01-PLAN.md — Wave 0 test mock swap (ky → undici) + env var update + .env.local.example
   - [x] 06-02-PLAN.md — Rewrite src/lib/unifi/client.ts using undici.fetch + scoped Agent
-  - [ ] 06-03-PLAN.md — Phase verification gate (full suite + human UAT for live hardware)
+  - [x] 06-03-PLAN.md — Phase verification gate (full suite + human UAT for live hardware)
 **UI hint**: yes
 
 ### Phase 7: Docker Deployment
@@ -66,7 +66,7 @@ Full archive: `.planning/milestones/v1.1-ROADMAP.md`
   5. A household member with no prior context can follow the written setup instructions and reach the running app on the LAN
 **Plans**: 3 plans
   - [x] 06-01-PLAN.md — Wave 0 test mock swap (ky → undici) + env var update + .env.local.example
-  - [ ] 06-02-PLAN.md — Rewrite src/lib/unifi/client.ts using undici.fetch + scoped Agent
+  - [x] 06-02-PLAN.md — Rewrite src/lib/unifi/client.ts using undici.fetch + scoped Agent
   - [ ] 06-03-PLAN.md — Phase verification gate (full suite + human UAT for live hardware)
 
 ---
