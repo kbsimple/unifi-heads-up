@@ -48,7 +48,10 @@ Full archive: `.planning/milestones/v1.1-ROADMAP.md`
   3. Traffic status dashboard shows real device data (High/Medium/Low/Idle badges, 24h history, device groups) sourced from the live local console
   4. A firewall rule toggled in the app is reflected as changed in the UniFi OS admin UI — confirmed by visual inspection, not just the API response
   5. Running with `UNIFI_MOCK=true` still produces mock data — the local dev workflow is unchanged from v1.1
-**Plans**: TBD
+**Plans**: 3 plans
+  - [ ] 06-01-PLAN.md — Wave 0 test mock swap (ky → undici) + env var update + .env.local.example
+  - [ ] 06-02-PLAN.md — Rewrite src/lib/unifi/client.ts using undici.fetch + scoped Agent
+  - [ ] 06-03-PLAN.md — Phase verification gate (full suite + human UAT for live hardware)
 **UI hint**: yes
 
 ### Phase 7: Docker Deployment
@@ -61,7 +64,10 @@ Full archive: `.planning/milestones/v1.1-ROADMAP.md`
   3. `docker-compose up -d` starts the container; stopping and rebooting the host brings it back automatically
   4. The built Docker image contains no secrets — `UNIFI_HOST`, `UNIFI_API_KEY`, and `AUTH_SECRET` are injected at runtime via an env file
   5. A household member with no prior context can follow the written setup instructions and reach the running app on the LAN
-**Plans**: TBD
+**Plans**: 3 plans
+  - [ ] 06-01-PLAN.md — Wave 0 test mock swap (ky → undici) + env var update + .env.local.example
+  - [ ] 06-02-PLAN.md — Rewrite src/lib/unifi/client.ts using undici.fetch + scoped Agent
+  - [ ] 06-03-PLAN.md — Phase verification gate (full suite + human UAT for live hardware)
 
 ---
 
@@ -74,5 +80,5 @@ Full archive: `.planning/milestones/v1.1-ROADMAP.md`
 | 3. Firewall Control | v1.0 | 4/4 | Complete | 2026-04-18 |
 | 4. Enhanced Features | v1.0 | 3/3 | Complete | 2026-04-19 |
 | 5. Dev Mock Layer | v1.1 | 2/2 | Complete | 2026-04-19 |
-| 6. Local API Client | v2.0 | 0/? | Not started | - |
+| 6. Local API Client | v2.0 | 0/3 | Not started | - |
 | 7. Docker Deployment | v2.0 | 0/? | Not started | - |
