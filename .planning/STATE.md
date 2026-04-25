@@ -5,7 +5,7 @@ milestone_name: milestone
 status: completed
 stopped_at: context exhaustion at 90% (2026-04-24)
 last_updated: "2026-04-24T03:37:39.165Z"
-last_activity: "2026-04-23 - Completed quick task 260423-las: Fix dashboard lastSeen Date crash"
+last_activity: "2026-04-24 - Completed quick task 260424-262: Fix UniFi API URLs to include consoleId in path"
 progress:
   total_phases: 5
   completed_phases: 5
@@ -78,6 +78,7 @@ None.
 | 260420-dev | Create dev startup script with test passwords | 2026-04-20 | — | [260420-dev-startup-script-with-test-passwords](./quick/260420-dev-startup-script-with-test-passwords/) |
 | 260423-moc | Add .env.vercel-mock + Vercel UAT mock mode instructions | 2026-04-23 | d79a0f2 | [260423-moc-mock-mode-vercel-uat-setup](./quick/260423-moc-mock-mode-vercel-uat-setup/) |
 | 260423-las | Fix dashboard crash: lastSeen Date becomes ISO string after SWR revalidation | 2026-04-23 | 920efe9 | [260423-las-fix-dashboard-lastseen-date-crash](./quick/260423-las-fix-dashboard-lastseen-date-crash/) |
+| 260424-262 | Fix UniFi API URLs to include consoleId in path | 2026-04-24 | 2f94bb2 | [260424-262-fix-unifi-api-urls-console-id](./quick/260424-262-fix-unifi-api-urls-console-id/) |
 
 ### Blockers/Concerns
 
