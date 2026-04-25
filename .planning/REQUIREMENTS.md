@@ -34,7 +34,7 @@
 - [ ] **DEPLOY-01**: Next.js app builds with `output: 'standalone'` in `next.config.ts`
 - [ ] **DEPLOY-02**: Multi-stage `Dockerfile` (Node 22 Alpine, builder + runner stages) produces a runnable image
 - [ ] **DEPLOY-03**: `docker-compose.yml` with `restart: unless-stopped` and `env_file` support for always-on LAN hosting
-- [ ] **DEPLOY-04**: All sensitive config (`UNIFI_HOST`, `UNIFI_API_KEY`, `AUTH_SECRET`) passed at container runtime — not baked into the image at build time
+- [ ] **DEPLOY-04**: All sensitive config (`UNIFI_HOST`, `UNIFI_API_KEY`, `SESSION_SECRET`) passed at container runtime — not baked into the image at build time
 - [ ] **DEPLOY-05**: Setup documented: how to build the image, start with docker-compose, required env vars, and how to reach the app on the LAN
 
 ---
