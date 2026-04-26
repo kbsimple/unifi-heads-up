@@ -78,8 +78,28 @@ UNIFI_API_KEY=<your-api-key>
 
 ### Generate a bcrypt password hash
 
+If you are in the project directory (after `npm install`), bcryptjs is already available:
+
 ```bash
 node -e "console.log(require('bcryptjs').hashSync('your-password', 10))"
+```
+
+If you are outside the project directory, use `npx` to run it without a separate install:
+
+```bash
+npx --package=bcryptjs node -e "console.log(require('bcryptjs').hashSync('your-password', 10))"
+```
+
+**Keep your password out of shell history.** Wrap the command in a subshell with `HISTFILE=` cleared — this works in both bash and zsh:
+
+```bash
+(HISTFILE= node -e "console.log(require('bcryptjs').hashSync('your-password', 10))")
+```
+
+Alternatively, in bash, prefix the command with a space — bash skips history for commands starting with a space when `HISTCONTROL` includes `ignorespace` (the default on most systems):
+
+```bash
+ node -e "console.log(require('bcryptjs').hashSync('your-password', 10))"
 ```
 
 Paste the printed hash (starts with `$2a$10$...`) as the value for `ADMIN_PASSWORD` or `FAMILY_PASSWORD`.
@@ -260,8 +280,20 @@ Open `.env.prod` and fill in every value. The file is gitignored — your secret
 | `PORT` | Port to expose the app on (default: `3000`) | Leave as `3000` unless port 3000 is taken |
 
 **Generate a bcrypt password hash:**
+
+From the project directory (after `npm install`):
 ```bash
 node -e "console.log(require('bcryptjs').hashSync('your-password', 10))"
+```
+
+Or without any install, using `npx`:
+```bash
+npx --package=bcryptjs node -e "console.log(require('bcryptjs').hashSync('your-password', 10))"
+```
+
+To keep your password out of shell history, wrap in a subshell with history disabled:
+```bash
+(HISTFILE= node -e "console.log(require('bcryptjs').hashSync('your-password', 10))")
 ```
 
 **Generate SESSION_SECRET:**
@@ -356,9 +388,19 @@ Edit `.env.prod`:
 | `SESSION_SECRET` | Random string, minimum 32 characters |
 | `PORT` | Port to listen on (default: `3000`) |
 
-Generate bcrypt password hashes:
+Generate bcrypt password hashes — from the project directory (after `npm install`):
 ```bash
 node -e "console.log(require('bcryptjs').hashSync('your-password', 10))"
+```
+
+Or without any install, using `npx`:
+```bash
+npx --package=bcryptjs node -e "console.log(require('bcryptjs').hashSync('your-password', 10))"
+```
+
+To keep your password out of shell history, wrap in a subshell with history disabled:
+```bash
+(HISTFILE= node -e "console.log(require('bcryptjs').hashSync('your-password', 10))")
 ```
 
 Generate a session secret:
