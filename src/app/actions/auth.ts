@@ -42,15 +42,24 @@ export async function login(
   let matchedUsername = ''
 
   // Check admin credentials
-  if (username === adminUser && adminPassword) {
-    isValid = await bcrypt.compare(password, adminPassword)
-    matchedUsername = 'admin'
+  if (username === adminUser) {
+    if (adminPassword) {
+      isValid = await bcrypt.compare(password, adminPassword)
+    } else if (process.env.NODE_ENV === 'development' && process.env.DEV_ADMIN_PASSWORD) {
+      // Fallback: bcrypt hashes with $ signs corrupt in dotenv-expand; allow plaintext in dev
+      isValid = password === process.env.DEV_ADMIN_PASSWORD
+    }
+    if (isValid) matchedUsername = 'admin'
   }
 
   // Check family credentials if admin didn't match
-  if (!isValid && username === familyUser && familyPassword) {
-    isValid = await bcrypt.compare(password, familyPassword)
-    matchedUsername = 'family'
+  if (!isValid && username === familyUser) {
+    if (familyPassword) {
+      isValid = await bcrypt.compare(password, familyPassword)
+    } else if (process.env.NODE_ENV === 'development' && process.env.DEV_FAMILY_PASSWORD) {
+      isValid = password === process.env.DEV_FAMILY_PASSWORD
+    }
+    if (isValid) matchedUsername = 'family'
   }
 
   if (!isValid) {
