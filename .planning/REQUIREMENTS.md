@@ -39,6 +39,31 @@
 
 ---
 
+## v3.0 Requirements — Statefulness & Insights
+
+### State Storage
+
+- [ ] **STA-01**: Server records a bandwidth snapshot (download + upload bytes/s) per client every 60 seconds
+- [ ] **STA-02**: Snapshots are persisted in a SQLite database on the server
+- [ ] **STA-03**: Records older than 30 days are automatically purged
+- [ ] **STA-04**: A background server-side interval drives recording independent of any browser session
+
+### Starred Firewall Rules
+
+- [ ] **STAR-01**: User can star or unstar individual firewall rules
+- [ ] **STAR-02**: Starred preferences are stored server-side (accessible from any browser or device)
+- [ ] **STAR-03**: Starred rules display a star indicator in the full firewall rules list
+- [ ] **STAR-04**: User can filter the firewall rules list to show only starred rules
+
+### Insights
+
+- [ ] **INS-01**: User can view a ranked list of heaviest-traffic devices over a selectable period (7, 14, or 30 days)
+- [ ] **INS-02**: User can view hourly activity patterns for a specific device showing which hours it is typically active over a selectable period (7, 14, or 30 days)
+- [ ] **INS-03**: Insights are accessible from a dedicated page in the app navigation
+- [ ] **INS-04**: User can select a time range (7, 14, or 30 days) that applies to all insight views
+
+---
+
 ## Out of Scope
 
 | Feature | Reason |
@@ -76,10 +101,9 @@
 | DEPLOY-05 | Phase 7 | Pending |
 
 **Coverage:**
-- v2.0 requirements: 10 total
-- Mapped to phases: 10
-- Unmapped: 0 ✓
+- v2.0 requirements: 10 total — mapped ✓
+- v3.0 requirements: 12 total — pending roadmap
 
 ---
 *Requirements defined: 2026-04-24*
-*Last updated: 2026-04-24 — traceability updated after v2.0 roadmap creation*
+*Last updated: 2026-05-16 — v3.0 requirements added (STA, STAR, INS)*

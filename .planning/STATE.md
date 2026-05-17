@@ -1,11 +1,10 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.0
-milestone_name: Local Edition
+milestone: v3.0
+milestone_name: Statefulness & Insights
 status: planning
-stopped_at: context exhaustion at 90% (2026-05-16)
-last_updated: "2026-05-16T19:10:43.915Z"
-last_activity: 2026-05-16 - Completed quick task 260516-srt: Update default sort order and status thresholds
+last_updated: "2026-05-16T00:00:00.000Z"
+last_activity: 2026-05-16 — Milestone v3.0 started
 progress:
   total_phases: 2
   completed_phases: 2
@@ -25,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-04-24)
 
 ## Current Position
 
-Phase: Phase 6 — Local API Client (not started)
+Phase: Not started (defining requirements)
 Plan: —
-Status: Roadmap defined — ready to plan Phase 6
-Last activity: 2026-04-24 — Roadmap created (Phases 6–7, 10 requirements mapped)
+Status: Defining requirements
+Last activity: 2026-05-16 — Milestone v3.0 started
 
 Progress: [░░░░░░░░░░] 0%
 
