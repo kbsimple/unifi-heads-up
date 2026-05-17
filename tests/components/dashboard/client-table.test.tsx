@@ -82,42 +82,48 @@ describe('ClientTable rendering', () => {
 })
 
 describe('ClientTable default sort', () => {
-  it('default sort is by displayName ascending — Apple before Zebra', () => {
+  it('no default sort — preserves API order (Zebra first)', () => {
     render(<ClientTable clients={CLIENTS} />)
     const rows = screen.getAllByRole('row')
     // rows[0] = header, rows[1..n] = data rows
-    expect(rows[1]).toHaveTextContent('Apple')
-    expect(rows[3]).toHaveTextContent('Zebra')
+    // CLIENTS is [Zebra, Apple, Mango] — API order preserved
+    expect(rows[1]).toHaveTextContent('Zebra')
+    expect(rows[3]).toHaveTextContent('Mango')
   })
 
-  it('Device Name header shows ↑ (active asc) by default', () => {
-    render(<ClientTable clients={CLIENTS} />)
-    const upArrows = screen.getAllByText('↑')
-    expect(upArrows.length).toBeGreaterThan(0)
-  })
-
-  it('inactive columns show ↕', () => {
+  it('all columns show ↕ by default', () => {
     render(<ClientTable clients={CLIENTS} />)
     const inactive = screen.getAllByText('↕')
-    // 4 inactive columns: ip, mac, trafficStatus, lastBusy
-    expect(inactive.length).toBe(4)
+    // 5 inactive columns: displayName, ip, mac, trafficStatus, lastBusy
+    expect(inactive.length).toBe(5)
   })
 })
 
 describe('ClientTable sorting by displayName', () => {
-  it('clicking "Device Name" when already active toggles to descending — Zebra first', () => {
+  it('clicking "Device Name" activates ascending sort — Apple first', () => {
     render(<ClientTable clients={CLIENTS} />)
     const header = screen.getByText(/Device Name/i).closest('th')!
-    // Default is asc; click to toggle desc
+    // First click: sets displayName asc
     fireEvent.click(header)
+    const rows = screen.getAllByRole('row')
+    expect(rows[1]).toHaveTextContent('Apple')
+    expect(rows[3]).toHaveTextContent('Zebra')
+  })
+
+  it('clicking "Device Name" twice toggles to descending — Zebra first', () => {
+    render(<ClientTable clients={CLIENTS} />)
+    const header = screen.getByText(/Device Name/i).closest('th')!
+    fireEvent.click(header) // → asc
+    fireEvent.click(header) // → desc
     const rows = screen.getAllByRole('row')
     expect(rows[1]).toHaveTextContent('Zebra')
     expect(rows[3]).toHaveTextContent('Apple')
   })
 
-  it('clicking "Device Name" twice returns to ascending — Apple first', () => {
+  it('clicking "Device Name" three times returns to ascending — Apple first', () => {
     render(<ClientTable clients={CLIENTS} />)
     const header = screen.getByText(/Device Name/i).closest('th')!
+    fireEvent.click(header) // → asc
     fireEvent.click(header) // → desc
     fireEvent.click(header) // → asc
     const rows = screen.getAllByRole('row')
@@ -128,7 +134,8 @@ describe('ClientTable sorting by displayName', () => {
   it('active sort column shows ↓ after toggling to desc', () => {
     render(<ClientTable clients={CLIENTS} />)
     const header = screen.getByText(/Device Name/i).closest('th')!
-    fireEvent.click(header)
+    fireEvent.click(header) // → asc
+    fireEvent.click(header) // → desc
     expect(screen.getAllByText('↓').length).toBeGreaterThan(0)
   })
 })

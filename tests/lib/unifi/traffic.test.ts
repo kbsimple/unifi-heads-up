@@ -19,34 +19,53 @@ describe('bytesPerSecToMbps', () => {
 })
 
 describe('calculateTrafficStatus', () => {
-  it('should return idle for less than 1 Mbps', () => {
+  it('should return idle for less than 0.5 Mbps', () => {
     // 0 bytes/sec both directions = 0 Mbps total
     expect(calculateTrafficStatus(0, 0)).toBe('idle')
   })
 
-  it('should return low for 1-10 Mbps', () => {
-    // 125000 bytes/sec = 1 Mbps, so 125000 * 2 = 2 Mbps total
-    expect(calculateTrafficStatus(125000, 125000)).toBe('low')
+  it('should return idle for 0.25 Mbps (below 0.5 threshold)', () => {
+    // 31250 bytes/sec = 0.25 Mbps — below idle threshold
+    expect(calculateTrafficStatus(31250, 0)).toBe('idle')
   })
 
-  it('should return medium for 10-100 Mbps', () => {
-    // 3,125,000 bytes/sec = 25 Mbps each, so 50 Mbps total (medium range)
-    expect(calculateTrafficStatus(3125000, 3125000)).toBe('medium')
+  it('should return low for 0.5 Mbps (at idle/low boundary)', () => {
+    // 62500 bytes/sec = 0.5 Mbps — exactly at boundary, should be low
+    expect(calculateTrafficStatus(62500, 0)).toBe('low')
   })
 
-  it('should return high for over 100 Mbps', () => {
+  it('should return low for 0.5–1 Mbps', () => {
+    // 93750 bytes/sec = 0.75 Mbps — in the low range (0.5–1 Mbps)
+    expect(calculateTrafficStatus(93750, 0)).toBe('low')
+  })
+
+  it('should return medium for 1–5 Mbps', () => {
+    // 187500 bytes/sec = 1.5 Mbps each, so 3 Mbps total — medium range
+    expect(calculateTrafficStatus(187500, 187500)).toBe('medium')
+  })
+
+  it('should return medium for 2.5 Mbps (just under 5 Mbps high threshold)', () => {
+    // 312500 bytes/sec = 2.5 Mbps — still medium
+    expect(calculateTrafficStatus(312500, 0)).toBe('medium')
+  })
+
+  it('should return high for 5 Mbps and above (at boundary)', () => {
+    // 625000 bytes/sec = 5 Mbps — exactly at high threshold
+    expect(calculateTrafficStatus(625000, 0)).toBe('high')
+  })
+
+  it('should return high for over 5 Mbps', () => {
     // 12,500,000 bytes/sec = 100 Mbps each, so 200 Mbps total
     expect(calculateTrafficStatus(12500000, 12500000)).toBe('high')
   })
 
   it('should combine download and upload rates', () => {
-    // 625000 bytes/sec download (5 Mbps) + 1875000 upload (15 Mbps) = 20 Mbps total
-    expect(calculateTrafficStatus(625000, 1875000)).toBe('medium')
+    // 62500 bytes/sec each = 0.5 Mbps each = 1 Mbps total — medium
+    expect(calculateTrafficStatus(62500, 62500)).toBe('medium')
   })
 
   it('should handle asymmetric traffic', () => {
-    // Only download traffic
-    // 6250000 bytes/sec = 50 Mbps
-    expect(calculateTrafficStatus(6250000, 0)).toBe('medium')
+    // Only download traffic: 250000 bytes/sec = 2 Mbps — medium
+    expect(calculateTrafficStatus(250000, 0)).toBe('medium')
   })
 })
