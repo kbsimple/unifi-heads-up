@@ -1,7 +1,8 @@
 'use client'
 
+import { useState } from 'react'
 import useSWR from 'swr'
-import { ShieldOff, AlertCircle, RefreshCw } from 'lucide-react'
+import { ShieldOff, AlertCircle, RefreshCw, Star } from 'lucide-react'
 import { FirewallCard } from './firewall-card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertTitle, AlertDescription, AlertAction } from '@/components/ui/alert'
@@ -18,6 +19,7 @@ interface FirewallListProps {
  * FirewallList component
  * Per UI-SPEC: Displays firewall rules with loading, empty, and error states
  * Per D-05: SWR polling with 60-second refresh interval
+ * Per Phase 9: Starred filter and star toggle with optimistic updates
  */
 export function FirewallList({ initialData }: FirewallListProps) {
   const { data, error, isLoading, mutate } = useSWR<{ policies: FirewallPolicy[]; timestamp: number }>(
@@ -35,6 +37,44 @@ export function FirewallList({ initialData }: FirewallListProps) {
       },
     }
   )
+
+  // Fetch starred rule IDs from server — persisted in SQLite across sessions
+  const { data: starredData, mutate: mutateStarred } = useSWR<{ starredIds: string[] }>(
+    '/api/firewall/starred',
+    fetcher
+  )
+  const starredIds = new Set(starredData?.starredIds ?? [])
+
+  const [showStarredOnly, setShowStarredOnly] = useState(false)
+
+  /**
+   * Toggle star state for a policy with optimistic update.
+   * Immediately updates local state, then confirms with the server.
+   * Reverts on server error.
+   */
+  async function handleToggleStar(policy: FirewallPolicy) {
+    const nextStarred = !starredIds.has(policy._id)
+    const optimisticSet = new Set(starredIds)
+    if (nextStarred) {
+      optimisticSet.add(policy._id)
+    } else {
+      optimisticSet.delete(policy._id)
+    }
+
+    // Optimistic update — no revalidation yet
+    await mutateStarred({ starredIds: [...optimisticSet] }, { revalidate: false })
+
+    try {
+      await fetch('/api/firewall/starred', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ruleId: policy._id, starred: nextStarred }),
+      })
+    } catch {
+      // Revert on error
+      await mutateStarred()
+    }
+  }
 
   // Error state with retry button
   if (error) {
@@ -68,7 +108,7 @@ export function FirewallList({ initialData }: FirewallListProps) {
 
   const policies = data?.policies ?? []
 
-  // Empty state
+  // Empty state (no policies at all)
   if (policies.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center p-8 text-center">
@@ -83,16 +123,46 @@ export function FirewallList({ initialData }: FirewallListProps) {
     )
   }
 
-  // Data state: render firewall cards
+  // Apply starred filter client-side — no extra API call
+  const visiblePolicies = showStarredOnly
+    ? policies.filter((p) => starredIds.has(p._id))
+    : policies
+
   return (
-    <div className="space-y-3">
-      {policies.map((policy) => (
-        <FirewallCard
-          key={policy._id}
-          policy={policy}
-          policies={policies}
-        />
-      ))}
+    <div>
+      {/* Filter toggle — right-aligned above the card list */}
+      <div className="flex justify-end mb-3">
+        <Button
+          variant={showStarredOnly ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setShowStarredOnly((v) => !v)}
+        >
+          <Star className={`h-3 w-3 mr-1 ${showStarredOnly ? 'fill-current' : ''}`} />
+          Starred only
+        </Button>
+      </div>
+
+      {/* Empty starred filter state */}
+      {showStarredOnly && visiblePolicies.length === 0 ? (
+        <div className="flex flex-col items-center justify-center p-8 text-center">
+          <Star className="h-8 w-8 text-zinc-500 mb-4" />
+          <p className="text-sm text-zinc-400">
+            No starred rules — click ★ on any rule to star it
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {visiblePolicies.map((policy) => (
+            <FirewallCard
+              key={policy._id}
+              policy={policy}
+              policies={policies}
+              isStarred={starredIds.has(policy._id)}
+              onToggleStar={() => handleToggleStar(policy)}
+            />
+          ))}
+        </div>
+      )}
     </div>
   )
 }
