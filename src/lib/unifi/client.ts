@@ -33,11 +33,16 @@ const agent = new Agent({
 // e.g. UNIFI_HOST=192.168.1.1 → https://192.168.1.1/proxy/...
 // e.g. UNIFI_HOST=192.168.1.1:8443 → https://192.168.1.1:8443/proxy/...
 function baseUrl(): string {
-  const apiVersion = process.env.UNIFI_API_VERSION ?? 'v1'
-  if (apiVersion === 'v2') {
-    return `https://${process.env.UNIFI_HOST}/proxy/network/v2/api/site/default`
+  return `https://${process.env.UNIFI_HOST}/proxy/network/v2/api/site/default`
+}
+
+// Older firmware exposes clients at /proxy/network/api/s/default instead of the v2 path
+function clientsUrl(): string {
+  const apiVersion = process.env.UNIFI_API_VERSION ?? 'v2'
+  if (apiVersion === 'v1') {
+    return `https://${process.env.UNIFI_HOST}/proxy/network/api/s/default`
   }
-  return `https://${process.env.UNIFI_HOST}/proxy/network/api/s/default`
+  return baseUrl()
 }
 
 /**
@@ -82,7 +87,7 @@ export async function getUnifiClients(): Promise<ClientsResponse> {
     throw new Error('UNIFI_HOST and UNIFI_API_KEY environment variables are required')
   }
 
-  const response = await fetch(`${baseUrl()}/stat/sta`, {
+  const response = await fetch(`${clientsUrl()}/stat/sta`, {
     dispatcher: agent,
     signal: AbortSignal.timeout(10_000),
     headers: {
