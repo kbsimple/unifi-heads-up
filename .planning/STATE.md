@@ -1,16 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Statefulness & Insights
+milestone: v2.0
+milestone_name: Local Edition
 status: planning
-last_updated: "2026-05-16T00:00:00.000Z"
+stopped_at: Completed 08-sqlite-snapshot-infrastructure-01-PLAN.md
+last_updated: "2026-05-17T07:02:31.232Z"
 last_activity: 2026-05-16 — v3.0 roadmap created (Phases 8–10)
 progress:
-  total_phases: 3
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_phases: 10
+  completed_phases: 8
+  total_plans: 29
+  completed_plans: 25
+  percent: 86
 ---
 
 # Project State
@@ -56,6 +57,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 06-local-api-client P01 | 8 | 3 tasks | 4 files |
 | Phase 06-local-api-client P02 | 12 | 1 tasks | 3 files |
 | Phase 06-local-api-client P03 | 5 | 3 tasks | 1 files |
+| Phase 08-sqlite-snapshot-infrastructure P01 | 65 | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -76,6 +78,9 @@ Recent decisions affecting current work:
 - [Phase 06-local-api-client]: Phase 6 declared partially complete — undici client unit suite GREEN, live-hardware UAT pending
 - [v3.0 roadmap]: Phase 8 (SQLite) is prerequisite for Phase 10 (Insights); Phase 9 (Starred rules) is independent of Phase 8
 - [v3.0 roadmap]: SQLite snapshot interval runs server-side, independent of browser — must survive container restarts by persisting the .db file via a Docker volume
+- [Phase 08-sqlite-snapshot-infrastructure]: better-sqlite3 chosen for synchronous API — simpler background recorder with no async complexity
+- [Phase 08-sqlite-snapshot-infrastructure]: purgeOldSnapshots() called inline after each insert — no separate cron needed
+- [Phase 08-sqlite-snapshot-infrastructure]: instrumentation.ts uses dynamic import of recorder to avoid circular init issues at Next.js boot
 
 ### Pending Todos
 
@@ -111,6 +116,6 @@ Items acknowledged and deferred at milestone close on 2026-04-20 (v1.0):
 
 ## Session Continuity
 
-Last session: 2026-05-16T00:00:00.000Z
-Stopped at: v3.0 roadmap created
+Last session: 2026-05-17T07:02:31.230Z
+Stopped at: Completed 08-sqlite-snapshot-infrastructure-01-PLAN.md
 Resume file: None
