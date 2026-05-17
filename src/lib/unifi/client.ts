@@ -57,7 +57,7 @@ function transformClient(apiClient: z.infer<typeof UnifiClientSchema>): NetworkC
     mac: apiClient.mac,
     displayName,
     ip: apiClient.ip ?? null,
-    lastSeen: apiClient.last_seen ? new Date(apiClient.last_seen) : null,
+    lastSeen: apiClient.last_seen ? new Date(apiClient.last_seen * 1000) : null,
     isWired: apiClient.is_wired ?? false,
     isGuest: apiClient.is_guest ?? false,
     downloadRate: apiClient['rx_bytes-r'],
