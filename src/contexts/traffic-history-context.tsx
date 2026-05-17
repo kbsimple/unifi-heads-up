@@ -23,6 +23,7 @@ interface MinuteSample {
 interface TrafficHistoryContextValue {
   siteHistory: HourlySample[]
   getClientHistory: (clientId: string) => HourlySample[]
+  getClientLastBusy: (clientId: string) => number | null
   isHistoryAvailable: boolean
 }
 
@@ -66,6 +67,8 @@ export function TrafficHistoryProvider({ children }: { children: React.ReactNode
   const hourlyBucketsRef = useRef<HourlySample[]>([])
   // Per-client hourly buckets: clientId -> HourlySample[]
   const clientHourlyBucketsRef = useRef<Map<string, HourlySample[]>>(new Map())
+  // Per-client last busy timestamp (medium or high traffic)
+  const lastBusyRef = useRef<Map<string, number>>(new Map())
   // Track last seen timestamp to avoid duplicate samples
   const lastTimestampRef = useRef<number>(0)
   // Track how many hourly samples have been recorded (for isHistoryAvailable)
@@ -99,6 +102,9 @@ export function TrafficHistoryProvider({ children }: { children: React.ReactNode
           })
           totalDownload += client.downloadRate
           totalUpload += client.uploadRate
+          if (client.trafficStatus === 'medium' || client.trafficStatus === 'high') {
+            lastBusyRef.current.set(client.id, now)
+          }
         }
 
         const newSample: MinuteSample = {
@@ -194,9 +200,14 @@ export function TrafficHistoryProvider({ children }: { children: React.ReactNode
     return clientHourlyBucketsRef.current.get(clientId) ?? []
   }, [])
 
+  const getClientLastBusy = useCallback((clientId: string): number | null => {
+    return lastBusyRef.current.get(clientId) ?? null
+  }, [])
+
   const value: TrafficHistoryContextValue = {
     siteHistory: hourlyBucketsRef.current,
     getClientHistory,
+    getClientLastBusy,
     isHistoryAvailable: hourlyBucketsRef.current.length > 0,
   }
 

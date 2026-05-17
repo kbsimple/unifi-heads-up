@@ -5,32 +5,17 @@ import { Card, CardContent } from '@/components/ui/card'
 import { TrafficBadge } from './traffic-badge'
 import { TrafficChart, formatHourLabel } from './traffic-chart'
 import { useTrafficHistory } from '@/contexts/traffic-history-context'
+import { formatTimeAgo } from '@/lib/unifi/format'
 import type { NetworkClient } from '@/lib/unifi/types'
 
 interface ClientCardProps {
   client: NetworkClient
 }
 
-function formatLastActive(date: Date | string | null): string {
-  if (!date) return 'Unknown'
-
-  const d = date instanceof Date ? date : new Date(date)
-  const now = Date.now()
-  const then = d.getTime()
-  const diffMs = now - then
-  const diffMins = Math.floor(diffMs / (1000 * 60))
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-
-  if (diffMins < 1) return 'just now'
-  if (diffMins < 60) return `${diffMins}m ago`
-  if (diffHours < 24) return `${diffHours}h ago`
-  return `${diffDays}d ago`
-}
-
 export function ClientCard({ client }: ClientCardProps) {
   const [showHistory, setShowHistory] = useState(false)
-  const { getClientHistory } = useTrafficHistory()
+  const { getClientHistory, getClientLastBusy } = useTrafficHistory()
+  const lastBusy = getClientLastBusy(client.id)
 
   const clientHistory = getClientHistory(client.id)
   const chartData = clientHistory.map((sample) => ({
@@ -54,7 +39,7 @@ export function ClientCard({ client }: ClientCardProps) {
         <div className="mt-3 pt-3 border-t border-zinc-800">
           <div className="flex items-center justify-between">
             <p className="text-xs text-zinc-500">
-              Last active: {formatLastActive(client.lastSeen)}
+              Last busy: {lastBusy ? formatTimeAgo(lastBusy) : '—'}
             </p>
             <button
               type="button"

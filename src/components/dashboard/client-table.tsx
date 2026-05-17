@@ -1,72 +1,135 @@
-// src/components/dashboard/client-table.tsx
+'use client'
+
+import { useState } from 'react'
 import { TrafficBadge } from './traffic-badge'
+import { useTrafficHistory } from '@/contexts/traffic-history-context'
+import { formatTimeAgo } from '@/lib/unifi/format'
 import type { NetworkClient } from '@/lib/unifi/types'
 
 interface ClientTableProps {
   clients: NetworkClient[]
 }
 
-function formatLastActive(date: Date | string | null): string {
-  if (!date) return 'Unknown'
+type SortColumn = 'displayName' | 'ip' | 'mac' | 'trafficStatus' | 'lastBusy'
+type SortDirection = 'asc' | 'desc'
 
-  const d = date instanceof Date ? date : new Date(date)
-  const now = Date.now()
-  const then = d.getTime()
-  const diffMs = now - then
-  const diffMins = Math.floor(diffMs / (1000 * 60))
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+const STATUS_ORDER = { high: 3, medium: 2, low: 1, idle: 0 } as const
 
-  if (diffMins < 1) return 'just now'
-  if (diffMins < 60) return `${diffMins}m ago`
-  if (diffHours < 24) return `${diffHours}h ago`
-  return `${diffDays}d ago`
+function ipToNum(ip: string | null): number {
+  if (!ip) return -1
+  return ip.split('.').reduce((acc, octet) => acc * 256 + parseInt(octet, 10), 0)
+}
+
+const STATUS_TOOLTIP =
+  'Idle: <1 Mbps · Low: 1–10 Mbps · Medium: 10–100 Mbps · High: >100 Mbps'
+
+function SortIndicator({ column, sortColumn, sortDirection }: {
+  column: SortColumn
+  sortColumn: SortColumn
+  sortDirection: SortDirection
+}) {
+  if (column !== sortColumn) return <span className="ml-1 text-zinc-700">↕</span>
+  return <span className="ml-1 text-zinc-300">{sortDirection === 'asc' ? '↑' : '↓'}</span>
 }
 
 export function ClientTable({ clients }: ClientTableProps) {
+  const [sortColumn, setSortColumn] = useState<SortColumn>('displayName')
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
+  const { getClientLastBusy } = useTrafficHistory()
+
+  function handleSort(column: SortColumn) {
+    if (column === sortColumn) {
+      setSortDirection((d) => (d === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setSortColumn(column)
+      setSortDirection('asc')
+    }
+  }
+
+  const sorted = [...clients].sort((a, b) => {
+    let cmp = 0
+    switch (sortColumn) {
+      case 'displayName':
+        cmp = a.displayName.localeCompare(b.displayName)
+        break
+      case 'ip':
+        cmp = ipToNum(a.ip) - ipToNum(b.ip)
+        break
+      case 'mac':
+        cmp = a.mac.localeCompare(b.mac)
+        break
+      case 'trafficStatus':
+        cmp = STATUS_ORDER[a.trafficStatus] - STATUS_ORDER[b.trafficStatus]
+        break
+      case 'lastBusy': {
+        const aTime = getClientLastBusy(a.id) ?? 0
+        const bTime = getClientLastBusy(b.id) ?? 0
+        cmp = aTime - bTime
+        break
+      }
+    }
+    return sortDirection === 'asc' ? cmp : -cmp
+  })
+
+  function thClass(col: SortColumn, extra = '') {
+    return `h-12 px-4 text-left text-xs font-medium uppercase text-zinc-500 cursor-pointer select-none hover:text-zinc-300 transition-colors ${extra}`
+  }
+
   return (
     <div className="rounded-lg border border-zinc-800 bg-zinc-900">
       <table className="w-full">
         <thead>
           <tr className="border-b border-zinc-800">
-            <th className="h-12 px-4 text-left text-xs font-medium uppercase text-zinc-500">
+            <th className={thClass('displayName')} onClick={() => handleSort('displayName')}>
               Device Name
+              <SortIndicator column="displayName" sortColumn={sortColumn} sortDirection={sortDirection} />
             </th>
-            <th className="h-12 px-4 text-left text-xs font-medium uppercase text-zinc-500 w-[140px]">
+            <th className={thClass('ip', 'w-[140px]')} onClick={() => handleSort('ip')}>
               IP Address
+              <SortIndicator column="ip" sortColumn={sortColumn} sortDirection={sortDirection} />
             </th>
-            <th className="h-12 px-4 text-left text-xs font-medium uppercase text-zinc-500 w-[160px]">
+            <th className={thClass('mac', 'w-[160px]')} onClick={() => handleSort('mac')}>
               MAC Address
+              <SortIndicator column="mac" sortColumn={sortColumn} sortDirection={sortDirection} />
             </th>
-            <th className="h-12 px-4 text-center text-xs font-medium uppercase text-zinc-500 w-[100px]">
-              Status
+            <th className={`${thClass('trafficStatus', 'w-[120px]')} text-center`} onClick={() => handleSort('trafficStatus')}>
+              <span className="inline-flex items-center gap-1">
+                Status
+                <SortIndicator column="trafficStatus" sortColumn={sortColumn} sortDirection={sortDirection} />
+                <span className="relative group">
+                  <span className="text-zinc-600 cursor-help font-normal normal-case">(?)</span>
+                  <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 rounded bg-zinc-800 border border-zinc-700 px-2 py-1.5 text-xs text-zinc-300 normal-case font-normal hidden group-hover:block z-10 whitespace-normal pointer-events-none">
+                    {STATUS_TOOLTIP}
+                  </span>
+                </span>
+              </span>
             </th>
-            <th className="h-12 px-4 text-right text-xs font-medium uppercase text-zinc-500 w-[120px]">
-              Last Active
+            <th className={`${thClass('lastBusy', 'w-[130px]')} text-right`} onClick={() => handleSort('lastBusy')}>
+              Last Busy
+              <SortIndicator column="lastBusy" sortColumn={sortColumn} sortDirection={sortDirection} />
             </th>
           </tr>
         </thead>
         <tbody>
-          {clients.map((client) => (
-            <tr
-              key={client.id}
-              className="border-b border-zinc-800 h-12 hover:bg-zinc-800/50 transition-colors"
-            >
-              <td className="px-4 font-medium text-zinc-100">
-                {client.displayName}
-              </td>
-              <td className="px-4 text-sm text-zinc-400">
-                {client.ip ?? 'No IP'}
-              </td>
-              <td className="px-4 text-sm text-zinc-400">{client.mac}</td>
-              <td className="px-4 text-center">
-                <TrafficBadge status={client.trafficStatus} />
-              </td>
-              <td className="px-4 text-right text-sm text-zinc-400">
-                {formatLastActive(client.lastSeen)}
-              </td>
-            </tr>
-          ))}
+          {sorted.map((client) => {
+            const lastBusy = getClientLastBusy(client.id)
+            return (
+              <tr
+                key={client.id}
+                className="border-b border-zinc-800 h-12 hover:bg-zinc-800/50 transition-colors"
+              >
+                <td className="px-4 font-medium text-zinc-100">{client.displayName}</td>
+                <td className="px-4 text-sm text-zinc-400">{client.ip ?? 'No IP'}</td>
+                <td className="px-4 text-sm text-zinc-400">{client.mac}</td>
+                <td className="px-4 text-center">
+                  <TrafficBadge status={client.trafficStatus} />
+                </td>
+                <td className="px-4 text-right text-sm text-zinc-400">
+                  {lastBusy ? formatTimeAgo(lastBusy) : '—'}
+                </td>
+              </tr>
+            )
+          })}
         </tbody>
       </table>
     </div>
