@@ -20,7 +20,7 @@ Built for a family household. Communicates directly with the UniFi console over 
 - ky (HTTP client for Site Manager API)
 - Recharts (traffic charts)
 - Vitest (unit and integration tests)
-- Vercel (deployment target)
+- Docker / PM2 (self-hosted, required — see [Deployment](#deployment))
 
 ## Prerequisites
 
@@ -166,14 +166,14 @@ npm start
 
 `npm start` requires a completed build. Run `npm run build` first every time production code changes.
 
-## Deployment (Vercel)
+## Deployment
 
-1. Push the repository to GitHub (or any Git provider Vercel supports).
-2. Import the project in the Vercel dashboard (https://vercel.com/new).
-3. Add all variables from the Environment Setup section to the Vercel project's Environment Variables settings for both Production and Preview environments.
-4. Deploy.
+This app must run on a machine that has local network access to your UniFi console. Cloud platforms like Vercel cannot reach the UniFi LAN API, so self-hosted deployment is required.
 
-Site Manager Proxy connectivity works from Vercel without any VPN or self-hosted infrastructure because the proxy endpoint (`api.ui.com`) is a public HTTPS service.
+Choose one of the options below based on your setup:
+
+- **[Docker](#self-hosted--docker)** — recommended if Docker Desktop is already installed; handles builds, restarts, and isolation automatically.
+- **[PM2](#self-hosted--pm2)** — lighter weight, no Docker needed; runs the Next.js standalone server directly under a process manager.
 
 ## Vercel Preview / UAT (Mock Mode)
 
