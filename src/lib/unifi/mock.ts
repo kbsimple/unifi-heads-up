@@ -3,7 +3,7 @@
 // Used when UNIFI_MOCK=true is set (via dev.sh).
 // Do NOT add `import 'server-only'` here — index.ts enforces the server boundary.
 
-import type { NetworkClient, ClientsResponse, FirewallPolicy } from './types'
+import type { NetworkClient, ClientsResponse, FirewallPolicy, UnifiSchedule } from './types'
 
 // Traffic thresholds (from traffic.ts): Idle <1 Mbps, Low 1–10, Medium 10–100, High >100
 // Conversion formula: (downloadRate + uploadRate) * 8 / 1_000_000 = Mbps
@@ -109,11 +109,15 @@ export async function getFirewallPolicies(): Promise<FirewallPolicy[]> {
 
 export async function updateFirewallPolicy(
   policyId: string,
-  enabled: boolean
+  enabled: boolean,
+  schedule?: UnifiSchedule
 ): Promise<FirewallPolicy> {
   const index = mockPolicies.findIndex(p => p._id === policyId)
   if (index === -1) throw new Error(`Mock policy not found: ${policyId}`)
-  mockPolicies[index] = { ...mockPolicies[index], enabled }
+  const scheduleEnd = schedule?.mode === 'ONE_TIME_ONLY'
+    ? (() => { const dt = new Date(`${schedule.date}T${schedule.time_range_end}`); return isNaN(dt.getTime()) ? undefined : dt.getTime() })()
+    : schedule?.mode === 'ALWAYS' ? undefined : mockPolicies[index].scheduleEnd
+  mockPolicies[index] = { ...mockPolicies[index], enabled, schedule, scheduleEnd }
   return { ...mockPolicies[index] }
 }
 

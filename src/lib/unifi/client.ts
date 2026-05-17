@@ -19,6 +19,7 @@ import {
   type NetworkClient,
   type ClientsResponse,
   type FirewallPolicy,
+  type UnifiSchedule,
 } from './types'
 import { calculateTrafficStatus } from './traffic'
 
@@ -215,6 +216,16 @@ export async function isZoneBasedFirewallEnabled(): Promise<boolean> {
 }
 
 /**
+ * Compute Unix ms end time from a UniFi schedule field.
+ * Returns undefined for ALWAYS mode or missing schedule.
+ */
+function scheduleEndFromSchedule(schedule: UnifiSchedule | undefined): number | undefined {
+  if (!schedule || schedule.mode !== 'ONE_TIME_ONLY') return undefined
+  const dt = new Date(`${schedule.date}T${schedule.time_range_end}`)
+  return isNaN(dt.getTime()) ? undefined : dt.getTime()
+}
+
+/**
  * Get all firewall policies via UniFi direct LAN API
  * Per D-11: Returns policies for toggle UI
  * Per D-08: Minimal fields (_id, name, enabled) for display
@@ -249,7 +260,11 @@ export async function getFirewallPolicies(): Promise<FirewallPolicy[]> {
   const data = await response.json() as unknown
 
   // Handle both wrapped { data: [...] } and direct array responses
-  return FirewallPolicyResponseSchema.parse(data)
+  const policies = FirewallPolicyResponseSchema.parse(data)
+  return policies.map(p => ({
+    ...p,
+    scheduleEnd: scheduleEndFromSchedule(p.schedule),
+  }))
 }
 
 /**
@@ -271,7 +286,8 @@ export async function getFirewallPolicies(): Promise<FirewallPolicy[]> {
  */
 export async function updateFirewallPolicy(
   policyId: string,
-  enabled: boolean
+  enabled: boolean,
+  schedule?: UnifiSchedule
 ): Promise<FirewallPolicy> {
   const host = process.env.UNIFI_HOST
   const apiKey = process.env.UNIFI_API_KEY
@@ -306,7 +322,11 @@ export async function updateFirewallPolicy(
   if (!currentPolicy || typeof currentPolicy !== 'object') {
     throw new Error(`UniFi API returned unexpected shape for policy ${policyId}`)
   }
-  const updatedPolicy = { ...(currentPolicy as Record<string, unknown>), enabled }
+  const updatedPolicy = {
+    ...(currentPolicy as Record<string, unknown>),
+    enabled,
+    ...(schedule !== undefined ? { schedule } : {}),
+  }
 
   // Step 3: PUT the full object back
   const putResponse = await fetch(`${baseUrl()}/firewall-policies/${policyId}`, {

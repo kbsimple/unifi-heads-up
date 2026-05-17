@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { getSession } from '@/lib/session'
 import { getFirewallPolicies, updateFirewallPolicy } from '@/lib/unifi'
 import { ERROR_MESSAGES } from '@/lib/definitions'
+import { UnifiScheduleSchema } from '@/lib/unifi/types'
 
 /**
  * Schema for PUT request body validation
@@ -12,6 +13,7 @@ import { ERROR_MESSAGES } from '@/lib/definitions'
 const ToggleRequestSchema = z.object({
   policyId: z.string().min(1, 'Policy ID is required'),
   enabled: z.boolean(),
+  schedule: UnifiScheduleSchema.optional(),
 })
 
 /**
@@ -88,8 +90,8 @@ export async function PUT(request: Request) {
       )
     }
 
-    const { policyId, enabled } = result.data
-    const updatedPolicy = await updateFirewallPolicy(policyId, enabled)
+    const { policyId, enabled, schedule } = result.data
+    const updatedPolicy = await updateFirewallPolicy(policyId, enabled, schedule)
 
     return NextResponse.json(updatedPolicy)
   } catch (error) {
