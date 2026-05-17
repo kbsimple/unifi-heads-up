@@ -8,12 +8,12 @@ import { z } from 'zod'
 export const UnifiClientSchema = z.object({
   _id: z.string(),
   mac: z.string(),
-  name: z.string().nullable(),
-  hostname: z.string().nullable(),
-  ip: z.string().nullable(),
-  last_seen: z.number().nullable(),
-  is_wired: z.boolean().nullable(),
-  is_guest: z.boolean().nullable(),
+  name: z.string().nullish(),
+  hostname: z.string().nullish(),
+  ip: z.string().nullish(),
+  last_seen: z.number().nullish(),
+  is_wired: z.boolean().nullish(),
+  is_guest: z.boolean().nullish(),
   // Real-time bandwidth rate fields (bytes per second)
   'rx_bytes-r': z.number().default(0),
   'tx_bytes-r': z.number().default(0),
