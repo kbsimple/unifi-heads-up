@@ -127,7 +127,9 @@ Full archive: `.planning/milestones/v1.1-ROADMAP.md`
   2. Selecting a duration enables the rule and schedules automatic disabling after the chosen period
   3. Rules with active schedules display a countdown or expiry indicator
   4. The schedule survives a server restart (persisted, not in-memory)
-**Plans**: TBD
+**Plans**: 2 plans
+  - [ ] 11-01-PLAN.md — Extend types, client, mock, and API routes for native UniFi schedule field
+  - [ ] 11-02-PLAN.md — SchedulePicker + ScheduleBadge components + FirewallCard integration
 **UI hint**: yes
 
 ---
@@ -146,4 +148,4 @@ Full archive: `.planning/milestones/v1.1-ROADMAP.md`
 | 8. SQLite Snapshot Infrastructure | v3.0 | 0/1 | Planning | - |
 | 9. Starred Firewall Rules | v3.0 | 0/1 | Planning | - |
 | 10. Insights Page | v3.0 | 0/3 | Planning | - |
-| 11. Firewall Rule Scheduling | v3.0 | 0/0 | Not planned | - |
+| 11. Firewall Rule Scheduling | v3.0 | 0/2 | Planning | - |
