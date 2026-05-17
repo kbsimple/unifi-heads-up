@@ -43,10 +43,10 @@
 
 ### State Storage
 
-- [ ] **STA-01**: Server records a bandwidth snapshot (download + upload bytes/s) per client every 60 seconds
-- [ ] **STA-02**: Snapshots are persisted in a SQLite database on the server
-- [ ] **STA-03**: Records older than 30 days are automatically purged
-- [ ] **STA-04**: A background server-side interval drives recording independent of any browser session
+- [x] **STA-01**: Server records a bandwidth snapshot (download + upload bytes/s) per client every 60 seconds
+- [x] **STA-02**: Snapshots are persisted in a SQLite database on the server
+- [x] **STA-03**: Records older than 30 days are automatically purged
+- [x] **STA-04**: A background server-side interval drives recording independent of any browser session
 
 ### Starred Firewall Rules
 
@@ -99,10 +99,10 @@
 | DEPLOY-03 | Phase 7 | Pending |
 | DEPLOY-04 | Phase 7 | Pending |
 | DEPLOY-05 | Phase 7 | Pending |
-| STA-01 | Phase 8 | Pending |
-| STA-02 | Phase 8 | Pending |
-| STA-03 | Phase 8 | Pending |
-| STA-04 | Phase 8 | Pending |
+| STA-01 | Phase 8 | Complete |
+| STA-02 | Phase 8 | Complete |
+| STA-03 | Phase 8 | Complete |
+| STA-04 | Phase 8 | Complete |
 | STAR-01 | Phase 9 | Pending |
 | STAR-02 | Phase 9 | Pending |
 | STAR-03 | Phase 9 | Pending |
