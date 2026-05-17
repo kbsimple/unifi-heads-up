@@ -61,6 +61,10 @@ Progress: [████████░░] 85%
 
 ## Accumulated Context
 
+### Roadmap Evolution
+
+- Phase 11 added: Firewall rule scheduling — temporary duration on enabled rules with auto-disable
+
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.

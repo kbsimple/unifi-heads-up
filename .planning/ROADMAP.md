@@ -118,6 +118,20 @@ Full archive: `.planning/milestones/v1.1-ROADMAP.md`
 
 ---
 
+### Phase 11: Firewall Rule Scheduling
+**Goal**: Users can set a temporary duration on an enabled firewall rule (e.g. "active for next 6 hours"), after which the rule is automatically disabled
+**Depends on**: Phase 3
+**Requirements**: SCHED-01, SCHED-02, SCHED-03
+**Success Criteria** (what must be TRUE):
+  1. A duration picker (presets: 2h / 6h / 24h) is accessible from each firewall rule card
+  2. Selecting a duration enables the rule and schedules automatic disabling after the chosen period
+  3. Rules with active schedules display a countdown or expiry indicator
+  4. The schedule survives a server restart (persisted, not in-memory)
+**Plans**: TBD
+**UI hint**: yes
+
+---
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -132,3 +146,4 @@ Full archive: `.planning/milestones/v1.1-ROADMAP.md`
 | 8. SQLite Snapshot Infrastructure | v3.0 | 0/1 | Planning | - |
 | 9. Starred Firewall Rules | v3.0 | 0/1 | Planning | - |
 | 10. Insights Page | v3.0 | 0/3 | Planning | - |
+| 11. Firewall Rule Scheduling | v3.0 | 0/0 | Not planned | - |
