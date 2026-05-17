@@ -274,50 +274,109 @@ describe('updateFirewallPolicy', () => {
     vi.clearAllMocks()
   })
 
-  it('should send PUT with { enabled: boolean } body', async () => {
-    const mockResponse = {
-      _id: 'policy-1',
-      name: 'Rule 1',
-      enabled: false,
-    }
+  // The full policy object as returned by GET /firewall-policies/{id}.
+  // Includes fields beyond the minimal FirewallPolicySchema so we can verify
+  // the PUT body preserves them (full-replacement semantics).
+  const fullPolicyFromServer = {
+    _id: 'policy-1',
+    name: 'Rule 1',
+    enabled: true,
+    action: 'BLOCK',
+    source: { zones: ['LAN'] },
+    destination: { zones: ['WAN'] },
+  }
 
-    vi.mocked(fetch).mockResolvedValue({
-      ok: true,
-      status: 200,
-      statusText: 'OK',
-      json: () => Promise.resolve(mockResponse),
-    } as unknown as Response)
+  it('should GET the current policy then PUT the full object with enabled merged', async () => {
+    // First call: GET returns the full policy
+    // Second call: PUT returns the updated policy
+    vi.mocked(fetch)
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        json: () => Promise.resolve(fullPolicyFromServer),
+      } as unknown as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        json: () => Promise.resolve({ ...fullPolicyFromServer, enabled: false }),
+      } as unknown as Response)
 
     const result = await updateFirewallPolicy('policy-1', false)
 
-    expect(fetch).toHaveBeenCalledWith(
+    // GET call should have no body/method override
+    expect(fetch).toHaveBeenNthCalledWith(
+      1,
+      'https://192.168.1.1/proxy/network/v2/api/site/default/firewall-policies/policy-1',
+      expect.not.objectContaining({ method: 'PUT' })
+    )
+
+    // PUT call should send the full merged object (not just { enabled })
+    expect(fetch).toHaveBeenNthCalledWith(
+      2,
       'https://192.168.1.1/proxy/network/v2/api/site/default/firewall-policies/policy-1',
       expect.objectContaining({
         method: 'PUT',
-        body: JSON.stringify({ enabled: false }),
+        body: JSON.stringify({ ...fullPolicyFromServer, enabled: false }),
       })
     )
+
     expect(result.enabled).toBe(false)
   })
 
-  it('should return updated FirewallPolicy', async () => {
-    const mockResponse = {
-      _id: 'policy-1',
-      name: 'Rule 1',
-      enabled: true,
-    }
-
-    vi.mocked(fetch).mockResolvedValue({
-      ok: true,
-      status: 200,
-      statusText: 'OK',
-      json: () => Promise.resolve(mockResponse),
-    } as unknown as Response)
+  it('should return updated FirewallPolicy with correct fields', async () => {
+    vi.mocked(fetch)
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        json: () => Promise.resolve(fullPolicyFromServer),
+      } as unknown as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        json: () => Promise.resolve({ ...fullPolicyFromServer, enabled: true }),
+      } as unknown as Response)
 
     const result = await updateFirewallPolicy('policy-1', true)
 
     expect(result._id).toBe('policy-1')
     expect(result.name).toBe('Rule 1')
     expect(result.enabled).toBe(true)
+  })
+
+  it('should throw with response body when GET fails', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce({
+      ok: false,
+      status: 404,
+      statusText: 'Not Found',
+      text: () => Promise.resolve('{"error":"Policy not found"}'),
+    } as unknown as Response)
+
+    await expect(updateFirewallPolicy('missing-id', false)).rejects.toThrow(
+      /404.*Not Found.*Policy not found/
+    )
+  })
+
+  it('should throw with response body when PUT fails', async () => {
+    vi.mocked(fetch)
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        json: () => Promise.resolve(fullPolicyFromServer),
+      } as unknown as Response)
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 422,
+        statusText: 'Unprocessable Entity',
+        text: () => Promise.resolve('{"error":"Missing required fields"}'),
+      } as unknown as Response)
+
+    await expect(updateFirewallPolicy('policy-1', false)).rejects.toThrow(
+      /422.*Unprocessable Entity.*Missing required fields/
+    )
   })
 })

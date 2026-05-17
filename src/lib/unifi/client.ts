@@ -256,6 +256,11 @@ export async function getFirewallPolicies(): Promise<FirewallPolicy[]> {
  * Update a firewall policy's enabled state
  * Per D-13: Toggle enable/disable on existing policies
  *
+ * UniFi's PUT /firewall-policies/{id} uses full-replacement semantics — sending
+ * only { enabled } results in a 4xx error because required fields are missing.
+ * This function GETs the current full policy object, merges the new enabled
+ * value, and PUTs the complete object back.
+ *
  * @param policyId - The policy ID to update
  * @param enabled - The new enabled state
  * @returns The updated FirewallPolicy
@@ -275,21 +280,50 @@ export async function updateFirewallPolicy(
     throw new Error('UNIFI_HOST and UNIFI_API_KEY environment variables are required')
   }
 
-  const response = await fetch(`${baseUrl()}/firewall-policies/${policyId}`, {
+  const headers = {
+    'X-API-KEY': apiKey,
+    'Content-Type': 'application/json',
+  }
+
+  // Step 1: GET the current full policy object to preserve all fields
+  // (UniFi PUT requires the full object — partial PATCH is not supported)
+  const getResponse = await fetch(`${baseUrl()}/firewall-policies/${policyId}`, {
+    dispatcher: agent,
+    signal: AbortSignal.timeout(10_000),
+    headers,
+  })
+
+  if (!getResponse.ok) {
+    const body = await getResponse.text().catch(() => '(unreadable)')
+    throw new Error(
+      `UniFi API error fetching policy ${policyId}: ${getResponse.status} ${getResponse.statusText} — ${body}`
+    )
+  }
+
+  const currentPolicy = await getResponse.json() as unknown
+
+  // Step 2: Merge the new enabled value into the full policy object
+  if (!currentPolicy || typeof currentPolicy !== 'object') {
+    throw new Error(`UniFi API returned unexpected shape for policy ${policyId}`)
+  }
+  const updatedPolicy = { ...(currentPolicy as Record<string, unknown>), enabled }
+
+  // Step 3: PUT the full object back
+  const putResponse = await fetch(`${baseUrl()}/firewall-policies/${policyId}`, {
     dispatcher: agent,
     method: 'PUT',
     signal: AbortSignal.timeout(10_000),
-    headers: {
-      'X-API-KEY': apiKey,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ enabled }),
+    headers,
+    body: JSON.stringify(updatedPolicy),
   })
 
-  if (!response.ok) {
-    throw new Error(`UniFi API error: ${response.status} ${response.statusText}`)
+  if (!putResponse.ok) {
+    const body = await putResponse.text().catch(() => '(unreadable)')
+    throw new Error(
+      `UniFi API error updating policy ${policyId}: ${putResponse.status} ${putResponse.statusText} — ${body}`
+    )
   }
 
-  const data = await response.json() as unknown
+  const data = await putResponse.json() as unknown
   return FirewallPolicySchema.parse(data)
 }
