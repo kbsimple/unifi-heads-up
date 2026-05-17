@@ -56,13 +56,35 @@ export interface ClientsResponse {
 }
 
 /**
+ * UniFi native schedule field shapes (observed from live API — RESEARCH.md)
+ * passthrough() on the ALWAYS variant preserves unknown fields (e.g. repeat_on_days)
+ * without failing validation.
+ */
+export const UnifiScheduleSchema = z.union([
+  z.object({ mode: z.literal('ALWAYS') }).passthrough(),
+  z.object({
+    mode: z.literal('ONE_TIME_ONLY'),
+    date: z.string(),
+    time_range_start: z.string(),
+    time_range_end: z.string(),
+  }),
+])
+
+export type UnifiSchedule = z.infer<typeof UnifiScheduleSchema>
+
+/**
  * Zod schema for UniFi firewall policy
  * Per D-08: Minimal display fields only - _id, name, enabled
+ * Phase 11: Extended with optional schedule (raw from API) and scheduleEnd (computed Unix ms)
  */
 export const FirewallPolicySchema = z.object({
   _id: z.string(),
   name: z.string(),
   enabled: z.boolean(),
+  schedule: UnifiScheduleSchema.optional(),
+  // Computed field: Unix ms of schedule end time. Set by getFirewallPolicies()
+  // from schedule.mode === 'ONE_TIME_ONLY' date + time_range_end. Not from API.
+  scheduleEnd: z.number().optional(),
 })
 
 /**
