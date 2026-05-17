@@ -26,6 +26,11 @@ export function getDb(): Database.Database {
       recorded_at INTEGER NOT NULL
     );
     CREATE INDEX IF NOT EXISTS idx_recorded_at ON snapshots (recorded_at);
+
+    CREATE TABLE IF NOT EXISTS starred_rules (
+      rule_id TEXT PRIMARY KEY,
+      starred_at INTEGER NOT NULL
+    );
   `)
 
   return db
