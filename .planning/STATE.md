@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Local Edition
 status: planning
-stopped_at: Phase 7 context gathered
-last_updated: "2026-04-24T00:00:00.000Z"
-last_activity: 2026-04-24 — Roadmap created (Phases 6–7, 10 requirements mapped)
+stopped_at: context exhaustion at 90% (2026-05-16)
+last_updated: "2026-05-16T19:10:43.915Z"
+last_activity: 2026-05-16 - Completed quick task 260516-srt: Update default sort order and status thresholds
 progress:
   total_phases: 2
-  completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  completed_phases: 2
+  total_plans: 6
+  completed_plans: 6
   percent: 100
 ---
 
@@ -89,6 +89,7 @@ None.
 | 260423-las | Fix dashboard crash: lastSeen Date becomes ISO string after SWR revalidation | 2026-04-23 | 920efe9 | [260423-las-fix-dashboard-lastseen-date-crash](./quick/260423-las-fix-dashboard-lastseen-date-crash/) |
 | 260424-262 | Fix UniFi API URLs to include consoleId in path | 2026-04-24 | 2f94bb2 | [260424-262-fix-unifi-api-urls-console-id](./quick/260424-262-fix-unifi-api-urls-console-id/) |
 | 260425-pm2 | Add PM2 as a deployment option alongside Docker | 2026-04-25 | 085b28b | [260425-pm2-add-pm2-deployment-option](./quick/260425-pm2-add-pm2-deployment-option/) |
+| 260516-srt | Update default sort order (API order) and status thresholds (idle/low/med/high) | 2026-05-16 | 7f34e3c | [260516-srt-update-sort-order-and-status-thresholds](./quick/260516-srt-update-sort-order-and-status-thresholds/) |
 
 ### Blockers/Concerns
 
@@ -107,6 +108,6 @@ Items acknowledged and deferred at milestone close on 2026-04-20 (v1.0):
 
 ## Session Continuity
 
-Last session: 2026-04-25T04:26:50.948Z
-Stopped at: Completed 06-local-api-client-03-PLAN.md
+Last session: 2026-05-16T19:10:43.913Z
+Stopped at: context exhaustion at 90% (2026-05-16)
 Resume file: None
