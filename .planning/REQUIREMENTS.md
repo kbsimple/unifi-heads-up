@@ -99,11 +99,23 @@
 | DEPLOY-03 | Phase 7 | Pending |
 | DEPLOY-04 | Phase 7 | Pending |
 | DEPLOY-05 | Phase 7 | Pending |
+| STA-01 | Phase 8 | Pending |
+| STA-02 | Phase 8 | Pending |
+| STA-03 | Phase 8 | Pending |
+| STA-04 | Phase 8 | Pending |
+| STAR-01 | Phase 9 | Pending |
+| STAR-02 | Phase 9 | Pending |
+| STAR-03 | Phase 9 | Pending |
+| STAR-04 | Phase 9 | Pending |
+| INS-01 | Phase 10 | Pending |
+| INS-02 | Phase 10 | Pending |
+| INS-03 | Phase 10 | Pending |
+| INS-04 | Phase 10 | Pending |
 
 **Coverage:**
 - v2.0 requirements: 10 total — mapped ✓
-- v3.0 requirements: 12 total — pending roadmap
+- v3.0 requirements: 12 total — mapped ✓
 
 ---
 *Requirements defined: 2026-04-24*
-*Last updated: 2026-05-16 — v3.0 requirements added (STA, STAR, INS)*
+*Last updated: 2026-05-16 — v3.0 traceability complete (STA→Phase 8, STAR→Phase 9, INS→Phase 10)*

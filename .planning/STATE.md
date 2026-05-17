@@ -4,13 +4,13 @@ milestone: v3.0
 milestone_name: Statefulness & Insights
 status: planning
 last_updated: "2026-05-16T00:00:00.000Z"
-last_activity: 2026-05-16 — Milestone v3.0 started
+last_activity: 2026-05-16 — v3.0 roadmap created (Phases 8–10)
 progress:
-  total_phases: 2
-  completed_phases: 2
-  total_plans: 6
-  completed_plans: 6
-  percent: 100
+  total_phases: 3
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-24)
 
 **Core value:** Visibility and control over home network traffic — users must be able to see which devices are actively using bandwidth and pause/resume internet access for specific devices or groups.
-**Current focus:** v2.0 Local Edition — replacing Site Manager Proxy with direct local UniFi API client
+**Current focus:** v3.0 Statefulness & Insights — SQLite traffic history, starred firewall rules, and multi-day insights page
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: Phase 8 (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-05-16 — Milestone v3.0 started
+Status: Roadmap defined, awaiting phase planning
+Last activity: 2026-05-16 — v3.0 roadmap created (Phases 8–10)
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -35,15 +35,17 @@ Progress: [░░░░░░░░░░] 0%
 
 **Velocity:**
 
-- Total plans completed: 16 (v1.0)
+- Total plans completed: 16 (v1.0) + 2 (v1.1) + 6 (v2.0) = 24
 - Average duration: N/A
-- Total execution time: 0 hours
+- Total execution time: 0 hours (v3.0)
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 5. Dev Mock Layer | 0 | TBD | - |
+| 8. SQLite Snapshot Infrastructure | TBD | - | - |
+| 9. Starred Firewall Rules | TBD | - | - |
+| 10. Insights Page | TBD | - | - |
 
 **Recent Trend:**
 
@@ -72,6 +74,8 @@ Recent decisions affecting current work:
 - [Phase 06-local-api-client]: baseUrl() reads process.env.UNIFI_HOST inside function body so tests can mutate process.env between cases
 - [Phase 06-local-api-client]: Live-hardware verification (LOCAL-01..04) deferred to Phase 7 Docker deployment — no LAN hardware accessible during automated execution
 - [Phase 06-local-api-client]: Phase 6 declared partially complete — undici client unit suite GREEN, live-hardware UAT pending
+- [v3.0 roadmap]: Phase 8 (SQLite) is prerequisite for Phase 10 (Insights); Phase 9 (Starred rules) is independent of Phase 8
+- [v3.0 roadmap]: SQLite snapshot interval runs server-side, independent of browser — must survive container restarts by persisting the .db file via a Docker volume
 
 ### Pending Todos
 
@@ -92,7 +96,7 @@ None.
 
 ### Blockers/Concerns
 
-None for v1.1.
+None.
 
 ## Deferred Items
 
@@ -107,6 +111,6 @@ Items acknowledged and deferred at milestone close on 2026-04-20 (v1.0):
 
 ## Session Continuity
 
-Last session: 2026-05-16T19:10:43.913Z
-Stopped at: context exhaustion at 90% (2026-05-16)
+Last session: 2026-05-16T00:00:00.000Z
+Stopped at: v3.0 roadmap created
 Resume file: None
