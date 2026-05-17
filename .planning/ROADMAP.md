@@ -97,7 +97,8 @@ Full archive: `.planning/milestones/v1.1-ROADMAP.md`
   2. Opening the app in a different browser or device shows the same star state for each rule — preferences are not tied to a single browser
   3. Every starred rule displays a filled star indicator in the full firewall rules list
   4. Activating the "starred only" filter hides all unstarred rules; deactivating it restores the full list
-**Plans**: TBD
+**Plans**: 1 plan
+  - [ ] 09-01-PLAN.md — SQLite db helper + starred API routes + star UI + filter toggle
 **UI hint**: yes
 
 ### Phase 10: Insights Page
@@ -125,6 +126,6 @@ Full archive: `.planning/milestones/v1.1-ROADMAP.md`
 | 5. Dev Mock Layer | v1.1 | 2/2 | Complete | 2026-04-19 |
 | 6. Local API Client | v2.0 | 3/3 | Complete (live-hw UAT deferred) | 2026-04-24 |
 | 7. Docker Deployment | v2.0 | 3/3 | Complete (live-Docker UAT deferred) | 2026-04-24 |
-| 8. SQLite Snapshot Infrastructure | v3.0 | 0/? | Not started | - |
-| 9. Starred Firewall Rules | v3.0 | 0/? | Not started | - |
+| 8. SQLite Snapshot Infrastructure | v3.0 | 0/1 | Planning | - |
+| 9. Starred Firewall Rules | v3.0 | 0/1 | Planning | - |
 | 10. Insights Page | v3.0 | 0/? | Not started | - |
