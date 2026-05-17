@@ -63,7 +63,7 @@ function resolveDisplayName(apiClient: z.infer<typeof UnifiClientSchema>): strin
   if (apiClient.hostname && isReadableHostname(apiClient.hostname)) return apiClient.hostname
   const macSuffix = apiClient.mac.slice(-5) // last 4 hex + colon, e.g. "0b:50"
   if (apiClient.oui) return `${cleanOui(apiClient.oui)} ${macSuffix}`
-  return `Unknown ${macSuffix}`
+  return apiClient.mac
 }
 
 /**
