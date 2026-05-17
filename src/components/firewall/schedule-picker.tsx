@@ -53,7 +53,7 @@ export function SchedulePicker({ policy }: SchedulePickerProps) {
       const response = await fetch('/api/firewall/schedule', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ policyId: policy._id }),
+        body: JSON.stringify({ policyId: policy._id, enabled: policy.enabled }),
       })
       if (!response.ok) throw new Error('Failed to clear schedule')
       await mutate('/api/firewall')
