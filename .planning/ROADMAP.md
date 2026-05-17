@@ -85,7 +85,8 @@ Full archive: `.planning/milestones/v1.1-ROADMAP.md`
   2. Each snapshot row stores download and upload bytes/s, client identifier, and a timestamp
   3. Rows older than 30 days are absent from the database — the purge runs automatically without manual intervention
   4. Stopping and restarting the server does not lose previously recorded rows — data persists on disk
-**Plans**: TBD
+**Plans**: 1 plan
+  - [ ] 08-01-PLAN.md — DB module, recorder singleton, instrumentation hook, and tests
 
 ### Phase 9: Starred Firewall Rules
 **Goal**: Users can mark firewall rules as favourites from any device, and filter the list to starred rules only
