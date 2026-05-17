@@ -97,8 +97,13 @@ export async function getUnifiClients(): Promise<ClientsResponse> {
 
   const data = await response.json() as unknown
 
-  // Validate response with Zod schema (per threat model T-02-02)
-  const clients = UnifiClientSchema.array().parse(data)
+  // v1 API wraps results: { data: [...], meta: { rc: "ok" } }
+  // v2 API returns a plain array
+  const raw = (data && typeof data === 'object' && 'data' in (data as object))
+    ? (data as { data: unknown }).data
+    : data
+
+  const clients = UnifiClientSchema.array().parse(raw)
 
   return {
     clients: clients.map(transformClient),
