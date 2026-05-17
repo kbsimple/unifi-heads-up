@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Local Edition
-status: gaps_found
+status: in_progress
 stopped_at: context exhaustion at 90% (2026-05-17)
 last_updated: "2026-05-17T00:00:00.000Z"
-last_activity: "2026-05-17 — Phase 11 (Firewall Rule Scheduling) verification complete — gaps_found: Clear Schedule DELETE body missing enabled field"
+last_activity: "2026-05-17 — Resuming from phase 11 — gap fix confirmed committed (enabled field added to handleClear DELETE body)"
 progress:
   total_phases: 11
   completed_phases: 11
@@ -114,7 +114,7 @@ None.
 
 ### Blockers/Concerns
 
-Phase 11 gap: `handleClear` in `schedule-picker.tsx` omits `enabled` from DELETE body. Route returns 400. Fix: add `enabled: policy.enabled` to the fetch body and update RTL test D3.
+None — Phase 11 gap resolved: `enabled: policy.enabled` added to `handleClear` DELETE body (commit 5f79fbb) and RTL test D3 updated (commit 41b045f).
 
 ## Deferred Items
 
