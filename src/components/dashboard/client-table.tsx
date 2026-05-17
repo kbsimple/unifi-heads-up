@@ -21,7 +21,7 @@ function ipToNum(ip: string | null): number {
 }
 
 const STATUS_TOOLTIP =
-  'Idle: <1 Mbps · Low: 1–10 Mbps · Medium: 10–100 Mbps · High: >100 Mbps'
+  'Idle: <0.5 Mbps · Low: 0.5–1 Mbps · Medium: 1–5 Mbps · High: ≥5 Mbps'
 
 function SortIndicator({ column, sortColumn, sortDirection }: {
   column: SortColumn

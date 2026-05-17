@@ -3,16 +3,16 @@
 /**
  * Traffic status thresholds in Mbps
  * Per RESEARCH.md Pattern 3 and PROJECT.md requirements:
- * - Idle: < 1 Mbps
- * - Low: 1-10 Mbps
- * - Medium: 10-100 Mbps
- * - High: > 100 Mbps
+ * - Idle: < 0.5 Mbps
+ * - Low: 0.5–1 Mbps
+ * - Medium: 1–5 Mbps
+ * - High: >= 5 Mbps
  */
 export const TRAFFIC_THRESHOLDS = {
-  IDLE: 1, // < 1 Mbps
-  LOW: 10, // 1-10 Mbps
-  MEDIUM: 100, // 10-100 Mbps
-  // HIGH: > 100 Mbps
+  IDLE: 0.5, // < 0.5 Mbps
+  LOW: 1, // 0.5–1 Mbps
+  MEDIUM: 5, // 1–5 Mbps
+  // HIGH: >= 5 Mbps
 } as const
 
 /**
