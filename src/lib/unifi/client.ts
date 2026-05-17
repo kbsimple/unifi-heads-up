@@ -53,9 +53,31 @@ function cleanOui(oui: string): string {
 }
 
 // Returns true for hostnames that look like human-assigned names rather than
-// auto-generated serials (e.g. rejects "09AA01AC271502VB", "A4E3F1B2C9D8")
+// auto-generated serials/hashes (e.g. rejects "09AA01AC271502VB", "e85b24300c4fedf5efb1...")
 function isReadableHostname(hostname: string): boolean {
-  return !/^[A-Z0-9]{8,}$/.test(hostname)
+  if (/^[A-Z0-9]{8,}$/.test(hostname)) return false   // all-caps serial
+  if (/^[a-f0-9]{16,}$/.test(hostname)) return false  // lowercase hex hash / UUID without dashes
+  if (hostname.length >= 32) return false              // anything ≥32 chars is likely a hash
+  return true
+}
+
+// OUI cache — persists for server lifetime to avoid repeated external lookups
+const ouiCache = new Map<string, string>()
+
+async function fetchOuiVendor(mac: string): Promise<string> {
+  const prefix = mac.slice(0, 8)
+  if (ouiCache.has(prefix)) return ouiCache.get(prefix)!
+  try {
+    const resp = await globalThis.fetch(`https://api.macvendors.com/${mac}`, {
+      signal: AbortSignal.timeout(3_000),
+    })
+    const vendor = resp.ok ? (await resp.text()).trim() : ''
+    ouiCache.set(prefix, vendor)
+    return vendor
+  } catch {
+    ouiCache.set(prefix, '')
+    return ''
+  }
 }
 
 function resolveDisplayName(apiClient: z.infer<typeof UnifiClientSchema>): string {
@@ -129,10 +151,18 @@ export async function getUnifiClients(): Promise<ClientsResponse> {
     ? (data as { data: unknown }).data
     : data
 
-  const clients = UnifiClientSchema.array().parse(raw)
+  const parsed = UnifiClientSchema.array().parse(raw)
+
+  const enriched = await Promise.all(
+    parsed.map(async (c) => {
+      if (c.oui) return c
+      const vendor = await fetchOuiVendor(c.mac)
+      return vendor ? { ...c, oui: vendor } : c
+    })
+  )
 
   return {
-    clients: clients.map(transformClient),
+    clients: enriched.map(transformClient),
     timestamp: Date.now(),
   }
 }
