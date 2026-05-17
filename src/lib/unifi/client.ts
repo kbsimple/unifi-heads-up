@@ -50,7 +50,7 @@ function clientsUrl(): string {
  * Per DEVI-03: Fallback chain: name -> hostname -> MAC
  */
 function transformClient(apiClient: z.infer<typeof UnifiClientSchema>): NetworkClient {
-  const displayName = apiClient.name ?? apiClient.hostname ?? apiClient.mac
+  const displayName = apiClient.name ?? apiClient.hostname ?? apiClient.oui ?? apiClient.mac
 
   return {
     id: apiClient._id,

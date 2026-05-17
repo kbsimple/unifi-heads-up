@@ -10,6 +10,7 @@ export const UnifiClientSchema = z.object({
   mac: z.string(),
   name: z.string().nullish(),
   hostname: z.string().nullish(),
+  oui: z.string().nullish(),
   ip: z.string().nullish(),
   last_seen: z.number().nullish(),
   is_wired: z.boolean().nullish(),
