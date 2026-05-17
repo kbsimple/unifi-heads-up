@@ -5,6 +5,8 @@ import { Star } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { RuleToggle } from './rule-toggle'
+import { SchedulePicker } from './schedule-picker'
+import { ScheduleBadge } from './schedule-badge'
 import type { FirewallPolicy } from '@/lib/unifi/types'
 
 interface FirewallCardProps {
@@ -19,6 +21,7 @@ interface FirewallCardProps {
  * Per D-04: Badge variant based on enabled state
  * Per D-08: Minimal display fields - _id, name, enabled
  * Per Phase 9: Star icon for bookmarking rules across sessions
+ * Per Phase 11: Clock icon for schedule picker; expiry badge below rule name
  */
 export function FirewallCard({ policy, isStarred, onToggleStar }: FirewallCardProps) {
   return (
@@ -26,10 +29,16 @@ export function FirewallCard({ policy, isStarred, onToggleStar }: FirewallCardPr
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
           {/* Rule name - left aligned */}
-          <p className="font-medium text-zinc-100">{policy.name}</p>
+          <div className="flex-1 min-w-0">
+            <p className="font-medium text-zinc-100">{policy.name}</p>
+            {/* Expiry indicator — only when a future schedule is active (Phase 11) */}
+            {policy.scheduleEnd !== undefined && (
+              <ScheduleBadge scheduleEnd={policy.scheduleEnd} />
+            )}
+          </div>
 
-          {/* Star + Badge + Switch - right aligned */}
-          <div className="flex items-center gap-3">
+          {/* Star | Badge | Clock | Switch - right aligned (UI-SPEC action cluster order) */}
+          <div className="flex items-center gap-3 ml-3">
             <button
               onClick={onToggleStar}
               aria-label={isStarred ? 'Unstar rule' : 'Star rule'}
@@ -44,6 +53,7 @@ export function FirewallCard({ policy, isStarred, onToggleStar }: FirewallCardPr
             <Badge variant={policy.enabled ? 'default' : 'secondary'}>
               {policy.enabled ? 'Enabled' : 'Disabled'}
             </Badge>
+            <SchedulePicker policy={policy} />
             <RuleToggle policy={policy} />
           </div>
         </div>
