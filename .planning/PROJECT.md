@@ -21,14 +21,16 @@ A web application for monitoring home network traffic and managing firewall rule
 - ✓ `dev.sh` sets `UNIFI_MOCK=true` automatically — v1.1 (Phase 5)
 - ✓ Mock returns ≥3 firewall rules with varied names and mixed enabled states; toggle persists in-memory — v1.1 (Phase 5)
 - ✓ Mock returns ≥6 network clients covering High/Medium/Low/Idle statuses with name, MAC, IP, bytes/s — v1.1 (Phase 5)
+- ✓ Server records bandwidth snapshots per client every 60s into SQLite, 30-day retention — v3.0 (Phase 8)
+- ✓ Background server-side interval drives recording independent of browser sessions — v3.0 (Phase 8)
+- ✓ User can star/unstar firewall rules (server-side), filter list to starred only — v3.0 (Phase 9)
+- ✓ Insights page: heaviest-traffic devices ranked over 7/14/30 days — v3.0 (Phase 10)
+- ✓ Insights page: per-device hourly activity patterns over 7/14/30 days — v3.0 (Phase 10)
+- ✓ Firewall rule scheduling: 2h/6h/24h duration presets, auto-disable via UniFi native schedule, expiry badge — v3.0 (Phase 11)
 
 ### Active
 
-- [ ] Server records bandwidth snapshots per client every 60s into SQLite, retained 30 days
-- [ ] Background server-side interval drives recording independent of browser sessions
-- [ ] User can star/unstar firewall rules (server-side), filter list to starred only
-- [ ] Insights page: heaviest-traffic devices ranked over 7/14/30 days
-- [ ] Insights page: per-device hourly activity patterns over 7/14/30 days
+*(No active requirements — next milestone to be defined)*
 
 ### Out of Scope
 
@@ -64,23 +66,16 @@ A web application for monitoring home network traffic and managing firewall rule
 - **Authentication:** Family/household users (simple auth, not enterprise)
 - **API Rate Limits:** Site Manager API has rate limits (10,000 req/min for v1 stable)
 
-## Current Milestone: v3.0 Statefulness & Insights
-
-**Goal:** Add server-side traffic history (SQLite), starred firewall rules, and a multi-day insights page.
-
-**Target features:**
-- SQLite persistence — 60s snapshots per client, 30-day retention, background server-side recording
-- Starred firewall rules — star indicator on full list, filter to starred only, stored server-side
-- Insights page — heaviest users ranking + per-device hourly activity patterns, user-selectable 7/14/30d range
-
 ## Current State
 
-**Shipped:** v1.1 Dev Mocking (2026-04-19)
-**In Progress:** v2.0 Local Edition — replacing Site Manager Proxy with direct local API
+**Shipped:** v3.0 Statefulness & Insights (2026-05-17)
+**Next:** v4.0 — to be defined
 
-The Site Manager Proxy integration did not work. v2.0 replaces it wholesale with a direct local UniFi console client. The app will be self-hosted on the LAN (home server, NAS, or Dream Machine OS container) instead of Vercel.
+The app is fully self-hosted on LAN via Docker, records continuous bandwidth snapshots into SQLite, shows an insights page with per-device usage patterns, lets users star and filter firewall rules, and supports time-limited scheduling of firewall rules.
 
-**Codebase:** ~2,800 LOC TypeScript/TSX. Next.js 15 + Tailwind CSS 4 + shadcn/ui. 31 test files, 167 tests passing.
+**Codebase:** ~5,066 LOC TypeScript/TSX. Next.js 15 + Tailwind CSS 4 + shadcn/ui + better-sqlite3. 44 test files.
+
+**Known tech debt:** 26 test regressions in pre-v3.0 test files (Phase 8-11 tests: 51/51 green). Schedule expiry badge timezone display may be offset on non-UTC servers.
 
 ## Key Decisions
 
@@ -118,4 +113,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-19 after v1.1 Dev Mocking milestone*
+*Last updated: 2026-05-17 after v3.0 Statefulness & Insights milestone*
