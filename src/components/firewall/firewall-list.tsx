@@ -65,13 +65,16 @@ export function FirewallList({ initialData }: FirewallListProps) {
     await mutateStarred({ starredIds: [...optimisticSet] }, { revalidate: false })
 
     try {
-      await fetch('/api/firewall/starred', {
+      const res = await fetch('/api/firewall/starred', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ruleId: policy._id, starred: nextStarred }),
       })
+      if (!res.ok) {
+        await mutateStarred()
+      }
     } catch {
-      // Revert on error
+      // Revert on network error
       await mutateStarred()
     }
   }
