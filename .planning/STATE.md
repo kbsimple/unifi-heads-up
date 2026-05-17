@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Local Edition
-status: verifying
-stopped_at: Completed 11-firewall-rule-scheduling-02-PLAN.md
-last_updated: "2026-05-17T16:41:37.205Z"
-last_activity: "2026-05-17 - Completed quick task 260517-jq1: Fix rule-toggle SWR optimistic update shape mismatch (blank page on toggle)"
+status: gaps_found
+stopped_at: context exhaustion at 90% (2026-05-17)
+last_updated: "2026-05-17T00:00:00.000Z"
+last_activity: "2026-05-17 — Phase 11 (Firewall Rule Scheduling) verification complete — gaps_found: Clear Schedule DELETE body missing enabled field"
 progress:
   total_phases: 11
   completed_phases: 11
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-04-24)
 
 ## Current Position
 
-Phase: Phase 10 — Insights Page
-Plan: 10-03 (human-verify checkpoint)
-Status: Awaiting human UI verification
-Last activity: 2026-05-17 - Completed quick task 260517-jq1: Fix rule-toggle SWR optimistic update shape mismatch (blank page on toggle)
+Phase: Phase 11 — Firewall Rule Scheduling
+Plan: 11-02 (verification complete — gaps_found)
+Status: Gap closure needed — Clear Schedule DELETE body missing `enabled` field
+Last activity: 2026-05-17 — Phase 11 (Firewall Rule Scheduling) verification complete — gaps_found: Clear Schedule DELETE body missing enabled field
 
-Progress: [████████░░] 85%
+Progress: [██████████] 100% plans complete (gap closure pending)
 
 ## Performance Metrics
 
@@ -114,7 +114,7 @@ None.
 
 ### Blockers/Concerns
 
-None.
+Phase 11 gap: `handleClear` in `schedule-picker.tsx` omits `enabled` from DELETE body. Route returns 400. Fix: add `enabled: policy.enabled` to the fetch body and update RTL test D3.
 
 ## Deferred Items
 
@@ -129,6 +129,6 @@ Items acknowledged and deferred at milestone close on 2026-04-20 (v1.0):
 
 ## Session Continuity
 
-Last session: 2026-05-17T16:41:37.202Z
-Stopped at: Completed 11-firewall-rule-scheduling-02-PLAN.md
+Last session: 2026-05-17T16:44:37.403Z
+Stopped at: context exhaustion at 90% (2026-05-17)
 Resume file: None
