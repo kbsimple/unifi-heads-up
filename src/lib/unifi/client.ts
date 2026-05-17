@@ -45,12 +45,33 @@ function clientsUrl(): string {
   return baseUrl()
 }
 
+// Strips common corporate suffixes from OUI manufacturer strings
+function cleanOui(oui: string): string {
+  return oui
+    .replace(/,?\s*(Co\.?,?\s*Ltd\.?|Inc\.?|LLC\.?|Corp\.?|Limited|Interactive,?\s*Inc\.?|Technologies\s*Inc\.?|Electronics\s*Co\.?,?\s*Ltd\.?)$/i, '')
+    .trim()
+}
+
+// Returns true for hostnames that look like human-assigned names rather than
+// auto-generated serials (e.g. rejects "09AA01AC271502VB", "A4E3F1B2C9D8")
+function isReadableHostname(hostname: string): boolean {
+  return !/^[A-Z0-9]{8,}$/.test(hostname)
+}
+
+function resolveDisplayName(apiClient: z.infer<typeof UnifiClientSchema>): string {
+  if (apiClient.name) return apiClient.name
+  if (apiClient.hostname && isReadableHostname(apiClient.hostname)) return apiClient.hostname
+  const macSuffix = apiClient.mac.slice(-5) // last 4 hex + colon, e.g. "0b:50"
+  if (apiClient.oui) return `${cleanOui(apiClient.oui)} ${macSuffix}`
+  return macSuffix || apiClient.mac
+}
+
 /**
  * Transform UniFi API client to NetworkClient format
- * Per DEVI-03: Fallback chain: name -> hostname -> MAC
+ * Per DEVI-03: Fallback chain: name -> hostname -> oui+mac -> mac
  */
 function transformClient(apiClient: z.infer<typeof UnifiClientSchema>): NetworkClient {
-  const displayName = apiClient.name ?? apiClient.hostname ?? apiClient.oui ?? apiClient.mac
+  const displayName = resolveDisplayName(apiClient)
 
   return {
     id: apiClient._id,
