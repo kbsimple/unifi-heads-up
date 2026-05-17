@@ -85,7 +85,7 @@ export const FirewallPolicySchema = z.object({
   // Computed field: Unix ms of schedule end time. Set by getFirewallPolicies()
   // from schedule.mode === 'ONE_TIME_ONLY' date + time_range_end. Not from API.
   scheduleEnd: z.number().optional(),
-})
+}).passthrough()
 
 /**
  * Firewall policy from UniFi API

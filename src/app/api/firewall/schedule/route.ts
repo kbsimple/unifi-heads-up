@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getSession } from '@/lib/session'
-import { getFirewallPolicies, updateFirewallPolicy } from '@/lib/unifi'
+import { updateFirewallPolicy } from '@/lib/unifi'
 import { ERROR_MESSAGES } from '@/lib/definitions'
 import type { UnifiSchedule } from '@/lib/unifi/types'
 
@@ -22,6 +22,7 @@ const ScheduleRequestSchema = z.object({
  */
 const ClearScheduleRequestSchema = z.object({
   policyId: z.string().min(1, 'Policy ID is required'),
+  enabled: z.boolean(),
 })
 
 /**
@@ -59,12 +60,17 @@ export async function POST(request: Request) {
     // Compute schedule window: now → now + durationHours
     const now = new Date()
     const end = new Date(now.getTime() + durationHours * 60 * 60 * 1000)
+
+    if (end.getDate() !== now.getDate()) {
+      return NextResponse.json(
+        { error: 'VALIDATION_ERROR', message: 'Schedule duration crosses midnight. Choose a shorter duration.' },
+        { status: 400 }
+      )
+    }
+
     const date = now.toISOString().slice(0, 10) // "YYYY-MM-DD"
     const start = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
-    // Clamp to 23:59 if end crosses midnight
-    const endHour = end.getDate() !== now.getDate() ? 23 : end.getHours()
-    const endMin = end.getDate() !== now.getDate() ? 59 : end.getMinutes()
-    const endTime = `${String(endHour).padStart(2, '0')}:${String(endMin).padStart(2, '0')}`
+    const endTime = `${String(end.getHours()).padStart(2, '0')}:${String(end.getMinutes()).padStart(2, '0')}`
 
     const schedule: UnifiSchedule = {
       mode: 'ONE_TIME_ONLY',
@@ -124,21 +130,10 @@ export async function DELETE(request: Request) {
       )
     }
 
-    const { policyId } = result.data
+    const { policyId, enabled } = result.data
 
-    // GET current policies to find existing enabled state
-    const policies = await getFirewallPolicies()
-    const policy = policies.find(p => p._id === policyId)
-
-    if (!policy) {
-      return NextResponse.json(
-        { error: 'NOT_FOUND', message: 'Policy not found' },
-        { status: 404 }
-      )
-    }
-
-    // Write ALWAYS schedule to clear the schedule, preserve enabled state
-    const updatedPolicy = await updateFirewallPolicy(policyId, policy.enabled, { mode: 'ALWAYS' })
+    // Write ALWAYS schedule to clear the schedule, preserve enabled state from client
+    const updatedPolicy = await updateFirewallPolicy(policyId, enabled, { mode: 'ALWAYS' })
 
     return NextResponse.json(updatedPolicy)
   } catch (error) {

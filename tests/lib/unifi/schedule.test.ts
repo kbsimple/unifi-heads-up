@@ -294,7 +294,7 @@ describe('Group D — DELETE /api/firewall/schedule', () => {
 
     const request = new Request('http://localhost/api/firewall/schedule', {
       method: 'DELETE',
-      body: JSON.stringify({ policyId: 'policy-1' }),
+      body: JSON.stringify({ policyId: 'policy-1', enabled: true }),
       headers: { 'Content-Type': 'application/json' },
     })
 
@@ -334,7 +334,7 @@ describe('Group D — DELETE /api/firewall/schedule', () => {
 
     const request = new Request('http://localhost/api/firewall/schedule', {
       method: 'DELETE',
-      body: JSON.stringify({ policyId: 'policy-1' }),
+      body: JSON.stringify({ policyId: 'policy-1', enabled: true }),
       headers: { 'Content-Type': 'application/json' },
     })
 
