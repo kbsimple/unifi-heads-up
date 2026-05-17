@@ -60,6 +60,16 @@ export default function DashboardLayout({
             >
               Groups
             </Link>
+            <Link
+              href="/dashboard/insights"
+              className={`text-sm font-medium transition-colors ${
+                pathname === '/dashboard/insights' || pathname.startsWith('/dashboard/insights/')
+                  ? 'text-sky-600 border-b-2 border-sky-600'
+                  : 'text-zinc-400 hover:text-zinc-100'
+              }`}
+            >
+              Insights
+            </Link>
           </nav>
         </div>
 
