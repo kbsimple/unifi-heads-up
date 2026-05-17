@@ -168,7 +168,7 @@ describe('SchedulePicker', () => {
           '/api/firewall/schedule',
           expect.objectContaining({
             method: 'DELETE',
-            body: JSON.stringify({ policyId: 'policy-1' }),
+            body: JSON.stringify({ policyId: 'policy-1', enabled: true }),
           })
         )
       })
