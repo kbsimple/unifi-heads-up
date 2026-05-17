@@ -104,6 +104,7 @@ None.
 | 260516-srt | Update default sort order (API order) and status thresholds (idle/low/med/high) | 2026-05-16 | 7f34e3c | [260516-srt-update-sort-order-and-status-thresholds](./quick/260516-srt-update-sort-order-and-status-thresholds/) |
 | 260517-jq1 | Fix rule-toggle SWR optimistic update shape mismatch (blank page on toggle) | 2026-05-17 | aaedcd5 | [260517-jq1-rule-toggle-swr-shape-fix](./quick/260517-jq1-rule-toggle-swr-shape-fix/) |
 | 260517-0jr | Replace optimistic toggle update with disabled+pending state until API confirms | 2026-05-17 | 9e89790 | [260517-0jr-toggle-pending-state](./quick/260517-0jr-toggle-pending-state/) |
+| 260517-2ee | Fix login from other LAN machines — bind dev and start servers to 0.0.0.0 | 2026-05-17 | tbd | [260517-2ee-fix-lan-login](./quick/260517-2ee-fix-lan-login/) |
 
 ### Blockers/Concerns
 
