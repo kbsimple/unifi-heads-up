@@ -1,6 +1,6 @@
 // tests/components/firewall/rule-toggle.test.tsx
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { RuleToggle } from '@/components/firewall/rule-toggle'
 import type { FirewallPolicy } from '@/lib/unifi/types'
 
@@ -17,18 +17,20 @@ vi.mock('sonner', () => ({
   },
 }))
 
-// Mock Switch component
+// Mock Switch component — forward disabled prop so tests can assert on it
 vi.mock('@/components/ui/switch', () => ({
-  Switch: ({ checked, onCheckedChange, 'aria-label': ariaLabel }: {
+  Switch: ({ checked, onCheckedChange, 'aria-label': ariaLabel, disabled }: {
     checked: boolean
     onCheckedChange: (checked: boolean) => void
     'aria-label': string
+    disabled?: boolean
   }) => (
     <button
       data-testid="switch"
       data-checked={checked}
       aria-label={ariaLabel}
-      onClick={() => onCheckedChange(!checked)}
+      disabled={disabled}
+      onClick={() => !disabled && onCheckedChange(!checked)}
     >
       {checked ? 'On' : 'Off'}
     </button>
@@ -42,22 +44,14 @@ describe('RuleToggle', () => {
     enabled: true,
   }
 
-  const mockPolicies: FirewallPolicy[] = [
-    mockPolicy,
-    { _id: 'policy-2', name: 'Allow Streaming', enabled: false },
-  ]
-
-  const mockData = { policies: mockPolicies, timestamp: 1000000 }
-
   beforeEach(() => {
     vi.clearAllMocks()
-    // Reset fetch mock
     global.fetch = vi.fn()
   })
 
   describe('Test 1: Renders Switch with checked={policy.enabled}', () => {
     it('should render switch reflecting policy.enabled state', () => {
-      render(<RuleToggle policy={mockPolicy} data={mockData} />)
+      render(<RuleToggle policy={mockPolicy} />)
 
       const switchElement = screen.getByTestId('switch')
       expect(switchElement).toHaveAttribute('data-checked', 'true')
@@ -65,70 +59,65 @@ describe('RuleToggle', () => {
 
     it('should render switch as unchecked when policy.enabled is false', () => {
       const disabledPolicy = { ...mockPolicy, enabled: false }
-      render(<RuleToggle policy={disabledPolicy} data={mockData} />)
+      render(<RuleToggle policy={disabledPolicy} />)
 
       const switchElement = screen.getByTestId('switch')
       expect(switchElement).toHaveAttribute('data-checked', 'false')
     })
   })
 
-  describe('Test 2: Calls mutate with optimisticData immediately on toggle', () => {
-    it('should call mutate with optimisticData when switch is clicked', async () => {
-      render(<RuleToggle policy={mockPolicy} data={mockData} />)
+  describe('Test 2: Switch is disabled while fetch is in progress', () => {
+    it('should disable the switch immediately when clicked', async () => {
+      // Never-resolving promise so we can inspect mid-flight state
+      let resolveFetch!: (value: unknown) => void
+      ;(global.fetch as ReturnType<typeof vi.fn>).mockReturnValueOnce(
+        new Promise((resolve) => { resolveFetch = resolve })
+      )
+
+      render(<RuleToggle policy={mockPolicy} />)
 
       const switchElement = screen.getByTestId('switch')
+      expect(switchElement).not.toBeDisabled()
+
       fireEvent.click(switchElement)
 
-      expect(mockMutate).toHaveBeenCalledWith(
-        '/api/firewall',
-        expect.objectContaining({
-          policies: expect.arrayContaining([
-            expect.objectContaining({ _id: 'policy-1', enabled: false }),
-            expect.objectContaining({ _id: 'policy-2', enabled: false }),
-          ]),
-          timestamp: 1000000,
-        }),
-        expect.objectContaining({
-          optimisticData: expect.objectContaining({ policies: expect.any(Array) }),
-          rollbackOnError: true,
-          revalidate: true,
-        })
-      )
+      // Switch must be disabled while the fetch is in flight
+      await waitFor(() => {
+        expect(screen.getByTestId('switch')).toBeDisabled()
+      })
+
+      // Resolve the fetch so the component can clean up
+      act(() => {
+        resolveFetch({ ok: true })
+      })
     })
 
-    it('should include optimisticData that matches the mutate data', async () => {
-      render(<RuleToggle policy={mockPolicy} data={mockData} />)
-
-      const switchElement = screen.getByTestId('switch')
-      fireEvent.click(switchElement)
-
-      expect(mockMutate).toHaveBeenCalledWith(
-        '/api/firewall',
-        expect.objectContaining({ policies: expect.any(Array), timestamp: expect.any(Number) }),
-        expect.objectContaining({
-          optimisticData: expect.objectContaining({ policies: expect.any(Array), timestamp: expect.any(Number) }),
-        })
+    it('should wrap switch in opacity-50 div while pending', async () => {
+      let resolveFetch!: (value: unknown) => void
+      ;(global.fetch as ReturnType<typeof vi.fn>).mockReturnValueOnce(
+        new Promise((resolve) => { resolveFetch = resolve })
       )
 
-      // Verify optimisticData matches the first argument (the new state)
-      const callArgs = mockMutate.mock.calls[0]
-      const mutateData = callArgs[1]
-      const optimisticData = callArgs[2].optimisticData
-      expect(mutateData).toEqual(optimisticData)
+      render(<RuleToggle policy={mockPolicy} />)
+
+      fireEvent.click(screen.getByTestId('switch'))
+
+      await waitFor(() => {
+        const wrapper = screen.getByTestId('switch').parentElement
+        expect(wrapper?.className).toContain('opacity-50')
+      })
+
+      act(() => { resolveFetch({ ok: true }) })
     })
   })
 
   describe('Test 3: Calls PUT /api/firewall with { policyId, enabled }', () => {
     it('should make PUT request to /api/firewall with correct body', async () => {
-      ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ _id: 'policy-1', name: 'Block Gaming', enabled: false }),
-      })
+      ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ ok: true })
 
-      render(<RuleToggle policy={mockPolicy} data={mockData} />)
+      render(<RuleToggle policy={mockPolicy} />)
 
-      const switchElement = screen.getByTestId('switch')
-      fireEvent.click(switchElement)
+      fireEvent.click(screen.getByTestId('switch'))
 
       await waitFor(() => {
         expect(global.fetch).toHaveBeenCalledWith(
@@ -145,15 +134,41 @@ describe('RuleToggle', () => {
     })
   })
 
-  describe('Test 4: Shows toast error on fetch failure', () => {
-    it('should call toast.error when fetch fails', async () => {
+  describe('Test 4: After successful fetch, mutate revalidates with no args', () => {
+    it('should call mutate("/api/firewall") with no data arg on success', async () => {
+      ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ ok: true })
+
+      render(<RuleToggle policy={mockPolicy} />)
+
+      fireEvent.click(screen.getByTestId('switch'))
+
+      await waitFor(() => {
+        expect(mockMutate).toHaveBeenCalledWith('/api/firewall')
+      })
+    })
+
+    it('should re-enable switch after successful fetch', async () => {
+      ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ ok: true })
+      mockMutate.mockResolvedValueOnce(undefined)
+
+      render(<RuleToggle policy={mockPolicy} />)
+
+      fireEvent.click(screen.getByTestId('switch'))
+
+      await waitFor(() => {
+        expect(screen.getByTestId('switch')).not.toBeDisabled()
+      })
+    })
+  })
+
+  describe('Test 5: Shows toast error and re-enables switch on fetch failure', () => {
+    it('should call toast.error when fetch rejects', async () => {
       const { toast } = await import('sonner')
       ;(global.fetch as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('Network error'))
 
-      render(<RuleToggle policy={mockPolicy} data={mockData} />)
+      render(<RuleToggle policy={mockPolicy} />)
 
-      const switchElement = screen.getByTestId('switch')
-      fireEvent.click(switchElement)
+      fireEvent.click(screen.getByTestId('switch'))
 
       await waitFor(() => {
         expect(toast.error).toHaveBeenCalledWith(
@@ -169,10 +184,9 @@ describe('RuleToggle', () => {
         status: 500,
       })
 
-      render(<RuleToggle policy={mockPolicy} data={mockData} />)
+      render(<RuleToggle policy={mockPolicy} />)
 
-      const switchElement = screen.getByTestId('switch')
-      fireEvent.click(switchElement)
+      fireEvent.click(screen.getByTestId('switch'))
 
       await waitFor(() => {
         expect(toast.error).toHaveBeenCalledWith(
@@ -180,27 +194,17 @@ describe('RuleToggle', () => {
         )
       })
     })
-  })
 
-  describe('Test 5: SWR rollbackOnError reverts state on error', () => {
-    it('should use rollbackOnError: true in mutate options', async () => {
-      ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ _id: 'policy-1', name: 'Block Gaming', enabled: false }),
+    it('should re-enable switch after failed fetch', async () => {
+      ;(global.fetch as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('Network error'))
+
+      render(<RuleToggle policy={mockPolicy} />)
+
+      fireEvent.click(screen.getByTestId('switch'))
+
+      await waitFor(() => {
+        expect(screen.getByTestId('switch')).not.toBeDisabled()
       })
-
-      render(<RuleToggle policy={mockPolicy} data={mockData} />)
-
-      const switchElement = screen.getByTestId('switch')
-      fireEvent.click(switchElement)
-
-      expect(mockMutate).toHaveBeenCalledWith(
-        '/api/firewall',
-        expect.objectContaining({ policies: expect.any(Array), timestamp: expect.any(Number) }),
-        expect.objectContaining({
-          rollbackOnError: true,
-        })
-      )
     })
   })
 })

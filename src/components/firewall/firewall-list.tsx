@@ -156,7 +156,6 @@ export function FirewallList({ initialData }: FirewallListProps) {
             <FirewallCard
               key={policy._id}
               policy={policy}
-              data={data!}
               isStarred={starredIds.has(policy._id)}
               onToggleStar={() => handleToggleStar(policy)}
             />
