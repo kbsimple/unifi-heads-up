@@ -110,7 +110,10 @@ Full archive: `.planning/milestones/v1.1-ROADMAP.md`
   2. The ranked device list shows devices ordered from highest to lowest total traffic for the selected period
   3. Selecting a device reveals an hourly heatmap showing which hours of the day it is typically active over the chosen window
   4. Switching between 7-day, 14-day, and 30-day selectors updates both the ranked list and the heatmap without a full page reload
-**Plans**: TBD
+**Plans**: 3 plans
+  - [ ] 10-01-PLAN.md — Insights query module (Vitest-tested) + two authenticated API routes
+  - [ ] 10-02-PLAN.md — Nav link + Insights page Server Component shell
+  - [ ] 10-03-PLAN.md — InsightsShell, TopDevicesChart, DeviceActivityHeatmap + page wiring
 **UI hint**: yes
 
 ---
@@ -128,4 +131,4 @@ Full archive: `.planning/milestones/v1.1-ROADMAP.md`
 | 7. Docker Deployment | v2.0 | 3/3 | Complete (live-Docker UAT deferred) | 2026-04-24 |
 | 8. SQLite Snapshot Infrastructure | v3.0 | 0/1 | Planning | - |
 | 9. Starred Firewall Rules | v3.0 | 0/1 | Planning | - |
-| 10. Insights Page | v3.0 | 0/? | Not started | - |
+| 10. Insights Page | v3.0 | 0/3 | Planning | - |
