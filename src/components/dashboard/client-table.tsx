@@ -10,7 +10,7 @@ interface ClientTableProps {
   clients: NetworkClient[]
 }
 
-type SortColumn = 'displayName' | 'ip' | 'mac' | 'trafficStatus' | 'lastBusy'
+type SortColumn = 'displayName' | 'ip' | 'mac' | 'trafficStatus' | 'lastBusy' | null
 type SortDirection = 'asc' | 'desc'
 
 const STATUS_ORDER = { high: 3, medium: 2, low: 1, idle: 0 } as const
@@ -24,7 +24,7 @@ const STATUS_TOOLTIP =
   'Idle: <0.5 Mbps · Low: 0.5–1 Mbps · Medium: 1–5 Mbps · High: ≥5 Mbps'
 
 function SortIndicator({ column, sortColumn, sortDirection }: {
-  column: SortColumn
+  column: Exclude<SortColumn, null>
   sortColumn: SortColumn
   sortDirection: SortDirection
 }) {
@@ -33,11 +33,11 @@ function SortIndicator({ column, sortColumn, sortDirection }: {
 }
 
 export function ClientTable({ clients }: ClientTableProps) {
-  const [sortColumn, setSortColumn] = useState<SortColumn>('displayName')
+  const [sortColumn, setSortColumn] = useState<SortColumn>(null)
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
   const { getClientLastBusy } = useTrafficHistory()
 
-  function handleSort(column: SortColumn) {
+  function handleSort(column: Exclude<SortColumn, null>) {
     if (column === sortColumn) {
       setSortDirection((d) => (d === 'asc' ? 'desc' : 'asc'))
     } else {
@@ -46,30 +46,32 @@ export function ClientTable({ clients }: ClientTableProps) {
     }
   }
 
-  const sorted = [...clients].sort((a, b) => {
-    let cmp = 0
-    switch (sortColumn) {
-      case 'displayName':
-        cmp = a.displayName.localeCompare(b.displayName)
-        break
-      case 'ip':
-        cmp = ipToNum(a.ip) - ipToNum(b.ip)
-        break
-      case 'mac':
-        cmp = a.mac.localeCompare(b.mac)
-        break
-      case 'trafficStatus':
-        cmp = STATUS_ORDER[a.trafficStatus] - STATUS_ORDER[b.trafficStatus]
-        break
-      case 'lastBusy': {
-        const aTime = getClientLastBusy(a.id) ?? 0
-        const bTime = getClientLastBusy(b.id) ?? 0
-        cmp = aTime - bTime
-        break
-      }
-    }
-    return sortDirection === 'asc' ? cmp : -cmp
-  })
+  const sorted = sortColumn === null
+    ? clients
+    : [...clients].sort((a, b) => {
+        let cmp = 0
+        switch (sortColumn) {
+          case 'displayName':
+            cmp = a.displayName.localeCompare(b.displayName)
+            break
+          case 'ip':
+            cmp = ipToNum(a.ip) - ipToNum(b.ip)
+            break
+          case 'mac':
+            cmp = a.mac.localeCompare(b.mac)
+            break
+          case 'trafficStatus':
+            cmp = STATUS_ORDER[a.trafficStatus] - STATUS_ORDER[b.trafficStatus]
+            break
+          case 'lastBusy': {
+            const aTime = getClientLastBusy(a.id) ?? 0
+            const bTime = getClientLastBusy(b.id) ?? 0
+            cmp = aTime - bTime
+            break
+          }
+        }
+        return sortDirection === 'asc' ? cmp : -cmp
+      })
 
   function thClass(col: SortColumn, extra = '') {
     return `h-12 px-4 text-left text-xs font-medium uppercase text-zinc-500 cursor-pointer select-none hover:text-zinc-300 transition-colors ${extra}`
