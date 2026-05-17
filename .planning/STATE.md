@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-24)
 Phase: Phase 10 — Insights Page
 Plan: 10-03 (human-verify checkpoint)
 Status: Awaiting human UI verification
-Last activity: 2026-05-16 — Phases 8, 9 complete; Phase 10 code complete, pending verification
+Last activity: 2026-05-17 - Completed quick task 260517-jq1: Fix rule-toggle SWR optimistic update shape mismatch (blank page on toggle)
 
 Progress: [████████░░] 85%
 
@@ -98,6 +98,7 @@ None.
 | 260424-262 | Fix UniFi API URLs to include consoleId in path | 2026-04-24 | 2f94bb2 | [260424-262-fix-unifi-api-urls-console-id](./quick/260424-262-fix-unifi-api-urls-console-id/) |
 | 260425-pm2 | Add PM2 as a deployment option alongside Docker | 2026-04-25 | 085b28b | [260425-pm2-add-pm2-deployment-option](./quick/260425-pm2-add-pm2-deployment-option/) |
 | 260516-srt | Update default sort order (API order) and status thresholds (idle/low/med/high) | 2026-05-16 | 7f34e3c | [260516-srt-update-sort-order-and-status-thresholds](./quick/260516-srt-update-sort-order-and-status-thresholds/) |
+| 260517-jq1 | Fix rule-toggle SWR optimistic update shape mismatch (blank page on toggle) | 2026-05-17 | aaedcd5 | [260517-jq1-rule-toggle-swr-shape-fix](./quick/260517-jq1-rule-toggle-swr-shape-fix/) |
 
 ### Blockers/Concerns
 
