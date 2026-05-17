@@ -206,7 +206,7 @@ describe('Firewall Integration Tests', () => {
 
       render(
         <TestWrapper>
-          <FirewallCard policy={mockPolicies[0]} policies={mockPolicies} isStarred={false} onToggleStar={() => {}} />
+          <FirewallCard policy={mockPolicies[0]} data={{ policies: mockPolicies, timestamp: Date.now() }} isStarred={false} onToggleStar={() => {}} />
         </TestWrapper>
       )
 

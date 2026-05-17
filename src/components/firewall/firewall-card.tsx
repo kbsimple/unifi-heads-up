@@ -9,7 +9,7 @@ import type { FirewallPolicy } from '@/lib/unifi/types'
 
 interface FirewallCardProps {
   policy: FirewallPolicy
-  policies: FirewallPolicy[]
+  data: { policies: FirewallPolicy[]; timestamp: number }
   isStarred: boolean
   onToggleStar: () => void
 }
@@ -21,7 +21,7 @@ interface FirewallCardProps {
  * Per D-08: Minimal display fields - _id, name, enabled
  * Per Phase 9: Star icon for bookmarking rules across sessions
  */
-export function FirewallCard({ policy, policies, isStarred, onToggleStar }: FirewallCardProps) {
+export function FirewallCard({ policy, data, isStarred, onToggleStar }: FirewallCardProps) {
   return (
     <Card className="bg-zinc-900 border-zinc-800 rounded-lg">
       <CardContent className="p-4">
@@ -45,7 +45,7 @@ export function FirewallCard({ policy, policies, isStarred, onToggleStar }: Fire
             <Badge variant={policy.enabled ? 'default' : 'secondary'}>
               {policy.enabled ? 'Enabled' : 'Disabled'}
             </Badge>
-            <RuleToggle policy={policy} policies={policies} />
+            <RuleToggle policy={policy} data={data} />
           </div>
         </div>
       </CardContent>

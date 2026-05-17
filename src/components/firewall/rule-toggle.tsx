@@ -6,9 +6,14 @@ import { toast } from 'sonner'
 import { Switch } from '@/components/ui/switch'
 import type { FirewallPolicy } from '@/lib/unifi/types'
 
+interface FirewallData {
+  policies: FirewallPolicy[]
+  timestamp: number
+}
+
 interface RuleToggleProps {
   policy: FirewallPolicy
-  policies: FirewallPolicy[]
+  data: FirewallData
 }
 
 /**
@@ -16,18 +21,25 @@ interface RuleToggleProps {
  * Per D-05: Optimistic update - switch animates immediately on click
  * Per D-06: On error, SWR rollbackOnError reverts state and toast displays error
  */
-export function RuleToggle({ policy, policies }: RuleToggleProps) {
+export function RuleToggle({ policy, data }: RuleToggleProps) {
   const { mutate } = useSWRConfig()
 
   const handleToggle = async (checked: boolean) => {
     // Optimistic update: immediately update local state
-    const updatedPolicies = policies.map((p) =>
+    const updatedPolicies = data.policies.map((p) =>
       p._id === policy._id ? { ...p, enabled: checked } : p
     )
 
+    // Preserve the full SWR cache shape so consumers reading data?.policies
+    // don't receive undefined and flash the empty state.
+    const optimisticData: FirewallData = {
+      policies: updatedPolicies,
+      timestamp: data.timestamp,
+    }
+
     // Per D-05: Call mutate with optimisticData immediately
-    mutate('/api/firewall', updatedPolicies, {
-      optimisticData: updatedPolicies,
+    mutate('/api/firewall', optimisticData, {
+      optimisticData,
       rollbackOnError: true,
       revalidate: true,
     })

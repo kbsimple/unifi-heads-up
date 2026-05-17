@@ -6,7 +6,7 @@ import type { FirewallPolicy } from '@/lib/unifi/types'
 
 // Mock RuleToggle component
 vi.mock('@/components/firewall/rule-toggle', () => ({
-  RuleToggle: ({ policy }: { policy: FirewallPolicy; policies: FirewallPolicy[] }) => (
+  RuleToggle: ({ policy }: { policy: FirewallPolicy; data: { policies: FirewallPolicy[]; timestamp: number } }) => (
     <button
       data-testid="switch"
       data-checked={policy.enabled}
@@ -39,7 +39,7 @@ describe('FirewallCard', () => {
 
   describe('Test 1: Renders rule name', () => {
     it('should display the policy name in text-zinc-100', () => {
-      render(<FirewallCard policy={mockEnabledPolicy} policies={mockPolicies} isStarred={false} onToggleStar={noop} />)
+      render(<FirewallCard policy={mockEnabledPolicy} data={{ policies: mockPolicies, timestamp: 1000000 }} isStarred={false} onToggleStar={noop} />)
 
       expect(screen.getByText('Block Gaming')).toBeInTheDocument()
       const nameElement = screen.getByText('Block Gaming')
@@ -49,7 +49,7 @@ describe('FirewallCard', () => {
 
   describe('Test 2: Renders "Enabled" badge when policy.enabled is true', () => {
     it('should render "Enabled" badge with variant="default" (sky-600)', () => {
-      render(<FirewallCard policy={mockEnabledPolicy} policies={mockPolicies} isStarred={false} onToggleStar={noop} />)
+      render(<FirewallCard policy={mockEnabledPolicy} data={{ policies: mockPolicies, timestamp: 1000000 }} isStarred={false} onToggleStar={noop} />)
 
       expect(screen.getByText('Enabled')).toBeInTheDocument()
       const badge = screen.getByText('Enabled')
@@ -60,7 +60,7 @@ describe('FirewallCard', () => {
 
   describe('Test 3: Renders "Disabled" badge when policy.enabled is false', () => {
     it('should render "Disabled" badge with variant="secondary" (zinc-700)', () => {
-      render(<FirewallCard policy={mockDisabledPolicy} policies={mockPolicies} isStarred={false} onToggleStar={noop} />)
+      render(<FirewallCard policy={mockDisabledPolicy} data={{ policies: mockPolicies, timestamp: 1000000 }} isStarred={false} onToggleStar={noop} />)
 
       expect(screen.getByText('Disabled')).toBeInTheDocument()
       const badge = screen.getByText('Disabled')
@@ -72,14 +72,14 @@ describe('FirewallCard', () => {
   describe('Test 4: Renders RuleToggle component with checked={policy.enabled}', () => {
     it('should render RuleToggle with checked state matching policy.enabled', () => {
       const { rerender } = render(
-        <FirewallCard policy={mockEnabledPolicy} policies={mockPolicies} isStarred={false} onToggleStar={noop} />
+        <FirewallCard policy={mockEnabledPolicy} data={{ policies: mockPolicies, timestamp: 1000000 }} isStarred={false} onToggleStar={noop} />
       )
 
       let switchElement = screen.getByTestId('switch')
       expect(switchElement).toHaveAttribute('data-checked', 'true')
 
       rerender(
-        <FirewallCard policy={mockDisabledPolicy} policies={mockPolicies} isStarred={false} onToggleStar={noop} />
+        <FirewallCard policy={mockDisabledPolicy} data={{ policies: mockPolicies, timestamp: 1000000 }} isStarred={false} onToggleStar={noop} />
       )
       switchElement = screen.getByTestId('switch')
       expect(switchElement).toHaveAttribute('data-checked', 'false')
@@ -88,7 +88,7 @@ describe('FirewallCard', () => {
 
   describe('Test 5: RuleToggle handles toggle internally', () => {
     it('should render RuleToggle component that handles toggle internally', () => {
-      render(<FirewallCard policy={mockEnabledPolicy} policies={mockPolicies} isStarred={false} onToggleStar={noop} />)
+      render(<FirewallCard policy={mockEnabledPolicy} data={{ policies: mockPolicies, timestamp: 1000000 }} isStarred={false} onToggleStar={noop} />)
 
       const switchElement = screen.getByTestId('switch')
       expect(switchElement).toBeInTheDocument()
@@ -99,7 +99,7 @@ describe('FirewallCard', () => {
 
   describe('Test 6: Switch has accessible aria-label', () => {
     it('should have aria-label="Toggle {policy.name}"', () => {
-      render(<FirewallCard policy={mockEnabledPolicy} policies={mockPolicies} isStarred={false} onToggleStar={noop} />)
+      render(<FirewallCard policy={mockEnabledPolicy} data={{ policies: mockPolicies, timestamp: 1000000 }} isStarred={false} onToggleStar={noop} />)
 
       const switchElement = screen.getByTestId('switch')
       expect(switchElement).toHaveAttribute('aria-label', 'Toggle Block Gaming')
@@ -108,13 +108,13 @@ describe('FirewallCard', () => {
 
   describe('Test 7: Star icon renders correctly', () => {
     it('renders star button with aria-label "Star rule" when not starred', () => {
-      render(<FirewallCard policy={mockEnabledPolicy} policies={mockPolicies} isStarred={false} onToggleStar={noop} />)
+      render(<FirewallCard policy={mockEnabledPolicy} data={{ policies: mockPolicies, timestamp: 1000000 }} isStarred={false} onToggleStar={noop} />)
 
       expect(screen.getByRole('button', { name: 'Star rule' })).toBeInTheDocument()
     })
 
     it('renders star button with aria-label "Unstar rule" when starred', () => {
-      render(<FirewallCard policy={mockEnabledPolicy} policies={mockPolicies} isStarred={true} onToggleStar={noop} />)
+      render(<FirewallCard policy={mockEnabledPolicy} data={{ policies: mockPolicies, timestamp: 1000000 }} isStarred={true} onToggleStar={noop} />)
 
       expect(screen.getByRole('button', { name: 'Unstar rule' })).toBeInTheDocument()
     })
@@ -122,7 +122,7 @@ describe('FirewallCard', () => {
     it('calls onToggleStar when star button is clicked', () => {
       const mockToggle = vi.fn()
       render(
-        <FirewallCard policy={mockEnabledPolicy} policies={mockPolicies} isStarred={false} onToggleStar={mockToggle} />
+        <FirewallCard policy={mockEnabledPolicy} data={{ policies: mockPolicies, timestamp: 1000000 }} isStarred={false} onToggleStar={mockToggle} />
       )
 
       fireEvent.click(screen.getByRole('button', { name: 'Star rule' }))

@@ -47,6 +47,8 @@ describe('RuleToggle', () => {
     { _id: 'policy-2', name: 'Allow Streaming', enabled: false },
   ]
 
+  const mockData = { policies: mockPolicies, timestamp: 1000000 }
+
   beforeEach(() => {
     vi.clearAllMocks()
     // Reset fetch mock
@@ -55,7 +57,7 @@ describe('RuleToggle', () => {
 
   describe('Test 1: Renders Switch with checked={policy.enabled}', () => {
     it('should render switch reflecting policy.enabled state', () => {
-      render(<RuleToggle policy={mockPolicy} policies={mockPolicies} />)
+      render(<RuleToggle policy={mockPolicy} data={mockData} />)
 
       const switchElement = screen.getByTestId('switch')
       expect(switchElement).toHaveAttribute('data-checked', 'true')
@@ -63,7 +65,7 @@ describe('RuleToggle', () => {
 
     it('should render switch as unchecked when policy.enabled is false', () => {
       const disabledPolicy = { ...mockPolicy, enabled: false }
-      render(<RuleToggle policy={disabledPolicy} policies={mockPolicies} />)
+      render(<RuleToggle policy={disabledPolicy} data={mockData} />)
 
       const switchElement = screen.getByTestId('switch')
       expect(switchElement).toHaveAttribute('data-checked', 'false')
@@ -72,19 +74,22 @@ describe('RuleToggle', () => {
 
   describe('Test 2: Calls mutate with optimisticData immediately on toggle', () => {
     it('should call mutate with optimisticData when switch is clicked', async () => {
-      render(<RuleToggle policy={mockPolicy} policies={mockPolicies} />)
+      render(<RuleToggle policy={mockPolicy} data={mockData} />)
 
       const switchElement = screen.getByTestId('switch')
       fireEvent.click(switchElement)
 
       expect(mockMutate).toHaveBeenCalledWith(
         '/api/firewall',
-        expect.arrayContaining([
-          expect.objectContaining({ _id: 'policy-1', enabled: false }),
-          expect.objectContaining({ _id: 'policy-2', enabled: false }),
-        ]),
         expect.objectContaining({
-          optimisticData: expect.any(Array),
+          policies: expect.arrayContaining([
+            expect.objectContaining({ _id: 'policy-1', enabled: false }),
+            expect.objectContaining({ _id: 'policy-2', enabled: false }),
+          ]),
+          timestamp: 1000000,
+        }),
+        expect.objectContaining({
+          optimisticData: expect.objectContaining({ policies: expect.any(Array) }),
           rollbackOnError: true,
           revalidate: true,
         })
@@ -92,16 +97,16 @@ describe('RuleToggle', () => {
     })
 
     it('should include optimisticData that matches the mutate data', async () => {
-      render(<RuleToggle policy={mockPolicy} policies={mockPolicies} />)
+      render(<RuleToggle policy={mockPolicy} data={mockData} />)
 
       const switchElement = screen.getByTestId('switch')
       fireEvent.click(switchElement)
 
       expect(mockMutate).toHaveBeenCalledWith(
         '/api/firewall',
-        expect.any(Array),
+        expect.objectContaining({ policies: expect.any(Array), timestamp: expect.any(Number) }),
         expect.objectContaining({
-          optimisticData: expect.any(Array),
+          optimisticData: expect.objectContaining({ policies: expect.any(Array), timestamp: expect.any(Number) }),
         })
       )
 
@@ -120,7 +125,7 @@ describe('RuleToggle', () => {
         json: async () => ({ _id: 'policy-1', name: 'Block Gaming', enabled: false }),
       })
 
-      render(<RuleToggle policy={mockPolicy} policies={mockPolicies} />)
+      render(<RuleToggle policy={mockPolicy} data={mockData} />)
 
       const switchElement = screen.getByTestId('switch')
       fireEvent.click(switchElement)
@@ -145,7 +150,7 @@ describe('RuleToggle', () => {
       const { toast } = await import('sonner')
       ;(global.fetch as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('Network error'))
 
-      render(<RuleToggle policy={mockPolicy} policies={mockPolicies} />)
+      render(<RuleToggle policy={mockPolicy} data={mockData} />)
 
       const switchElement = screen.getByTestId('switch')
       fireEvent.click(switchElement)
@@ -164,7 +169,7 @@ describe('RuleToggle', () => {
         status: 500,
       })
 
-      render(<RuleToggle policy={mockPolicy} policies={mockPolicies} />)
+      render(<RuleToggle policy={mockPolicy} data={mockData} />)
 
       const switchElement = screen.getByTestId('switch')
       fireEvent.click(switchElement)
@@ -184,14 +189,14 @@ describe('RuleToggle', () => {
         json: async () => ({ _id: 'policy-1', name: 'Block Gaming', enabled: false }),
       })
 
-      render(<RuleToggle policy={mockPolicy} policies={mockPolicies} />)
+      render(<RuleToggle policy={mockPolicy} data={mockData} />)
 
       const switchElement = screen.getByTestId('switch')
       fireEvent.click(switchElement)
 
       expect(mockMutate).toHaveBeenCalledWith(
         '/api/firewall',
-        expect.any(Array),
+        expect.objectContaining({ policies: expect.any(Array), timestamp: expect.any(Number) }),
         expect.objectContaining({
           rollbackOnError: true,
         })
