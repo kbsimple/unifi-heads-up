@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Statefulness & Insights
-status: in_progress
-stopped_at: Phase 10 human-verify checkpoint — awaiting UI confirmation
-last_updated: "2026-05-16T00:00:00.000Z"
-last_activity: 2026-05-16 — Phases 8, 9, 10 executed; awaiting Phase 10 human verification
+milestone: v2.0
+milestone_name: Local Edition
+status: verifying
+stopped_at: Completed 11-firewall-rule-scheduling-01-PLAN.md
+last_updated: "2026-05-17T16:37:42.496Z"
+last_activity: "2026-05-17 - Completed quick task 260517-jq1: Fix rule-toggle SWR optimistic update shape mismatch (blank page on toggle)"
 progress:
-  total_phases: 3
-  completed_phases: 2
-  total_plans: 5
-  completed_plans: 5
-  percent: 85
+  total_phases: 11
+  completed_phases: 10
+  total_plans: 31
+  completed_plans: 30
+  percent: 97
 ---
 
 # Project State
@@ -58,6 +58,7 @@ Progress: [████████░░] 85%
 | Phase 06-local-api-client P02 | 12 | 1 tasks | 3 files |
 | Phase 06-local-api-client P03 | 5 | 3 tasks | 1 files |
 | Phase 08-sqlite-snapshot-infrastructure P01 | 65 | 3 tasks | 7 files |
+| Phase 11-firewall-rule-scheduling P01 | 4 | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -85,6 +86,9 @@ Recent decisions affecting current work:
 - [Phase 08-sqlite-snapshot-infrastructure]: better-sqlite3 chosen for synchronous API — simpler background recorder with no async complexity
 - [Phase 08-sqlite-snapshot-infrastructure]: purgeOldSnapshots() called inline after each insert — no separate cron needed
 - [Phase 08-sqlite-snapshot-infrastructure]: instrumentation.ts uses dynamic import of recorder to avoid circular init issues at Next.js boot
+- [Phase 11-firewall-rule-scheduling]: UnifiScheduleSchema uses z.union ALWAYS|ONE_TIME_ONLY with passthrough() on ALWAYS to preserve unknown fields
+- [Phase 11-firewall-rule-scheduling]: POST /api/firewall/schedule always sets enabled=true alongside schedule (UX: scheduling implies enabling)
+- [Phase 11-firewall-rule-scheduling]: DELETE /api/firewall/schedule GETs current policies to preserve existing enabled state before writing ALWAYS
 
 ### Pending Todos
 
@@ -123,6 +127,6 @@ Items acknowledged and deferred at milestone close on 2026-04-20 (v1.0):
 
 ## Session Continuity
 
-Last session: 2026-05-17T00:09:00.000Z
-Stopped at: Completed 09-starred-firewall-rules-01-PLAN.md
+Last session: 2026-05-17T16:37:42.493Z
+Stopped at: Completed 11-firewall-rule-scheduling-01-PLAN.md
 Resume file: None
