@@ -33,7 +33,11 @@ const agent = new Agent({
 // e.g. UNIFI_HOST=192.168.1.1 → https://192.168.1.1/proxy/...
 // e.g. UNIFI_HOST=192.168.1.1:8443 → https://192.168.1.1:8443/proxy/...
 function baseUrl(): string {
-  return `https://${process.env.UNIFI_HOST}/proxy/network/v2/api/site/default`
+  const apiVersion = process.env.UNIFI_API_VERSION ?? 'v1'
+  if (apiVersion === 'v2') {
+    return `https://${process.env.UNIFI_HOST}/proxy/network/v2/api/site/default`
+  }
+  return `https://${process.env.UNIFI_HOST}/proxy/network/api/s/default`
 }
 
 /**
