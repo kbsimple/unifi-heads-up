@@ -60,7 +60,7 @@ export async function getSession(): Promise<SessionPayload | null> {
 export function createSessionCookieOptions(expiresAt: Date) {
   return {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.SECURE_COOKIES === 'true',
     expires: expiresAt,
     sameSite: 'lax' as const,
     path: '/',
