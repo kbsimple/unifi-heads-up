@@ -1,0 +1,125 @@
+'use client'
+
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  ResponsiveContainer,
+  Tooltip,
+  Cell,
+  type BarRectangleItem,
+} from 'recharts'
+import { Card, CardContent } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
+
+export interface TopDevice {
+  mac: string
+  totalBytes: number
+}
+
+interface TopDevicesChartProps {
+  data: TopDevice[] | undefined
+  isLoading: boolean
+  selectedMac: string | null
+  onSelectDevice: (mac: string) => void
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1e9) {
+    return `${(bytes / 1e6).toFixed(0)}MB`
+  }
+  return `${(bytes / 1e9).toFixed(1)}GB`
+}
+
+function shortMac(mac: string): string {
+  return mac.slice(-8)
+}
+
+export function TopDevicesChart({
+  data,
+  isLoading,
+  selectedMac,
+  onSelectDevice,
+}: TopDevicesChartProps) {
+  if (isLoading || !data) {
+    return <Skeleton className="h-64 w-full rounded-lg bg-zinc-800" />
+  }
+
+  if (data.length === 0) {
+    return (
+      <Card className="bg-zinc-900 border-zinc-800 rounded-lg">
+        <CardContent className="p-4 flex items-center justify-center h-64">
+          <p className="text-zinc-500 text-sm">No traffic data available for this period.</p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  const chartData = data.map(d => ({ ...d, label: shortMac(d.mac) }))
+  const height = Math.max(200, data.length * 40)
+
+  return (
+    <Card className="bg-zinc-900 border-zinc-800 rounded-lg">
+      <CardContent className="p-4">
+        <div aria-label="Top devices by bandwidth" role="img">
+          <ResponsiveContainer width="100%" height={height}>
+            <BarChart
+              data={chartData}
+              layout="vertical"
+              margin={{ top: 4, right: 16, left: 8, bottom: 4 }}
+            >
+              <XAxis
+                type="number"
+                dataKey="totalBytes"
+                tick={{ fill: '#71717a', fontSize: 11 }}
+                axisLine={false}
+                tickLine={false}
+                tickFormatter={formatBytes}
+              />
+              <YAxis
+                type="category"
+                dataKey="label"
+                tick={{ fill: '#a1a1aa', fontSize: 11 }}
+                axisLine={false}
+                tickLine={false}
+                width={72}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: '#18181b',
+                  border: '1px solid #27272a',
+                  borderRadius: '8px',
+                  color: '#f4f4f5',
+                  fontSize: 12,
+                }}
+                formatter={(value) => [
+                  typeof value === 'number' ? formatBytes(value) : String(value),
+                  'Total',
+                ]}
+                labelFormatter={(label) => `Device: ${label}`}
+                labelStyle={{ color: '#a1a1aa' }}
+              />
+              <Bar
+                dataKey="totalBytes"
+                cursor="pointer"
+                onClick={(data: BarRectangleItem) => {
+                  const mac = (data.payload as TopDevice)?.mac
+                  if (mac) onSelectDevice(mac)
+                }}
+                radius={[0, 4, 4, 0]}
+              >
+                {chartData.map((entry) => (
+                  <Cell
+                    key={entry.mac}
+                    fill={entry.mac === selectedMac ? '#38bdf8' : '#0ea5e9'}
+                  />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
