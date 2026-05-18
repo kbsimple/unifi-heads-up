@@ -3,6 +3,7 @@ import type { Database } from 'better-sqlite3'
 export interface TopDevice {
   mac: string
   totalBytes: number
+  displayName?: string
 }
 
 export interface HourlyBucket {

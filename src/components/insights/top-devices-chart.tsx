@@ -16,6 +16,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 export interface TopDevice {
   mac: string
   totalBytes: number
+  displayName?: string
 }
 
 interface TopDevicesChartProps {
@@ -30,10 +31,6 @@ function formatBytes(bytes: number): string {
     return `${(bytes / 1e6).toFixed(0)}MB`
   }
   return `${(bytes / 1e9).toFixed(1)}GB`
-}
-
-function shortMac(mac: string): string {
-  return mac.slice(-8)
 }
 
 export function TopDevicesChart({
@@ -56,7 +53,7 @@ export function TopDevicesChart({
     )
   }
 
-  const chartData = data.map(d => ({ ...d, label: shortMac(d.mac) }))
+  const chartData = data.map(d => ({ ...d, label: d.displayName ?? d.mac }))
   const height = Math.max(200, data.length * 40)
 
   return (

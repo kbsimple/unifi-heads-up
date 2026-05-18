@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import { getSession } from '@/lib/session'
 import { getDb } from '@/lib/db'
 import { queryTopDevices } from '@/lib/insights/queries'
+import { getUnifiClients } from '@/lib/unifi/client'
 
 const VALID_DAYS = new Set([7, 14, 30])
 
@@ -29,7 +30,25 @@ export async function GET(req: Request) {
   }
 
   try {
-    const data = queryTopDevices(getDb(), days)
+    const rows = queryTopDevices(getDb(), days)
+
+    // Best-effort: enrich with display names from live UniFi clients.
+    // Falls back to MAC if the API call fails (e.g. offline controller).
+    let nameMap = new Map<string, string>()
+    try {
+      const { clients } = await getUnifiClients()
+      for (const c of clients) {
+        nameMap.set(c.mac, c.displayName)
+      }
+    } catch {
+      // ignore — nameMap stays empty, chart falls back to MAC
+    }
+
+    const data = rows.map(r => ({
+      ...r,
+      displayName: nameMap.get(r.mac) ?? r.mac,
+    }))
+
     return NextResponse.json(data)
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error'
