@@ -106,6 +106,7 @@ export function TopDevicesChart({
                 }}
                 labelFormatter={(label) => `Device: ${label}`}
                 labelStyle={{ color: '#a1a1aa' }}
+                itemStyle={{ color: '#f4f4f5' }}
               />
               <Bar
                 dataKey="totalBytes"
