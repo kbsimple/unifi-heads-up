@@ -96,6 +96,12 @@ Recent decisions affecting current work:
 
 None.
 
+### Future Extensions
+
+| Idea | Notes |
+|------|-------|
+| Per-client top apps (DPI) | `POST /proxy/network/api/s/default/stat/stadpi` with `{"type":"by_app","macs":[...]}` returns per-client app byte counts. Counters are cumulative — need snapshot delta (same pattern as bandwidth recorder). App names are numeric IDs decoded via `dynamic.dpi.js` lookup table from the controller. DPI must be enabled in UniFi Network settings. v1 API path only. |
+
 ### Quick Tasks Completed
 
 | # | Description | Date | Commit | Directory |
