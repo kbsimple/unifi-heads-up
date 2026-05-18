@@ -12,6 +12,7 @@ const mockClient: NetworkClient = {
   isGuest: false,
   downloadRate: 500,
   uploadRate: 250,
+  signal: null,
   trafficStatus: 'low',
 }
 

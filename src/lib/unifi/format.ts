@@ -1,3 +1,11 @@
+export function formatRate(bytesPerSec: number): string {
+  const mbps = (bytesPerSec * 8) / 1_000_000
+  if (mbps < 0.1) return '—'
+  if (mbps >= 100) return `${mbps.toFixed(0)} Mbps`
+  if (mbps >= 10) return `${mbps.toFixed(1)} Mbps`
+  return `${mbps.toFixed(2)} Mbps`
+}
+
 export function formatTimeAgo(value: Date | number | null): string {
   if (value === null) return '—'
   const then = typeof value === 'number' ? value : value.getTime()

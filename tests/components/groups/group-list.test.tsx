@@ -33,12 +33,14 @@ const mockInitial: ClientsResponse = {
     {
       id: 'c-1', mac: 'AA:BB:CC:DD:EE:01', displayName: 'Kid Laptop', ip: '192.168.1.10',
       lastSeen: new Date('2026-04-18T00:00:00Z'), isWired: false, isGuest: false,
-      downloadRate: 600_000, uploadRate: 0, trafficStatus: 'medium',
+      downloadRate: 600_000, uploadRate: 0, signal: null,
+    trafficStatus: 'medium',
     },
     {
       id: 'c-2', mac: 'AA:BB:CC:DD:EE:02', displayName: 'Kid Tablet', ip: '192.168.1.11',
       lastSeen: new Date('2026-04-18T00:00:00Z'), isWired: false, isGuest: false,
-      downloadRate: 500_000, uploadRate: 0, trafficStatus: 'medium',
+      downloadRate: 500_000, uploadRate: 0, signal: null,
+    trafficStatus: 'medium',
     },
   ],
   timestamp: Date.now(),

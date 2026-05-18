@@ -33,7 +33,8 @@ const clientWithIsoLastSeen = {
   isGuest: false,
   downloadRate: 0,
   uploadRate: 0,
-  trafficStatus: 'idle',
+  signal: null,
+    trafficStatus: 'idle',
 } satisfies NetworkClient
 
 describe('formatLastActive — ISO string coercion (SWR rehydration path)', () => {

@@ -106,6 +106,7 @@ function transformClient(apiClient: z.infer<typeof UnifiClientSchema>): NetworkC
     isGuest: apiClient.is_guest ?? false,
     downloadRate: apiClient['rx_bytes-r'],
     uploadRate: apiClient['tx_bytes-r'],
+    signal: apiClient.signal ?? null,
     trafficStatus: calculateTrafficStatus(
       apiClient['rx_bytes-r'],
       apiClient['tx_bytes-r']

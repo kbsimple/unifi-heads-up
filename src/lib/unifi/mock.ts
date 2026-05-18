@@ -20,7 +20,7 @@ const MOCK_CLIENTS: NetworkClient[] = [
     isGuest: false,
     downloadRate: 15_000_000,
     uploadRate: 2_000_000,
-    // Combined 17M bytes/s = 136 Mbps → high
+    signal: null,
     trafficStatus: 'high',
   },
   {
@@ -33,7 +33,7 @@ const MOCK_CLIENTS: NetworkClient[] = [
     isGuest: false,
     downloadRate: 2_000_000,
     uploadRate: 50_000,
-    // Combined 2.05M bytes/s = 16.4 Mbps → medium
+    signal: null,
     trafficStatus: 'medium',
   },
   {
@@ -46,7 +46,7 @@ const MOCK_CLIENTS: NetworkClient[] = [
     isGuest: false,
     downloadRate: 500_000,
     uploadRate: 100_000,
-    // Combined 600K bytes/s = 4.8 Mbps → low
+    signal: -58,
     trafficStatus: 'low',
   },
   {
@@ -59,7 +59,7 @@ const MOCK_CLIENTS: NetworkClient[] = [
     isGuest: false,
     downloadRate: 300_000,
     uploadRate: 80_000,
-    // Combined 380K bytes/s = 3 Mbps → low
+    signal: -65,
     trafficStatus: 'low',
   },
   {
@@ -72,7 +72,7 @@ const MOCK_CLIENTS: NetworkClient[] = [
     isGuest: false,
     downloadRate: 0,
     uploadRate: 0,
-    // Combined 0 bytes/s = 0 Mbps → idle
+    signal: -72,
     trafficStatus: 'idle',
   },
   {
@@ -85,7 +85,7 @@ const MOCK_CLIENTS: NetworkClient[] = [
     isGuest: false,
     downloadRate: 3_500_000,
     uploadRate: 1_000_000,
-    // Combined 4.5M bytes/s = 36 Mbps → medium
+    signal: -45,
     trafficStatus: 'medium',
   },
 ]

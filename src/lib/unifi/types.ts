@@ -18,6 +18,8 @@ export const UnifiClientSchema = z.object({
   // Real-time bandwidth rate fields (bytes per second)
   'rx_bytes-r': z.number().default(0),
   'tx_bytes-r': z.number().default(0),
+  // WiFi signal strength in dBm (null for wired clients)
+  signal: z.number().nullish(),
 })
 
 /**
@@ -43,6 +45,8 @@ export interface NetworkClient {
   // Bandwidth in bytes per second
   downloadRate: number
   uploadRate: number
+  // WiFi signal strength in dBm; null for wired clients
+  signal: number | null
   // Per DEVI-02: Traffic status
   trafficStatus: 'idle' | 'low' | 'medium' | 'high'
 }

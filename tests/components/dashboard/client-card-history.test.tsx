@@ -31,7 +31,8 @@ const mockClient: NetworkClient = {
   isGuest: false,
   downloadRate: 500_000,
   uploadRate: 50_000,
-  trafficStatus: 'medium',
+  signal: null,
+    trafficStatus: 'medium',
 }
 
 function stubHistory(samples: Array<{ hourStart: number; avgDownload: number; avgUpload: number; sampleCount: number }>) {

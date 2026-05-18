@@ -47,7 +47,8 @@ const mockInitial: ClientsResponse = {
     {
       id: 'c-1', mac: 'AA:BB:CC:DD:EE:01', displayName: 'Device 1', ip: '192.168.1.10',
       lastSeen: new Date('2026-04-18T00:00:00Z'), isWired: true, isGuest: false,
-      downloadRate: 100_000, uploadRate: 10_000, trafficStatus: 'low',
+      downloadRate: 100_000, uploadRate: 10_000, signal: null,
+    trafficStatus: 'low',
     },
   ],
   timestamp: Date.now(),

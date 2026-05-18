@@ -15,6 +15,7 @@ function makeClient(over: Partial<NetworkClient> = {}): NetworkClient {
     isGuest: false,
     downloadRate: 0,
     uploadRate: 0,
+    signal: null,
     trafficStatus: 'idle',
     ...over,
   }
@@ -29,8 +30,10 @@ const baseGroup: DeviceGroup = {
 describe('GroupCard aggregated TrafficBadge (UAT-04-02)', () => {
   it('renders High badge when combined rate > 1MB/s', () => {
     const devices = [
-      makeClient({ id: 'c-1', downloadRate: 600_000, uploadRate: 0, trafficStatus: 'medium' }),
-      makeClient({ id: 'c-2', displayName: 'Device 2', downloadRate: 500_000, uploadRate: 0, trafficStatus: 'medium' }),
+      makeClient({ id: 'c-1', downloadRate: 600_000, uploadRate: 0, signal: null,
+    trafficStatus: 'medium' }),
+      makeClient({ id: 'c-2', displayName: 'Device 2', downloadRate: 500_000, uploadRate: 0, signal: null,
+    trafficStatus: 'medium' }),
     ]
     render(
       <GroupCard
@@ -46,8 +49,10 @@ describe('GroupCard aggregated TrafficBadge (UAT-04-02)', () => {
 
   it('renders Medium badge when combined rate between 100KB/s and 1MB/s', () => {
     const devices = [
-      makeClient({ id: 'c-1', downloadRate: 200_000, uploadRate: 0, trafficStatus: 'low' }),
-      makeClient({ id: 'c-2', displayName: 'Device 2', downloadRate: 100_000, uploadRate: 0, trafficStatus: 'low' }),
+      makeClient({ id: 'c-1', downloadRate: 200_000, uploadRate: 0, signal: null,
+    trafficStatus: 'low' }),
+      makeClient({ id: 'c-2', displayName: 'Device 2', downloadRate: 100_000, uploadRate: 0, signal: null,
+    trafficStatus: 'low' }),
     ]
     render(
       <GroupCard

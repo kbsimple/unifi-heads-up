@@ -14,6 +14,7 @@ function makeClient(overrides: Partial<NetworkClient> = {}): NetworkClient {
     isGuest: false,
     downloadRate: 1024.7,
     uploadRate: 512.3,
+    signal: null,
     trafficStatus: 'low',
     ...overrides,
   }

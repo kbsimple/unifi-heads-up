@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { TrafficBadge } from './traffic-badge'
 import { TrafficChart, formatHourLabel } from './traffic-chart'
 import { useTrafficHistory } from '@/contexts/traffic-history-context'
-import { formatTimeAgo } from '@/lib/unifi/format'
+import { formatTimeAgo, formatRate } from '@/lib/unifi/format'
 import type { NetworkClient } from '@/lib/unifi/types'
 
 interface ClientCardProps {
@@ -34,6 +34,14 @@ export function ClientCard({ client }: ClientCardProps) {
             </p>
           </div>
           <TrafficBadge status={client.trafficStatus} />
+        </div>
+
+        <div className="mt-2 flex items-center gap-3 text-xs text-zinc-400">
+          <span>↓ {formatRate(client.downloadRate)}</span>
+          <span>↑ {formatRate(client.uploadRate)}</span>
+          {client.signal !== null && (
+            <span>{client.signal} dBm</span>
+          )}
         </div>
 
         <div className="mt-3 pt-3 border-t border-zinc-800">

@@ -30,6 +30,7 @@ describe('ClientCard', () => {
     isGuest: false,
     downloadRate: 1250000,
     uploadRate: 250000,
+    signal: null,
     trafficStatus: 'medium',
   }
 

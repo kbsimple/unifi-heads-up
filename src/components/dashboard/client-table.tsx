@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { TrafficBadge } from './traffic-badge'
 import { useTrafficHistory } from '@/contexts/traffic-history-context'
-import { formatTimeAgo } from '@/lib/unifi/format'
+import { formatTimeAgo, formatRate } from '@/lib/unifi/format'
 import type { NetworkClient } from '@/lib/unifi/types'
 
 interface ClientTableProps {
@@ -21,7 +21,21 @@ function ipToNum(ip: string | null): number {
 }
 
 const STATUS_TOOLTIP =
-  'Idle: <0.5 Mbps · Low: 0.5–1 Mbps · Medium: 1–5 Mbps · High: ≥5 Mbps'
+  'Idle: <0.5 Mbps · Low: 0.5–1 Mbps · Medium: 1–2 Mbps · High: ≥2 Mbps'
+
+
+function SignalDot({ dbm }: { dbm: number }) {
+  const color =
+    dbm >= -50 ? 'bg-emerald-400' :
+    dbm >= -70 ? 'bg-yellow-400' :
+    'bg-red-400'
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <span className={`inline-block h-2 w-2 rounded-full ${color}`} />
+      <span>{dbm} dBm</span>
+    </span>
+  )
+}
 
 function SortIndicator({ column, sortColumn, sortDirection }: {
   column: Exclude<SortColumn, null>
@@ -94,6 +108,9 @@ export function ClientTable({ clients }: ClientTableProps) {
               MAC Address
               <SortIndicator column="mac" sortColumn={sortColumn} sortDirection={sortDirection} />
             </th>
+            <th className={thClass(null, 'w-[140px] text-right')}>↓ Download</th>
+            <th className={thClass(null, 'w-[140px] text-right')}>↑ Upload</th>
+            <th className={thClass(null, 'w-[120px] text-right')}>Signal</th>
             <th className={`${thClass('trafficStatus', 'w-[120px]')} text-center`} onClick={() => handleSort('trafficStatus')}>
               <span className="inline-flex items-center gap-1">
                 Status
@@ -123,6 +140,11 @@ export function ClientTable({ clients }: ClientTableProps) {
                 <td className="px-4 font-medium text-zinc-100">{client.displayName}</td>
                 <td className="px-4 text-sm text-zinc-400">{client.ip ?? 'No IP'}</td>
                 <td className="px-4 text-sm text-zinc-400">{client.mac}</td>
+                <td className="px-4 text-right text-sm text-zinc-400">{formatRate(client.downloadRate)}</td>
+                <td className="px-4 text-right text-sm text-zinc-400">{formatRate(client.uploadRate)}</td>
+                <td className="px-4 text-right text-sm text-zinc-400">
+                  {client.signal !== null ? <SignalDot dbm={client.signal} /> : <span className="text-zinc-600">wired</span>}
+                </td>
                 <td className="px-4 text-center">
                   <TrafficBadge status={client.trafficStatus} />
                 </td>
