@@ -24,7 +24,7 @@ ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
 # Prepare directories and set ownership before dropping to non-root user
-RUN mkdir .next && chown -R node:node /app
+RUN mkdir -p .next data && chown -R node:node /app
 
 # Run as non-root user (node user exists in official Node.js Alpine images)
 USER node
