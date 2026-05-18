@@ -19,7 +19,7 @@ export interface HourlyBucket {
  *
  * Note: The snapshots table uses client_mac, download_bps, upload_bps columns.
  */
-export function queryTopDevices(db: Database, days: number): TopDevice[] {
+export function queryTopDevices(db: Database, minutes: number): TopDevice[] {
   const rows = db
     .prepare<[number], { mac: string; totalBytes: number; activeSeconds: number }>(
       `
@@ -27,13 +27,13 @@ export function queryTopDevices(db: Database, days: number): TopDevice[] {
              SUM(download_bps + upload_bps) AS totalBytes,
              COUNT(*) * 60 AS activeSeconds
       FROM snapshots
-      WHERE recorded_at >= strftime('%s','now') - (? * 86400)
+      WHERE recorded_at >= strftime('%s','now') - (? * 60)
       GROUP BY client_mac
       ORDER BY totalBytes DESC
       LIMIT 20
       `
     )
-    .all(days)
+    .all(minutes)
 
   return rows
 }
@@ -47,7 +47,7 @@ export function queryTopDevices(db: Database, days: number): TopDevice[] {
 export function queryDeviceActivity(
   db: Database,
   mac: string,
-  days: number
+  minutes: number
 ): HourlyBucket[] {
   const rows = db
     .prepare<[string, number], { hour: number; avgMbps: number }>(
@@ -56,12 +56,12 @@ export function queryDeviceActivity(
              (AVG(download_bps) + AVG(upload_bps)) / 1000000.0 AS avgMbps
       FROM snapshots
       WHERE client_mac = ?
-        AND recorded_at >= strftime('%s','now') - (? * 86400)
+        AND recorded_at >= strftime('%s','now') - (? * 60)
       GROUP BY hour
       ORDER BY hour
       `
     )
-    .all(mac, days)
+    .all(mac, minutes)
 
   // Build a map for quick lookup
   const byHour = new Map<number, number>()

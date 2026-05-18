@@ -47,8 +47,11 @@ beforeEach(() => {
 })
 
 describe('InsightsShell', () => {
-  it('renders all three day-range tabs', () => {
+  it('renders all six time-range tabs', () => {
     render(<InsightsShell />)
+    expect(screen.getByText('5 min')).toBeInTheDocument()
+    expect(screen.getByText('30 min')).toBeInTheDocument()
+    expect(screen.getByText('1 hr')).toBeInTheDocument()
     expect(screen.getByText('7 days')).toBeInTheDocument()
     expect(screen.getByText('14 days')).toBeInTheDocument()
     expect(screen.getByText('30 days')).toBeInTheDocument()
@@ -57,24 +60,42 @@ describe('InsightsShell', () => {
   it('fetches top-devices with default 7-day range', () => {
     render(<InsightsShell />)
     const keys = mockUseSWR.mock.calls.map(c => c[0])
-    expect(keys.some((k: string) => k?.includes('days=7'))).toBe(true)
+    expect(keys.some((k: string) => k?.includes('minutes=10080'))).toBe(true)
   })
 
-  it('switching to 14 days triggers new fetch with days=14', async () => {
+  it('switching to 5 min triggers new fetch with minutes=5', async () => {
+    render(<InsightsShell />)
+    fireEvent.click(screen.getByText('5 min'))
+    await waitFor(() => {
+      const keys = mockUseSWR.mock.calls.map(c => c[0])
+      expect(keys.some((k: string) => k?.includes('minutes=5'))).toBe(true)
+    })
+  })
+
+  it('switching to 1 hr triggers new fetch with minutes=60', async () => {
+    render(<InsightsShell />)
+    fireEvent.click(screen.getByText('1 hr'))
+    await waitFor(() => {
+      const keys = mockUseSWR.mock.calls.map(c => c[0])
+      expect(keys.some((k: string) => k?.includes('minutes=60'))).toBe(true)
+    })
+  })
+
+  it('switching to 14 days triggers new fetch with minutes=20160', async () => {
     render(<InsightsShell />)
     fireEvent.click(screen.getByText('14 days'))
     await waitFor(() => {
       const keys = mockUseSWR.mock.calls.map(c => c[0])
-      expect(keys.some((k: string) => k?.includes('days=14'))).toBe(true)
+      expect(keys.some((k: string) => k?.includes('minutes=20160'))).toBe(true)
     })
   })
 
-  it('switching to 30 days triggers new fetch with days=30', async () => {
+  it('switching to 30 days triggers new fetch with minutes=43200', async () => {
     render(<InsightsShell />)
     fireEvent.click(screen.getByText('30 days'))
     await waitFor(() => {
       const keys = mockUseSWR.mock.calls.map(c => c[0])
-      expect(keys.some((k: string) => k?.includes('days=30'))).toBe(true)
+      expect(keys.some((k: string) => k?.includes('minutes=43200'))).toBe(true)
     })
   })
 

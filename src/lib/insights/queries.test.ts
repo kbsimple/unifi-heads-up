@@ -27,7 +27,7 @@ describe('queryTopDevices', () => {
   })
 
   it('returns empty array when no snapshots exist', () => {
-    const result = queryTopDevices(db, 7)
+    const result = queryTopDevices(db, 10080)
     expect(result).toEqual([])
   })
 
@@ -42,7 +42,7 @@ describe('queryTopDevices', () => {
     // Device C: 50 + 50 = 100 total
     insert.run('aa:bb:cc:dd:ee:03', 50, 50, NOW - DAY)
 
-    const result = queryTopDevices(db, 7)
+    const result = queryTopDevices(db, 10080)
     expect(result).toHaveLength(3)
     expect(result[0].mac).toBe('aa:bb:cc:dd:ee:02')
     expect(result[0].totalBytes).toBe(1000)
@@ -52,16 +52,16 @@ describe('queryTopDevices', () => {
     expect(result[2].totalBytes).toBe(100)
   })
 
-  it('excludes snapshots outside the days window', () => {
+  it('excludes snapshots outside the minutes window', () => {
     const insert = db.prepare(
       'INSERT INTO snapshots (client_mac, download_bps, upload_bps, recorded_at) VALUES (?, ?, ?, ?)'
     )
-    // Within 7 days
+    // Within 7 days (10080 min)
     insert.run('aa:bb:cc:dd:ee:01', 100, 200, NOW - 3 * DAY)
     // Outside 7 days (8 days ago)
     insert.run('aa:bb:cc:dd:ee:02', 500, 500, NOW - 8 * DAY)
 
-    const result = queryTopDevices(db, 7)
+    const result = queryTopDevices(db, 10080)
     expect(result).toHaveLength(1)
     expect(result[0].mac).toBe('aa:bb:cc:dd:ee:01')
   })
@@ -75,7 +75,7 @@ describe('queryTopDevices', () => {
       insert.run(mac, 100 + i, 100 + i, NOW - DAY)
     }
 
-    const result = queryTopDevices(db, 7)
+    const result = queryTopDevices(db, 10080)
     expect(result).toHaveLength(20)
   })
 
@@ -86,7 +86,7 @@ describe('queryTopDevices', () => {
     insert.run('aa:bb:cc:dd:ee:01', 100, 200, NOW - DAY)
     insert.run('aa:bb:cc:dd:ee:01', 300, 400, NOW - 2 * DAY)
 
-    const result = queryTopDevices(db, 7)
+    const result = queryTopDevices(db, 10080)
     expect(result).toHaveLength(1)
     expect(result[0].totalBytes).toBe(1000) // (100+200) + (300+400)
   })
@@ -100,17 +100,17 @@ describe('queryDeviceActivity', () => {
   })
 
   it('always returns exactly 24 buckets', () => {
-    const result = queryDeviceActivity(db, 'aa:bb:cc:dd:ee:01', 7)
+    const result = queryDeviceActivity(db, 'aa:bb:cc:dd:ee:01', 10080)
     expect(result).toHaveLength(24)
   })
 
   it('returns 24 buckets with hour 0-23 even with no data', () => {
-    const result = queryDeviceActivity(db, 'aa:bb:cc:dd:ee:01', 7)
+    const result = queryDeviceActivity(db, 'aa:bb:cc:dd:ee:01', 10080)
     expect(result.map(b => b.hour)).toEqual(Array.from({ length: 24 }, (_, i) => i))
   })
 
   it('fills missing hours with avgMbps=0 and active=false', () => {
-    const result = queryDeviceActivity(db, 'aa:bb:cc:dd:ee:01', 7)
+    const result = queryDeviceActivity(db, 'aa:bb:cc:dd:ee:01', 10080)
     for (const bucket of result) {
       expect(bucket.avgMbps).toBe(0)
       expect(bucket.active).toBe(false)
@@ -131,7 +131,7 @@ describe('queryDeviceActivity', () => {
     // 3_000_000 download + 2_000_000 upload = 5 Mbps average
     insert.run('aa:bb:cc:dd:ee:01', 3_000_000, 2_000_000, ts)
 
-    const result = queryDeviceActivity(db, 'aa:bb:cc:dd:ee:01', 7)
+    const result = queryDeviceActivity(db, 'aa:bb:cc:dd:ee:01', 10080)
     expect(result).toHaveLength(24)
 
     const hour10 = result.find(b => b.hour === 10)
@@ -150,7 +150,7 @@ describe('queryDeviceActivity', () => {
     // Exactly 0.5 Mbps
     insert.run('aa:bb:cc:dd:ee:01', 250_000, 250_000, ts)
 
-    const result = queryDeviceActivity(db, 'aa:bb:cc:dd:ee:01', 7)
+    const result = queryDeviceActivity(db, 'aa:bb:cc:dd:ee:01', 10080)
     const hour8 = result.find(b => b.hour === 8)
     expect(hour8!.active).toBe(true)
   })
@@ -165,7 +165,7 @@ describe('queryDeviceActivity', () => {
     // 0.4 Mbps total (200_000 down + 200_000 up = 400_000 bps = 0.4 Mbps)
     insert.run('aa:bb:cc:dd:ee:01', 200_000, 200_000, ts)
 
-    const result = queryDeviceActivity(db, 'aa:bb:cc:dd:ee:01', 7)
+    const result = queryDeviceActivity(db, 'aa:bb:cc:dd:ee:01', 10080)
     const hour3 = result.find(b => b.hour === 3)
     expect(hour3!.active).toBe(false)
     expect(hour3!.avgMbps).toBeCloseTo(0.4, 1)
@@ -181,7 +181,7 @@ describe('queryDeviceActivity', () => {
 
     insert.run('aa:bb:cc:dd:ee:01', 10_000_000, 10_000_000, oldTs)
 
-    const result = queryDeviceActivity(db, 'aa:bb:cc:dd:ee:01', 7)
+    const result = queryDeviceActivity(db, 'aa:bb:cc:dd:ee:01', 10080)
     const hour12 = result.find(b => b.hour === 12)
     expect(hour12!.avgMbps).toBe(0)
     expect(hour12!.active).toBe(false)

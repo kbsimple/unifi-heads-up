@@ -152,7 +152,7 @@ export function ClientTable({ clients, activeOnly = false }: ClientTableProps) {
                 <td className="px-4 text-right text-sm text-zinc-400">{formatRate(client.downloadRate)}</td>
                 <td className="px-4 text-right text-sm text-zinc-400">{formatRate(client.uploadRate)}</td>
                 <td className="px-4 text-right text-sm text-zinc-400">
-                  {client.signal !== null ? <SignalDot dbm={client.signal} /> : <span className="text-zinc-600">wired</span>}
+                  {client.signal !== null ? <SignalDot dbm={client.signal} /> : <span className="text-emerald-400 font-medium">wired</span>}
                 </td>
                 <td className="px-4 text-center">
                   <TrafficBadge status={client.trafficStatus} />

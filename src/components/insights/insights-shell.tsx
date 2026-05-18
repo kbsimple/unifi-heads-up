@@ -7,27 +7,30 @@ import { DeviceActivityHeatmap } from './device-activity-heatmap'
 import type { TopDevice } from './top-devices-chart'
 import type { HourlyBucket } from './device-activity-heatmap'
 
-type Days = 7 | 14 | 30
+type Minutes = 5 | 30 | 60 | 10080 | 20160 | 43200
 
 const fetcher = (url: string) => fetch(url).then(r => r.json())
 
-const DAY_OPTIONS: { label: string; value: Days }[] = [
-  { label: '7 days', value: 7 },
-  { label: '14 days', value: 14 },
-  { label: '30 days', value: 30 },
+const TIME_OPTIONS: { label: string; value: Minutes; group: 'short' | 'long' }[] = [
+  { label: '5 min', value: 5, group: 'short' },
+  { label: '30 min', value: 30, group: 'short' },
+  { label: '1 hr', value: 60, group: 'short' },
+  { label: '7 days', value: 10080, group: 'long' },
+  { label: '14 days', value: 20160, group: 'long' },
+  { label: '30 days', value: 43200, group: 'long' },
 ]
 
 export function InsightsShell() {
-  const [days, setDays] = useState<Days>(7)
+  const [minutes, setMinutes] = useState<Minutes>(10080)
   const [selectedMac, setSelectedMac] = useState<string | null>(null)
 
   const { data: topDevices, isLoading: topLoading } = useSWR<TopDevice[]>(
-    `/api/insights/top-devices?days=${days}`,
+    `/api/insights/top-devices?minutes=${minutes}`,
     fetcher,
     { refreshInterval: 0 }
   )
 
-  // Auto-select first device when top devices load (or days changes)
+  // Auto-select first device when top devices load (or minutes changes)
   useEffect(() => {
     if (topDevices && topDevices.length > 0 && selectedMac === null) {
       setSelectedMac(topDevices[0].mac)
@@ -36,14 +39,14 @@ export function InsightsShell() {
 
   const { data: activityData, isLoading: activityLoading } = useSWR<HourlyBucket[]>(
     selectedMac
-      ? `/api/insights/device-activity?mac=${encodeURIComponent(selectedMac)}&days=${days}`
+      ? `/api/insights/device-activity?mac=${encodeURIComponent(selectedMac)}&minutes=${minutes}`
       : null,
     fetcher,
     { refreshInterval: 0 }
   )
 
-  function handleDaysChange(newDays: Days) {
-    setDays(newDays)
+  function handleMinutesChange(newMinutes: Minutes) {
+    setMinutes(newMinutes)
     setSelectedMac(null) // reset; auto-select will pick new top device
   }
 
@@ -54,20 +57,26 @@ export function InsightsShell() {
   return (
     <div className="space-y-8">
       {/* Time range tabs */}
-      <div className="bg-zinc-800 rounded-lg p-1 flex w-fit">
-        {DAY_OPTIONS.map(({ label, value }) => (
-          <button
-            key={value}
-            onClick={() => handleDaysChange(value)}
-            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
-              days === value
-                ? 'bg-zinc-700 text-zinc-100'
-                : 'text-zinc-400 hover:text-zinc-200'
-            }`}
-          >
-            {label}
-          </button>
-        ))}
+      <div className="bg-zinc-800 rounded-lg p-1 flex w-fit gap-0.5 items-center">
+        {TIME_OPTIONS.map(({ label, value, group }, idx) => {
+          const prev = TIME_OPTIONS[idx - 1]
+          const showSep = idx > 0 && prev.group !== group
+          return (
+            <div key={value} className="flex items-center gap-0.5">
+              {showSep && <div className="w-px h-5 bg-zinc-600 mx-1" />}
+              <button
+                onClick={() => handleMinutesChange(value)}
+                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  minutes === value
+                    ? 'bg-zinc-700 text-zinc-100'
+                    : 'text-zinc-400 hover:text-zinc-200'
+                }`}
+              >
+                {label}
+              </button>
+            </div>
+          )
+        })}
       </div>
 
       {/* Top Devices section */}
