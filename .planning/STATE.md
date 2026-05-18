@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Local Edition
 status: Gap closure needed — Clear Schedule DELETE body missing `enabled` field
-stopped_at: context exhaustion at 90% (2026-05-17)
-last_updated: "2026-05-17T21:48:38.049Z"
-last_activity: "2026-05-17 — Completed quick task 260517-y8v: Add server telemetry (startup logger, /api/statusz, error boundary)"
+stopped_at: context exhaustion at 93% (2026-05-18)
+last_updated: "2026-05-18T03:32:48.633Z"
+last_activity: "2026-05-17 — Phase 11 (Firewall Rule Scheduling) verification complete — gaps_found: Clear Schedule DELETE body missing enabled field"
 progress:
-  total_phases: 11
-  completed_phases: 11
-  total_plans: 31
-  completed_plans: 31
+  total_phases: 2
+  completed_phases: 2
+  total_plans: 6
+  completed_plans: 6
   percent: 100
 ---
 
@@ -134,8 +134,26 @@ Items acknowledged and deferred at milestone close on 2026-04-20 (v1.0):
 | quick_task | 260418-ocd-update-readme-with-comprehensive-instruc | missing status file (task completed per STATE.md) |
 | quick_task | 260419-ci0-write-vitest-rtl-tests-covering-all-5-ph | missing status file (task completed per STATE.md) |
 
+## Session Log
+
+### 2026-05-17 — Observability, Dashboard UX, and Insights polish
+
+| # | Change | Commit |
+|---|--------|--------|
+| 1 | Server telemetry: `instrumentation.ts` startup logger, `/api/statusz` endpoint, React `ErrorBoundary` in root layout | bd32342, db7ed6d |
+| 2 | Insights top-devices: show `displayName` (enriched from live UniFi clients) instead of raw MAC | 100da02 |
+| 3 | Traffic thresholds lowered: medium 1–2 Mbps, high ≥2 Mbps (was 1–5 / ≥5) | 93be347 |
+| 4 | Expired schedule badge text changed to "set a new duration to enable" | c524819 |
+| 5 | Insights tooltip: shows active duration (e.g. "5.1GB · 3h 12m active") derived from snapshot count | caf4db7 |
+| 6 | Insights tooltip contrast fixed: added `itemStyle` to force zinc-100 text | 2f026ef |
+| 7 | Docker: `data/` mounted as named volume `unifi-data` for SQLite persistence across restarts | 222d1ca |
+| 8 | Dashboard client rows: separate ↓/↑ rate columns + WiFi signal strength with colored dot indicator | 7892b4c |
+| 9 | Dashboard active-only toggle: filters idle clients, reorders by status (high→medium→low) on each refresh | cfa399c |
+
+Future extension recorded: per-client DPI top-apps via `POST /proxy/network/api/s/default/stat/stadpi`.
+
 ## Session Continuity
 
-Last session: 2026-05-17T21:48:38.045Z
-Stopped at: context exhaustion at 90% (2026-05-17)
+Last session: 2026-05-18T03:32:48.631Z
+Stopped at: context exhaustion at 93% (2026-05-18)
 Resume file: None
