@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import useSWR from 'swr'
 import { ClientCard } from './client-card'
 import { ClientTable } from './client-table'
@@ -9,6 +10,7 @@ import { ErrorState } from './error-state'
 import { TrafficChart, formatHourLabel } from './traffic-chart'
 import { TrafficHistoryProvider, useTrafficHistory } from '@/contexts/traffic-history-context'
 import { Card, CardContent } from '@/components/ui/card'
+import { Switch } from '@/components/ui/switch'
 import type { ClientsResponse } from '@/lib/unifi/types'
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json())
@@ -18,6 +20,7 @@ interface ClientListProps {
 }
 
 function ClientListInner({ initialData }: ClientListProps) {
+  const [activeOnly, setActiveOnly] = useState(false)
   const { data, error, isLoading, mutate } = useSWR<ClientsResponse>(
     '/api/clients',
     fetcher,
@@ -41,7 +44,8 @@ function ClientListInner({ initialData }: ClientListProps) {
     return <ErrorState onRetry={() => mutate()} />
   }
 
-  const clients = data?.clients ?? []
+  const allClients = data?.clients ?? []
+  const clients = activeOnly ? allClients.filter(c => c.trafficStatus !== 'idle') : allClients
   const lastUpdated = data?.timestamp ? new Date(data.timestamp) : new Date()
 
   const siteChartData = siteHistory.map((sample) => ({
@@ -50,14 +54,24 @@ function ClientListInner({ initialData }: ClientListProps) {
   }))
 
   // Empty state when no clients
-  if (clients.length === 0) {
+  if (allClients.length === 0) {
     return <EmptyState />
   }
 
   return (
     <div className="space-y-4">
-      {/* Last updated timestamp (UIUX-03) */}
-      <LastUpdated date={lastUpdated} isLoading={isLoading} />
+      {/* Active only toggle + last updated */}
+      <div className="flex items-center justify-between">
+        <LastUpdated date={lastUpdated} isLoading={isLoading} />
+        <label className="flex items-center gap-2 cursor-pointer select-none text-sm text-zinc-400">
+          <Switch
+            checked={activeOnly}
+            onCheckedChange={setActiveOnly}
+            size="sm"
+          />
+          Active only
+        </label>
+      </div>
 
       {/* Site traffic section (D-14) — shown once history is available */}
       {isHistoryAvailable && (
@@ -77,7 +91,7 @@ function ClientListInner({ initialData }: ClientListProps) {
       </div>
 
       <div className="hidden md:block">
-        <ClientTable clients={clients} />
+        <ClientTable clients={clients} activeOnly={activeOnly} />
       </div>
     </div>
   )
