@@ -16,6 +16,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 export interface TopDevice {
   mac: string
   totalBytes: number
+  activeSeconds: number
   displayName?: string
 }
 
@@ -24,6 +25,13 @@ interface TopDevicesChartProps {
   isLoading: boolean
   selectedMac: string | null
   onSelectDevice: (mac: string) => void
+}
+
+function formatDuration(seconds: number): string {
+  const h = Math.floor(seconds / 3600)
+  const m = Math.floor((seconds % 3600) / 60)
+  if (h > 0) return `${h}h ${m}m`
+  return `${m}m`
 }
 
 function formatBytes(bytes: number): string {
@@ -90,10 +98,12 @@ export function TopDevicesChart({
                   color: '#f4f4f5',
                   fontSize: 12,
                 }}
-                formatter={(value) => [
-                  typeof value === 'number' ? formatBytes(value) : String(value),
-                  'Total',
-                ]}
+                formatter={(value, _name, props) => {
+                  const bytes = typeof value === 'number' ? formatBytes(value) : String(value)
+                  const secs = (props.payload as TopDevice)?.activeSeconds
+                  const duration = typeof secs === 'number' ? formatDuration(secs) : null
+                  return [duration ? `${bytes} · ${duration} active` : bytes, 'Total']
+                }}
                 labelFormatter={(label) => `Device: ${label}`}
                 labelStyle={{ color: '#a1a1aa' }}
               />

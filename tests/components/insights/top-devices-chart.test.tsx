@@ -31,15 +31,15 @@ describe('TopDevicesChart', () => {
 
   it('renders bar chart when data is present', () => {
     const data = [
-      { mac: 'aa:bb:cc:dd:ee:ff', totalBytes: 5e9 },
-      { mac: '11:22:33:44:55:66', totalBytes: 1e9 },
+      { mac: 'aa:bb:cc:dd:ee:ff', totalBytes: 5e9, activeSeconds: 3600 },
+      { mac: '11:22:33:44:55:66', totalBytes: 1e9, activeSeconds: 1800 },
     ]
     render(<TopDevicesChart data={data} isLoading={false} selectedMac={null} onSelectDevice={noop} />)
     expect(screen.getByTestId('bar-chart')).toBeInTheDocument()
   })
 
   it('has accessible label on chart container', () => {
-    const data = [{ mac: 'aa:bb:cc:dd:ee:ff', totalBytes: 1e9 }]
+    const data = [{ mac: 'aa:bb:cc:dd:ee:ff', totalBytes: 1e9, activeSeconds: 3600 }]
     render(<TopDevicesChart data={data} isLoading={false} selectedMac={null} onSelectDevice={noop} />)
     expect(screen.getByRole('img', { name: /top devices by bandwidth/i })).toBeInTheDocument()
   })

@@ -3,6 +3,7 @@ import type { Database } from 'better-sqlite3'
 export interface TopDevice {
   mac: string
   totalBytes: number
+  activeSeconds: number
   displayName?: string
 }
 
@@ -20,10 +21,11 @@ export interface HourlyBucket {
  */
 export function queryTopDevices(db: Database, days: number): TopDevice[] {
   const rows = db
-    .prepare<[number], { mac: string; totalBytes: number }>(
+    .prepare<[number], { mac: string; totalBytes: number; activeSeconds: number }>(
       `
       SELECT client_mac AS mac,
-             SUM(download_bps + upload_bps) AS totalBytes
+             SUM(download_bps + upload_bps) AS totalBytes,
+             COUNT(*) * 60 AS activeSeconds
       FROM snapshots
       WHERE recorded_at >= strftime('%s','now') - (? * 86400)
       GROUP BY client_mac

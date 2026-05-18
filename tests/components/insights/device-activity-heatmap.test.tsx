@@ -12,8 +12,8 @@ const HOURLY_DATA: HourlyBucket[] = Array.from({ length: 24 }, (_, i) => ({
 }))
 
 const DEVICES: TopDevice[] = [
-  { mac: 'aa:bb:cc:dd:ee:ff', totalBytes: 5e9 },
-  { mac: '11:22:33:44:55:66', totalBytes: 1e9 },
+  { mac: 'aa:bb:cc:dd:ee:ff', totalBytes: 5e9, activeSeconds: 3600 },
+  { mac: '11:22:33:44:55:66', totalBytes: 1e9, activeSeconds: 1800 },
 ]
 
 const noop = () => {}
