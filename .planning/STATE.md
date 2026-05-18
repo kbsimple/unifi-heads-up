@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Local Edition
-status: in_progress
+status: Gap closure needed — Clear Schedule DELETE body missing `enabled` field
 stopped_at: context exhaustion at 90% (2026-05-17)
-last_updated: "2026-05-17T00:00:00.000Z"
-last_activity: "2026-05-17 — Resuming from phase 11 — gap fix confirmed committed (enabled field added to handleClear DELETE body)"
+last_updated: "2026-05-17T21:48:38.049Z"
+last_activity: "2026-05-17 — Completed quick task 260517-y8v: Add server telemetry (startup logger, /api/statusz, error boundary)"
 progress:
   total_phases: 11
   completed_phases: 11
@@ -111,6 +111,7 @@ None.
 | 260517-jq1 | Fix rule-toggle SWR optimistic update shape mismatch (blank page on toggle) | 2026-05-17 | aaedcd5 | [260517-jq1-rule-toggle-swr-shape-fix](./quick/260517-jq1-rule-toggle-swr-shape-fix/) |
 | 260517-0jr | Replace optimistic toggle update with disabled+pending state until API confirms | 2026-05-17 | 9e89790 | [260517-0jr-toggle-pending-state](./quick/260517-0jr-toggle-pending-state/) |
 | 260517-2ee | Fix login from other LAN machines — bind dev and start servers to 0.0.0.0 | 2026-05-17 | tbd | [260517-2ee-fix-lan-login](./quick/260517-2ee-fix-lan-login/) |
+| 260517-y8v | Add server telemetry: Next.js instrumentation for server logging, client error boundary, and /api/statusz endpoint | 2026-05-17 | db7ed6d | [260517-y8v-server-telemetry](./quick/260517-y8v-server-telemetry/) |
 
 ### Blockers/Concerns
 
@@ -129,6 +130,6 @@ Items acknowledged and deferred at milestone close on 2026-04-20 (v1.0):
 
 ## Session Continuity
 
-Last session: 2026-05-17T16:44:37.403Z
+Last session: 2026-05-17T21:48:38.045Z
 Stopped at: context exhaustion at 90% (2026-05-17)
 Resume file: None
