@@ -1,327 +1,109 @@
 # Unifi Network Dashboard
 
-Visibility and control over home network traffic. See which devices are actively using bandwidth and pause or resume internet access for specific devices or groups.
+A self-hosted web app for monitoring home network traffic and managing firewall rules on a UniFi OS console. Run it on any always-on machine on your LAN — a Mac Mini, NAS, or server — and open it from any device on the network.
 
-## Overview
+![Dashboard](docs/screenshots/02-dashboard.png)
 
-Unifi Network Dashboard is a personal web application for monitoring home network traffic and managing firewall rules on a Unifi OS console. It shows at-a-glance bandwidth status (high / medium / low / idle) per device and device group, and exposes simple toggle controls for pre-existing firewall rules.
+## What it does
 
-Built for a family household. Communicates directly with the UniFi console over LAN using the local API. See [docs/unifi-client.md](docs/unifi-client.md) for how the API client works.
+- **Live bandwidth status** — see which devices are idle, low, medium, or high traffic at a glance
+- **Firewall rule toggles** — pause and resume internet access for devices or groups without logging into the UniFi console
+- **Device groups** — organise devices (e.g. "Kids", "Work") and apply rules to the whole group
+- **Traffic insights** — hourly heatmap and top-devices chart showing bandwidth usage over time (up to 30 days)
 
-## Tech Stack
+Built for a family household. Connects to the UniFi console directly over LAN using the local API.
 
-- Next.js 16 (App Router, Server Components)
-- React 19
-- TypeScript 5
-- Tailwind CSS 4
-- shadcn/ui (copy-paste component library)
-- jose (JWT session signing, HS256)
-- bcryptjs (password hashing)
-- ky (HTTP client for Site Manager API)
-- Recharts (traffic charts)
-- Vitest (unit and integration tests)
-- Docker / PM2 (self-hosted, required — see [Deployment](#deployment))
+### Screenshots
 
-## Prerequisites
+| Login | Dashboard | Firewall | Groups |
+|-------|-----------|----------|--------|
+| ![Login](docs/screenshots/01-login.png) | ![Dashboard](docs/screenshots/02-dashboard.png) | ![Firewall](docs/screenshots/03-firewall.png) | ![Groups](docs/screenshots/04-groups.png) |
 
-- Node 18.18 or later (`node --version` to check)
-- npm (bundled with Node)
-- A Unifi OS console registered in Unifi Site Manager
-- A Site Manager API key (must be MFA-exempt; create one at https://unifi.ui.com under Settings -> API)
-- `openssl` available in your shell (for generating SESSION_SECRET)
+> Screenshots taken with mock data — no real UniFi console required for local development.
 
-## Installation
+---
+
+## Quick Start (Docker on LAN)
+
+The recommended way to run this in your home. Takes about 5 minutes.
+
+### Prerequisites
+
+- A machine on your LAN that stays on (Mac Mini, NAS, Linux server, etc.)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running on that machine
+- The repository cloned on that machine
 
 ```bash
 git clone <repo-url>
 cd unifi-api
-npm install
 ```
 
-## Environment Setup
-
-The app reads secrets from a `.env.local` file at the repo root. This file is gitignored and must be created manually before the first run.
-
-Create `.env.local` and populate every variable:
-
-```bash
-# Authentication (passwords MUST be bcrypt hashes, NOT plaintext)
-ADMIN_USER=admin
-ADMIN_PASSWORD=$2a$10$...   # bcrypt hash of the admin password
-
-FAMILY_USER=family
-FAMILY_PASSWORD=$2a$10$...  # bcrypt hash of the family password
-
-# JWT signing key — must be 32+ characters
-SESSION_SECRET=<generated-secret>
-
-# Unifi Site Manager Proxy
-UNIFI_CONSOLE_ID=<your-console-id>
-UNIFI_API_KEY=<your-api-key>
-
-# Mock mode (optional — disables real API calls, use for local dev or UAT)
-# UNIFI_MOCK=true
-```
-
-### Variable Reference
-
-| Variable | Required | Purpose | How to obtain |
-|---|---|---|---|
-| `ADMIN_USER` | Yes | Plaintext username for the admin role | Choose any username (e.g. `admin`) |
-| `ADMIN_PASSWORD` | Yes | bcrypt hash of the admin password | See bcrypt command below |
-| `FAMILY_USER` | Yes | Plaintext username for the family role | Choose any username (e.g. `family`) |
-| `FAMILY_PASSWORD` | Yes | bcrypt hash of the family password | See bcrypt command below |
-| `SESSION_SECRET` | Yes | 32+ char secret used to sign JWT session tokens | See openssl command below |
-| `UNIFI_MOCK` | No | Set to `true` to use mock data (no real API calls) | Defaults to disabled; set in `.env.vercel-mock` for UAT |
-| `UNIFI_CONSOLE_ID` | Yes (not needed when UNIFI_MOCK=true) | Unifi OS console identifier | Unifi Site Manager -> your console -> Settings -> API — set to any dummy value when UNIFI_MOCK=true |
-| `UNIFI_API_KEY` | Yes (not needed when UNIFI_MOCK=true) | Site Manager API key (MFA-exempt) | Unifi Site Manager -> Settings -> API -> Create API Key — set to any dummy value when UNIFI_MOCK=true |
-
-### Generate a bcrypt password hash
-
-If you are in the project directory (after `npm install`), bcryptjs is already available:
-
-```bash
-node -e "console.log(require('bcryptjs').hashSync('your-password', 10))"
-```
-
-If you are outside the project directory, use `npx` to run it without a separate install:
-
-```bash
-npx --package=bcryptjs node -e "console.log(require('bcryptjs').hashSync('your-password', 10))"
-```
-
-**Keep your password out of shell history.** Wrap the command in a subshell with `HISTFILE=` cleared — this works in both bash and zsh:
-
-```bash
-(HISTFILE= node -e "console.log(require('bcryptjs').hashSync('your-password', 10))")
-```
-
-Alternatively, in bash, prefix the command with a space — bash skips history for commands starting with a space when `HISTCONTROL` includes `ignorespace` (the default on most systems):
-
-```bash
- node -e "console.log(require('bcryptjs').hashSync('your-password', 10))"
-```
-
-Paste the printed hash (starts with `$2a$10$...`) as the value for `ADMIN_PASSWORD` or `FAMILY_PASSWORD`.
-
-### Generate SESSION_SECRET
-
-```bash
-openssl rand -hex 32
-```
-
-Copy the output and set it as `SESSION_SECRET`.
-
-## Running the App (Development)
-
-**Quick start — no setup needed:**
-
-```bash
-./dev.sh
-```
-
-Starts the dev server with mock data and baked-in test credentials:
-
-| Username | Password |
-|----------|----------|
-| `admin`  | `admin`  |
-| `family` | `family` |
-
-Open http://localhost:3000. No `.env.local` required — `UNIFI_MOCK=true` is set automatically so no real UniFi console is needed.
-
-**With a real UniFi console:**
-
-Create `.env.local` with your `UNIFI_HOST` and `UNIFI_API_KEY`, then:
-
-```bash
-npm run dev
-```
-
-Log in with the username/password you configured in `.env.local`.
-
-## Testing
-
-The test suite uses Vitest with a jsdom environment. A baked-in test `SESSION_SECRET` is set in `vitest.config.ts`, so `.env.local` is not required to run tests.
-
-```bash
-npm test            # watch mode — reruns tests on file changes
-npm run test:run    # single run, exits with pass/fail (CI-style)
-```
-
-Test files live in `tests/` and follow the `*.test.ts` / `*.test.tsx` naming convention.
-
-## Linting and Type Checking
-
-```bash
-npm run lint        # ESLint
-npx tsc --noEmit    # TypeScript type check without emitting files
-```
-
-## Production Build
-
-```bash
-npm run build
-npm start
-```
-
-`npm start` requires a completed build. Run `npm run build` first every time production code changes.
-
-## Deployment
-
-This app must run on a machine that has local network access to your UniFi console. Cloud platforms like Vercel cannot reach the UniFi LAN API, so self-hosted deployment is required.
-
-Choose one of the options below based on your setup:
-
-- **[Docker](#self-hosted--docker)** — recommended if Docker Desktop is already installed; handles builds, restarts, and isolation automatically.
-- **[PM2](#self-hosted--pm2)** — lighter weight, no Docker needed; runs the Next.js standalone server directly under a process manager.
-
-## Vercel Preview / UAT (Mock Mode)
-
-You can deploy to Vercel using synthetic mock data — no real Unifi console or API key required. This is useful for UAT, PR previews, and sharing a live demo with family members.
-
-### How it works
-
-When `UNIFI_MOCK=true` is set, the UniFi facade (`src/lib/unifi/index.ts`) loads the mock module instead of the real API client. No calls are made to `api.ui.com`, so `UNIFI_CONSOLE_ID` and `UNIFI_API_KEY` are not needed (dummy values are supplied to satisfy Vercel's "missing variable" checks).
-
-### Set up a Vercel preview deployment with mock data
-
-1. Push your branch to GitHub.
-2. Open the Vercel dashboard and navigate to your project.
-3. Go to **Settings -> Environment Variables**.
-4. Add each variable from `.env.vercel-mock` (repo root). You can paste them one by one, or use the Vercel CLI to bulk-import:
-
-   ```bash
-   npx vercel env pull   # pulls production vars — do this first if you have them
-   npx vercel env add    # interactive add, or use the dashboard
-   ```
-
-   Alternatively, copy the contents of `.env.vercel-mock` directly into Vercel's "Paste as bulk" input (available in the Environment Variables UI).
-
-5. Set the target environment to **Preview** (not Production) for all UAT variables.
-6. Trigger a deployment (push a commit or click **Redeploy** in the dashboard).
-
-### UAT login credentials
-
-| Role | Username | Password |
-|------|----------|----------|
-| Admin | `admin` | `uat-admin` |
-| Family | `family` | `uat-family` |
-
-These credentials are defined in `.env.vercel-mock` and are safe to share with testers. They are not used in any production deployment.
-
-### What the mock data includes
-
-The mock layer returns a fixed set of simulated network clients with varying traffic levels (high / medium / low / idle) and a set of firewall policies with toggle controls. Firewall toggle state is held in-memory and resets on each server restart / cold start.
-
-## Project Structure
-
-```
-src/
-  app/              # Next.js App Router (routes, layouts, server actions)
-    (auth)/         # Login route group
-    (dashboard)/    # Protected dashboard route group
-    actions/        # Server Actions (auth, etc.)
-    api/            # API routes
-  components/       # React components (shadcn/ui + custom)
-  lib/
-    unifi/          # Site Manager Proxy client
-    session.ts      # JWT session helpers (jose)
-    dal.ts          # Data access layer
-tests/              # Vitest test suite
-.planning/          # GSD workflow artifacts (phases, state)
-```
-
-## API Research
-
-For detailed findings on what the UniFi cloud REST API actually exposes — including what works, what doesn't, and the architectural implications for per-device traffic monitoring — see [docs/UNIFI-API-FINDINGS.md](docs/UNIFI-API-FINDINGS.md).
-
-## Troubleshooting
-
-**"Invalid credentials" on login**
-Password env vars must be bcrypt hashes, not plaintext. Re-run the `bcryptjs.hashSync` command and update `.env.local`.
-
-**"SESSION_SECRET must be set" error**
-Ensure `.env.local` exists at the repo root and that `SESSION_SECRET` is at least 32 characters. Restart the dev server after editing `.env.local`.
-
-**401 errors from Unifi API calls**
-Verify that `UNIFI_API_KEY` is still valid in Unifi Site Manager and that `UNIFI_CONSOLE_ID` matches the target console exactly (no trailing spaces).
-
-**Hot reload not picking up `.env.local` changes**
-Environment files are read at startup. Stop and restart `npm run dev` after any `.env.local` edit.
-
----
-
-## Self-Hosted / Docker
-
-Run the dashboard as a permanent container on a computer that stays on your home network (a Mac mini, NAS, or any always-on machine). Once running, anyone on the network can open the app in a browser without the host machine running a dev server.
-
-### Prerequisites
-
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running
-- The repository cloned locally (see [Installation](#installation))
-
-### 1. Copy the env template
+### 1. Create your env file
 
 ```bash
 cp .env.prod.example .env.prod
 ```
 
-Open `.env.prod` and fill in every value. The file is gitignored — your secrets will not be committed.
+Open `.env.prod` and fill in every value:
 
-| Variable | What to put | How to get it |
-|---|---|---|
-| `UNIFI_HOST` | LAN IP or hostname of your UniFi console (e.g. `192.168.1.1`) | Your router's admin page, or UniFi OS settings |
-| `UNIFI_API_KEY` | API key from your UniFi console | UniFi OS → Settings → API → Create API Key |
-| `ADMIN_USER` | Username for the admin account | Choose any (e.g. `admin`) |
-| `ADMIN_PASSWORD` | bcrypt hash of the admin password | See command below |
-| `FAMILY_USER` | Username for the family account | Choose any (e.g. `family`) |
-| `FAMILY_PASSWORD` | bcrypt hash of the family password | See command below |
-| `SESSION_SECRET` | 32+ character random string | See command below |
-| `PORT` | Port to expose the app on (default: `3000`) | Leave as `3000` unless port 3000 is taken |
-
-**Generate a bcrypt password hash:**
-
-From the project directory (after `npm install`):
 ```bash
-node -e "console.log(require('bcryptjs').hashSync('your-password', 10))"
+# Your UniFi console's LAN IP (find it in UniFi OS > Settings)
+UNIFI_HOST=192.168.1.1
+
+# API key from UniFi OS > Settings > API > Create API Key
+UNIFI_API_KEY=your-api-key-here
+
+# App login credentials (passwords must be bcrypt hashes — see below)
+ADMIN_USER=admin
+ADMIN_PASSWORD=$2a$10$...
+
+FAMILY_USER=family
+FAMILY_PASSWORD=$2a$10$...
+
+# JWT signing secret — must be 32+ characters
+SESSION_SECRET=<generated-secret>
+
+# Port to expose on your LAN (default: 3000)
+PORT=3000
 ```
 
-Or without any install, using `npx`:
+**Generate a bcrypt password hash** (run from the project directory after `npm install`, or use `npx`):
+
 ```bash
+node -e "console.log(require('bcryptjs').hashSync('your-password', 10))"
+# or without npm install:
 npx --package=bcryptjs node -e "console.log(require('bcryptjs').hashSync('your-password', 10))"
 ```
 
-To keep your password out of shell history, wrap in a subshell with history disabled:
-```bash
-(HISTFILE= node -e "console.log(require('bcryptjs').hashSync('your-password', 10))")
-```
+Paste the output (starts with `$2a$10$...`) as the value for `ADMIN_PASSWORD` or `FAMILY_PASSWORD`.
 
 **Generate SESSION_SECRET:**
+
 ```bash
 openssl rand -hex 32
 ```
 
-### 2. Build and start the container
+### 2. Start the container
 
 ```bash
 docker compose up -d --build
 ```
 
-This builds the image and starts the container in the background. The first build takes a few minutes. Subsequent starts are instant.
+The first build takes a few minutes. After that, starts instantly.
 
-### 3. Open the app
+### 3. Open on any device
 
-Open a browser on any device on the same network and go to:
+On any device connected to the same network, open a browser and go to:
 
 ```
 http://<host-machine-ip>:3000
 ```
 
-Replace `<host-machine-ip>` with the LAN IP of the computer running Docker (not your UniFi console IP). Log in with the username and plaintext password you set in `.env.prod`.
+Replace `<host-machine-ip>` with the LAN IP of the machine running Docker — **not** your UniFi console IP. Log in with the plaintext password you chose (not the hash).
+
+The container restarts automatically on reboot (`restart: unless-stopped`).
 
 ### Updating
-
-When you pull new code, rebuild the image:
 
 ```bash
 git pull
@@ -334,156 +116,179 @@ docker compose up -d --build
 docker compose down
 ```
 
-The container restarts automatically if the host machine reboots (`restart: unless-stopped` in `docker-compose.yml`). To prevent that, run `docker compose down` before rebooting.
+### Docker troubleshooting
 
-### Troubleshooting Docker
-
-**Container starts but app is not reachable from another device**
-This usually means the host machine's firewall is blocking port 3000. On macOS, Docker Desktop handles this automatically. On Linux, you may need to allow port 3000: `sudo ufw allow 3000`.
-
-**"permission denied" errors in docker logs**
-The container runs as the `node` user (non-root). If you see permission errors on mounted volumes, check that the volume path is accessible.
+**App not reachable from other devices**
+The host machine's firewall may be blocking port 3000. On macOS, Docker Desktop handles this automatically. On Linux: `sudo ufw allow 3000`.
 
 **Container shows as unhealthy**
-The healthcheck pings `/api/health` every 30 seconds. If the app takes more than 10 seconds to start (slow hardware), it may briefly show as `starting`. Run `docker compose logs app` to see startup output.
+The healthcheck pings `/api/health` every 30 seconds. On slow hardware it may briefly show `starting`. Check logs: `docker compose logs app`.
+
+**"permission denied" errors in logs**
+The container runs as a non-root `node` user. Check that the `data/` volume path is accessible.
 
 ---
 
-## Self-Hosted / PM2
+## Development (Mock Mode)
 
-Run the app directly with [PM2](https://pm2.keymetrics.io/) — no Docker required. Works on Ubuntu Server and macOS (Mac Mini).
+Try the app locally without a UniFi console — mock data is built in.
+
+```bash
+./dev.sh
+```
+
+Opens on http://localhost:3000 with simulated devices and firewall rules. No `.env.local` needed.
+
+| Username | Password |
+|----------|----------|
+| `admin`  | `admin`  |
+| `family` | `family` |
+
+Mock data includes 6 devices (MacBook Pro, Smart TV, iPhones, iPad, Ring Doorbell, Nintendo Switch) with varying traffic levels, and 3 firewall policies with working toggle controls.
+
+**With a real UniFi console:**
+
+```bash
+cp .env.local.example .env.local
+# fill in UNIFI_HOST, UNIFI_API_KEY, and credentials
+npm run dev
+```
+
+---
+
+## Tech Stack
+
+- Next.js 16 (App Router, Server Components, standalone output)
+- React 19
+- TypeScript 5
+- Tailwind CSS 4
+- shadcn/ui
+- jose (JWT session signing, HS256)
+- bcryptjs (password hashing)
+- ky (HTTP client for UniFi API)
+- better-sqlite3 (local traffic history)
+- Recharts (traffic charts)
+- Vitest (unit and integration tests)
+
+---
+
+## Alternative: PM2 (no Docker)
+
+If Docker is not available, run the app directly with [PM2](https://pm2.keymetrics.io/).
 
 ### Prerequisites
 
-- **Node.js 22** — [nodejs.org](https://nodejs.org/)
-- **PM2** — `npm install -g pm2`
+- Node.js 22
+- `npm install -g pm2`
 
-### 1. Build the app
+### Setup
 
 ```bash
 npm install
 npm run build
-```
-
-This produces `.next/standalone/server.js` — a self-contained Node.js server.
-
-### 2. Configure environment
-
-Copy the example and fill in your values:
-
-```bash
 cp .env.prod.example .env.prod
-```
-
-Edit `.env.prod`:
-
-| Variable | Description |
-|----------|-------------|
-| `UNIFI_HOST` | LAN IP or hostname of your UniFi console, e.g. `192.168.1.1` |
-| `UNIFI_API_KEY` | API key from UniFi OS > Settings > API |
-| `ADMIN_USER` | Admin login username |
-| `ADMIN_PASSWORD` | bcrypt hash of admin password |
-| `FAMILY_USER` | Family login username |
-| `FAMILY_PASSWORD` | bcrypt hash of family password |
-| `SESSION_SECRET` | Random string, minimum 32 characters |
-| `PORT` | Port to listen on (default: `3000`) |
-
-Generate bcrypt password hashes — from the project directory (after `npm install`):
-```bash
-node -e "console.log(require('bcryptjs').hashSync('your-password', 10))"
-```
-
-Or without any install, using `npx`:
-```bash
-npx --package=bcryptjs node -e "console.log(require('bcryptjs').hashSync('your-password', 10))"
-```
-
-To keep your password out of shell history, wrap in a subshell with history disabled:
-```bash
-(HISTFILE= node -e "console.log(require('bcryptjs').hashSync('your-password', 10))")
-```
-
-Generate a session secret:
-```bash
-openssl rand -hex 32
-```
-
-### 3. Start with PM2
-
-Load your environment and start the app:
-
-```bash
+# fill in .env.prod
 set -a; source .env.prod; set +a
 pm2 start ecosystem.config.cjs
 pm2 save
 ```
 
-`pm2 save` persists the running process (including environment) so it survives reboots.
+Open: `http://<host-machine-ip>:3000`
 
-Open the app: `http://<host-machine-ip>:3000`
-
-Replace `<host-machine-ip>` with the LAN IP of the machine running PM2 (not your UniFi console IP).
-
-### 4. Auto-start on boot
-
-**Ubuntu Server (systemd):**
+**Auto-start on boot:**
 
 ```bash
+# Ubuntu Server
 pm2 startup systemd
-```
-
-Copy and run the command PM2 prints (it starts with `sudo env PATH=...`). Then:
-
-```bash
+# (run the command PM2 prints, then:)
 sudo systemctl enable pm2-$USER
-```
 
-**macOS (Mac Mini — launchd):**
-
-```bash
+# macOS
 pm2 startup launchd
+# (run the command PM2 prints)
 ```
 
-Copy and run the command PM2 prints.
-
-After either setup, the app starts automatically when the machine boots.
-
-### Updating
-
-Pull the latest code and rebuild:
+**Updating:**
 
 ```bash
-git pull
-npm install
-npm run build
-pm2 restart unifi-api
+git pull && npm install && npm run build && pm2 restart unifi-api
 ```
 
-### Stopping
+**Logs:** `pm2 logs unifi-api`
+
+---
+
+## Environment Variable Reference
+
+| Variable | Required | Purpose |
+|---|---|---|
+| `UNIFI_HOST` | Yes* | LAN IP or hostname of your UniFi console, e.g. `192.168.1.1` |
+| `UNIFI_API_KEY` | Yes* | API key from UniFi OS > Settings > API |
+| `UNIFI_API_VERSION` | No | `v2` (default) or `v1` for older firmware |
+| `ADMIN_USER` | Yes | Admin login username |
+| `ADMIN_PASSWORD` | Yes | bcrypt hash of admin password |
+| `FAMILY_USER` | Yes | Family login username |
+| `FAMILY_PASSWORD` | Yes | bcrypt hash of family password |
+| `SESSION_SECRET` | Yes | 32+ character random string for JWT signing |
+| `UNIFI_MOCK` | No | Set to `true` to use mock data (skips real API calls) |
+| `PORT` | No | Port to listen on (default: `3000`) |
+| `SECURE_COOKIES` | No | Set to `true` only if serving over HTTPS |
+
+*Not required when `UNIFI_MOCK=true`.
+
+---
+
+## Testing
 
 ```bash
-pm2 stop unifi-api
+npm test            # watch mode
+npm run test:run    # single run (CI)
 ```
 
-To remove from PM2 entirely:
+No `.env.local` needed — test credentials are baked into `vitest.config.ts`.
+
+## Linting and Type Checking
 
 ```bash
-pm2 delete unifi-api
-pm2 save
+npm run lint
+npx tsc --noEmit
 ```
 
-### Troubleshooting PM2
+---
 
-**App is not reachable from another device**
-Check that port 3000 is open. On Ubuntu Server: `sudo ufw allow 3000`. On macOS, the firewall dialog may prompt when PM2 first binds the port — allow it.
+## Vercel UAT (Mock Mode)
 
-**Environment variables are missing after reboot**
-Run `pm2 env 0` to inspect the saved environment. If variables are missing, source `.env.prod` again and re-run `pm2 restart unifi-api && pm2 save`.
+Deploy to Vercel with mock data for UAT or PR previews — no real console needed.
 
-**Checking logs**
-```bash
-pm2 logs unifi-api
+1. Copy `.env.vercel-mock` values into Vercel's Environment Variables (target: **Preview** only)
+2. Push your branch — Vercel deploys automatically
+
+UAT credentials: `admin` / `uat-admin` · `family` / `uat-family`
+
+---
+
+## Project Structure
+
 ```
+src/
+  app/              # Next.js App Router
+    (auth)/         # Login route
+    (dashboard)/    # Protected dashboard (clients, firewall, groups, insights)
+    api/            # API routes (/api/clients, /api/firewall, /api/insights/*)
+    actions/        # Server Actions (auth)
+  components/       # React components
+  lib/
+    unifi/          # UniFi API client + mock layer
+    db/             # SQLite traffic recorder
+    session.ts      # JWT session helpers
+docs/
+  screenshots/      # App screenshots (mock server)
+  unifi-client.md   # UniFi API client internals
+  UNIFI-API-FINDINGS.md
+tests/              # Vitest suite
+```
+
+See [docs/unifi-client.md](docs/unifi-client.md) for how the UniFi API client works, and [docs/UNIFI-API-FINDINGS.md](docs/UNIFI-API-FINDINGS.md) for API research findings.
 
 ---
 
