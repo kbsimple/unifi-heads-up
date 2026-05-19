@@ -61,6 +61,7 @@ describe('ClientList site traffic section (UAT-04-05)', () => {
     vi.mocked(useTrafficHistory).mockReturnValue({
       siteHistory: [],
       getClientHistory: () => [],
+      getClientLastBusy: () => null,
       isHistoryAvailable: false,
     })
 
@@ -76,6 +77,7 @@ describe('ClientList site traffic section (UAT-04-05)', () => {
         { hourStart: now, avgDownload: 900_000, avgUpload: 200_000, sampleCount: 60 },
       ],
       getClientHistory: () => [],
+      getClientLastBusy: () => null,
       isHistoryAvailable: true,
     })
 
