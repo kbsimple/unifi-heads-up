@@ -57,12 +57,16 @@ SESSION_SECRET=<generated-secret>
 PORT=3000
 ```
 
-**Generate a bcrypt password hash** (run from the project directory after `npm install`, or use `npx`):
+**Generate a bcrypt password hash** — the `HISTFILE=` prefix prevents the password from being saved to shell history:
 
 ```bash
-node -e "console.log(require('bcryptjs').hashSync('your-password', 10))"
-# or without npm install:
-npx --package=bcryptjs node -e "console.log(require('bcryptjs').hashSync('your-password', 10))"
+HISTFILE= node -e "console.log(require('bcryptjs').hashSync('your-password', 10))"
+```
+
+Replace `your-password` with your chosen password. If `node` isn't available (i.e. you haven't run `npm install` yet), use `npx` instead:
+
+```bash
+HISTFILE= npx --package=bcryptjs node -e "console.log(require('bcryptjs').hashSync('your-password', 10))"
 ```
 
 Paste the output (starts with `$2a$10$...`) as the value for `ADMIN_PASSWORD` or `FAMILY_PASSWORD`.
