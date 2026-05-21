@@ -61,10 +61,9 @@ A web application for monitoring home network traffic and managing firewall rule
 ## Constraints
 
 - **Tech Stack:** Next.js (full-stack framework)
-- **Deployment:** Vercel
-- **Connectivity:** Site Manager Proxy (no VPN, no direct access)
+- **Deployment:** Docker, self-hosted on LAN (no cloud hosting — app must reach UniFi console over local network)
+- **Connectivity:** Direct local UniFi API over LAN (X-API-KEY against the console's LAN IP)
 - **Authentication:** Family/household users (simple auth, not enterprise)
-- **API Rate Limits:** Site Manager API has rate limits (10,000 req/min for v1 stable)
 
 ## Current State
 

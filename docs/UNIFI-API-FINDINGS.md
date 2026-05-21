@@ -68,8 +68,8 @@ Endpoints that return 404 — confirmed by direct testing:
 
 | Option | Feasibility | Notes |
 |--------|-------------|-------|
-| **Local controller API** | High (if on-prem) | `GET /proxy/network/api/s/{site}/stat/sta` on the local UDR. Returns `rx_bytes-r`, `tx_bytes-r`, `last_seen` per client. Requires network access to the console — not available from Vercel. |
-| **MQTT/WebRTC** | Low (Vercel) | Requires persistent connection and AWS credential refresh. Incompatible with stateless serverless functions. |
+| **Local controller API** | High (if on-prem) | `GET /proxy/network/api/s/{site}/stat/sta` on the local UDR. Returns `rx_bytes-r`, `tx_bytes-r`, `last_seen` per client. Requires network access to the console — not reachable from a cloud host. |
+| **MQTT/WebRTC** | Low | Requires persistent connection and AWS credential refresh. Incompatible with stateless serverless functions. |
 | **Aggregate stats only** | High (works today) | `GET /ea/sites` returns total client counts and WAN uptime. No per-device bandwidth. |
 
-The local controller API (`/proxy/network/api/s/default/stat/sta`) is the correct long-term path for per-device traffic monitoring, but requires hosting the Next.js app on a machine with LAN access to the UDR (e.g. Raspberry Pi, NAS) rather than Vercel.
+The local controller API (`/proxy/network/api/s/default/stat/sta`) is the correct long-term path for per-device traffic monitoring, but requires hosting the Next.js app on a machine with LAN access to the UDR (e.g. Raspberry Pi, NAS, Mac Mini). The app is deployed via Docker on such a machine.

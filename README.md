@@ -250,17 +250,6 @@ npx tsc --noEmit
 
 ---
 
-## Vercel UAT (Mock Mode)
-
-Deploy to Vercel with mock data for UAT or PR previews — no real console needed.
-
-1. Copy `.env.vercel-mock` values into Vercel's Environment Variables (target: **Preview** only)
-2. Push your branch — Vercel deploys automatically
-
-UAT credentials: `admin` / `uat-admin` · `family` / `uat-family`
-
----
-
 ## Project Structure
 
 ```

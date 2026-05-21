@@ -10,10 +10,9 @@ A web application for monitoring home network traffic and managing firewall rule
 ### Constraints
 
 - **Tech Stack:** Next.js (full-stack framework)
-- **Deployment:** Vercel
-- **Connectivity:** Site Manager Proxy (no VPN, no direct access)
+- **Deployment:** Docker, self-hosted on LAN (no cloud hosting — app must reach UniFi console over local network)
+- **Connectivity:** Direct local UniFi API over LAN (X-API-KEY against the console's LAN IP)
 - **Authentication:** Family/household users (simple auth, not enterprise)
-- **API Rate Limits:** Site Manager API has rate limits (10,000 req/min for v1 stable)
 <!-- GSD:project-end -->
 
 <!-- GSD:stack-start source:research/STACK.md -->
@@ -23,11 +22,11 @@ A web application for monitoring home network traffic and managing firewall rule
 ### Core Technologies
 | Technology | Version | Purpose | Why Recommended |
 |------------|---------|---------|-----------------|
-| **Next.js** | 15.x (stable) | Full-stack framework | App Router is now mature, React 19 support, Turbopack dev mode, optimal for Vercel deployment. Server Components drastically reduce client JS for dashboard apps. |
+| **Next.js** | 15.x (stable) | Full-stack framework | App Router is now mature, React 19 support, Turbopack dev mode. Server Components drastically reduce client JS for dashboard apps. `output: 'standalone'` for Docker. |
 | **React** | 19.x | UI library | Required by Next.js 15. Server Components are default - 40-60% smaller bundles, 3-5x faster TTFB. Perfect for data-heavy dashboards. |
 | **TypeScript** | 6.x | Type safety | Latest stable. Native compiler coming in v7 (10x faster). Critical for API client type safety with UniFi endpoints. |
 | **Tailwind CSS** | 4.x | Styling | Production-ready since Jan 2025. CSS-first config (no tailwind.config.js), 3.5x faster builds, 35% smaller bundles. Works with shadcn/ui. |
-| **Vercel** | Hobby/Pro | Deployment | Zero-config Next.js deployment. Built-in Cron Jobs for scheduled polling. Edge Functions available. Environment variable management. |
+| **Docker** | latest | Deployment | Self-hosted on LAN — app must reach UniFi console over local network, so cloud hosting is not viable. Standalone Next.js build + docker-compose for the household machine. |
 ### Supporting Libraries
 | Library | Version | Purpose | When to Use |
 |---------|---------|---------|-------------|
@@ -82,10 +81,7 @@ A web application for monitoring home network traffic and managing firewall rule
 - Use SWR with `refetchInterval: 300000` (5 minutes)
 - Combine with Server Component for initial data (`fallbackData`)
 - Example: `<Suspense><TrafficStats /></Suspense>` (Server) + `<ClientStatsPanel />` (Client with SWR)
-- Vercel Cron Jobs in `vercel.json`:
-- Secure with Authorization header
-- Limited to 2 cron jobs on Hobby plan (daily minimum), 40 on Pro
-- Not recommended for v1 - adds significant complexity
+- Background recording runs in a server-side `setInterval` from `instrumentation.ts` — independent of any browser session
 - Future: Service Worker + IndexedDB cache
 ## Sources
 - **Next.js 15 Production Guide** — [nextjs.org/docs/15/app/guides/production-checklist](https://nextjs.org/docs/15/app/guides/production-checklist) — HIGH confidence (official docs)
@@ -97,8 +93,6 @@ A web application for monitoring home network traffic and managing firewall rule
 - **UniFi API Reference (PHP client)** — [GitHub API_REFERENCE.md](https://github.com/Art-of-WiFi/UniFi-API-client/blob/main/API_REFERENCE.md) — HIGH confidence (community, well-maintained)
 - **Auth.js v5 Credentials Guide** — [nextjslaunchpad.com/article/build-complete-auth-system-authjs-v5](https://nextjslaunchpad.com/article/build-complete-auth-system-authjs-v5-registration-login-password-reset-nextjs) — MEDIUM confidence (community)
 - **shadcn/ui Installation** — [ui.shadcn.com/docs/installation/next](https://ui.shadcn.com/docs/installation/next) — HIGH confidence (official)
-- **Vercel Environment Variables** — [vercel.com/docs/environment-variables](https://vercel.com/docs/environment-variables) — HIGH confidence (official)
-- **Vercel Cron Jobs Guide** — [nextjslaunchpad.com/article/nextjs-cron-jobs-background-tasks-app-router-vercel-qstash-trigger-dev](https://nextjslaunchpad.com/article/nextjs-cron-jobs-background-tasks-app-router-vercel-qstash-trigger-dev) — MEDIUM confidence (community)
 - **Zod Validation with Server Actions** — [damianhodgkiss.com/tutorials/type-safe-server-actions-nextjs-zod](https://damianhodgkiss.com/tutorials/type-safe-server-actions-nextjs-zod) — MEDIUM confidence (community)
 - **node-unifi npm** — [npmjs.com/package/node-unifi](https://www.npmjs.com/package/node-unifi) — HIGH confidence (registry)
 <!-- GSD:stack-end -->
