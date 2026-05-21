@@ -2,8 +2,6 @@
 
 A self-hosted web app for monitoring home network traffic and managing firewall rules on a UniFi OS console. Run it on any always-on machine on your LAN — a Mac Mini, NAS, or server — and open it from any device on the network.
 
-![Dashboard](docs/screenshots/02-dashboard.png)
-
 ## What it does
 
 - **Live bandwidth status** — see which devices are idle, low, medium, or high traffic at a glance
@@ -12,14 +10,6 @@ A self-hosted web app for monitoring home network traffic and managing firewall 
 - **Traffic insights** — hourly heatmap and top-devices chart showing bandwidth usage over time (up to 30 days)
 
 Built for a family household. Connects to the UniFi console directly over LAN using the local API.
-
-### Screenshots
-
-| Login | Dashboard | Firewall | Groups |
-|-------|-----------|----------|--------|
-| ![Login](docs/screenshots/01-login.png) | ![Dashboard](docs/screenshots/02-dashboard.png) | ![Firewall](docs/screenshots/03-firewall.png) | ![Groups](docs/screenshots/04-groups.png) |
-
-> Screenshots taken with mock data — no real UniFi console required for local development.
 
 ---
 
