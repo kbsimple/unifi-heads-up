@@ -7,7 +7,7 @@ import { LogoutButton } from '@/components/logout-button'
 
 /**
  * Dashboard layout with navigation bar
- * Per D-01, D-02: Three navigation tabs (Dashboard, Firewall, Groups)
+ * Per D-01, D-02: Three navigation tabs (Dashboard, Firewall, Insights)
  * Per D-02: Active tab has sky-600 accent color
  * Per D-09: Top navigation bar with app name left, logout right
  * Per D-10: Simple layout for future dashboard content
@@ -28,7 +28,7 @@ export default function DashboardLayout({
           <h1 className="text-xl font-semibold text-zinc-100">
             Unifi Dashboard
           </h1>
-          {/* Navigation tabs - per D-01, D-02: Dashboard, Firewall, Groups */}
+          {/* Navigation tabs - per D-01, D-02: Dashboard, Firewall, Insights */}
           <nav className="flex items-center gap-4">
             <Link
               href="/dashboard"
@@ -49,16 +49,6 @@ export default function DashboardLayout({
               }`}
             >
               Firewall
-            </Link>
-            <Link
-              href="/dashboard/groups"
-              className={`text-sm font-medium transition-colors ${
-                pathname === '/dashboard/groups'
-                  ? 'text-sky-600 border-b-2 border-sky-600'
-                  : 'text-zinc-400 hover:text-zinc-100'
-              }`}
-            >
-              Groups
             </Link>
             <Link
               href="/dashboard/insights"
