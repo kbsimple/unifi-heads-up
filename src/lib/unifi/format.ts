@@ -1,3 +1,14 @@
+export function getCurrentPacificHour(): number {
+  return parseInt(
+    new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/Los_Angeles',
+      hour: 'numeric',
+      hourCycle: 'h23',
+    }).format(new Date()),
+    10
+  )
+}
+
 export function formatHourOfDay(hour: number): string {
   const ampm = hour >= 12 ? 'pm' : 'am'
   const h = hour % 12 || 12
