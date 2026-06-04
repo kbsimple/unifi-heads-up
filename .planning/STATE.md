@@ -119,6 +119,7 @@ None.
 | 260517-2ee | Fix login from other LAN machines — bind dev and start servers to 0.0.0.0 | 2026-05-17 | tbd | [260517-2ee-fix-lan-login](./quick/260517-2ee-fix-lan-login/) |
 | 260517-y8v | Add server telemetry: Next.js instrumentation for server logging, client error boundary, and /api/statusz endpoint | 2026-05-17 | db7ed6d | [260517-y8v-server-telemetry](./quick/260517-y8v-server-telemetry/) |
 | 260604-rg1 | Remove groups feature entirely from the app | 2026-06-04 | fda4a2b | [260604-rg1-remove-groups-feature](./quick/260604-rg1-remove-groups-feature/) |
+| 260604-tf1 | Fix all 28 failing tests — update stale expectations to match current source | 2026-06-04 | 0ee37e4 | [260604-tf1-fix-failing-tests](./quick/260604-tf1-fix-failing-tests/) |
 
 ### Blockers/Concerns
 
