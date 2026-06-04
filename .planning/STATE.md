@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-24)
 Phase: Phase 11 — Firewall Rule Scheduling
 Plan: 11-02 (verification complete — gaps_found)
 Status: Gap closure needed — Clear Schedule DELETE body missing `enabled` field
-Last activity: 2026-05-17 — Phase 11 (Firewall Rule Scheduling) verification complete — gaps_found: Clear Schedule DELETE body missing enabled field
+Last activity: 2026-06-04 — Completed quick task 260604-rg1: Remove groups feature entirely from the app
 
 Progress: [██████████] 100% plans complete (gap closure pending)
 
@@ -118,6 +118,7 @@ None.
 | 260517-0jr | Replace optimistic toggle update with disabled+pending state until API confirms | 2026-05-17 | 9e89790 | [260517-0jr-toggle-pending-state](./quick/260517-0jr-toggle-pending-state/) |
 | 260517-2ee | Fix login from other LAN machines — bind dev and start servers to 0.0.0.0 | 2026-05-17 | tbd | [260517-2ee-fix-lan-login](./quick/260517-2ee-fix-lan-login/) |
 | 260517-y8v | Add server telemetry: Next.js instrumentation for server logging, client error boundary, and /api/statusz endpoint | 2026-05-17 | db7ed6d | [260517-y8v-server-telemetry](./quick/260517-y8v-server-telemetry/) |
+| 260604-rg1 | Remove groups feature entirely from the app | 2026-06-04 | fda4a2b | [260604-rg1-remove-groups-feature](./quick/260604-rg1-remove-groups-feature/) |
 
 ### Blockers/Concerns
 
