@@ -4,7 +4,7 @@ import { render, screen } from '@testing-library/react'
 
 // Mock next/navigation for usePathname
 vi.mock('next/navigation', () => ({
-  usePathname: vi.fn(() => '/'),
+  usePathname: vi.fn(() => '/dashboard'),
 }))
 
 // Mock child components
@@ -32,10 +32,10 @@ describe('DashboardLayout Navigation', () => {
     })
   })
 
-  describe('Test 2: Dashboard tab links to root and shows as active on root path', () => {
-    it('should have Dashboard tab linked to "/" with active styling on root path', async () => {
+  describe('Test 2: Dashboard tab links to /dashboard and shows as active on dashboard path', () => {
+    it('should have Dashboard tab linked to "/dashboard" with active styling on dashboard path', async () => {
       vi.doMock('next/navigation', () => ({
-        usePathname: vi.fn(() => '/'),
+        usePathname: vi.fn(() => '/dashboard'),
       }))
 
       // Re-import after mock update
@@ -49,16 +49,16 @@ describe('DashboardLayout Navigation', () => {
       )
 
       const dashboardTab = screen.getByRole('link', { name: /dashboard/i })
-      expect(dashboardTab).toHaveAttribute('href', '/')
+      expect(dashboardTab).toHaveAttribute('href', '/dashboard')
       // Active tab should have accent color (sky-600)
       expect(dashboardTab).toHaveClass('text-sky-600')
     })
   })
 
-  describe('Test 3: Firewall tab links to /firewall and shows as active on firewall path', () => {
-    it('should have Firewall tab linked to "/firewall" with active styling when on firewall path', async () => {
+  describe('Test 3: Firewall tab links to /dashboard/firewall and shows as active on firewall path', () => {
+    it('should have Firewall tab linked to "/dashboard/firewall" with active styling when on firewall path', async () => {
       vi.doMock('next/navigation', () => ({
-        usePathname: vi.fn(() => '/firewall'),
+        usePathname: vi.fn(() => '/dashboard/firewall'),
       }))
 
       vi.resetModules()
@@ -71,7 +71,7 @@ describe('DashboardLayout Navigation', () => {
       )
 
       const firewallTab = screen.getByRole('link', { name: /firewall/i })
-      expect(firewallTab).toHaveAttribute('href', '/firewall')
+      expect(firewallTab).toHaveAttribute('href', '/dashboard/firewall')
       // Active tab should have accent color (sky-600)
       expect(firewallTab).toHaveClass('text-sky-600')
     })
@@ -80,7 +80,7 @@ describe('DashboardLayout Navigation', () => {
   describe('Test 4: Active tab has accent color styling', () => {
     it('should show inactive tab with zinc-400 styling', async () => {
       vi.doMock('next/navigation', () => ({
-        usePathname: vi.fn(() => '/'),
+        usePathname: vi.fn(() => '/dashboard'),
       }))
 
       vi.resetModules()

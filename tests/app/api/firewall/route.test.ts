@@ -139,7 +139,7 @@ describe('PUT /api/firewall', () => {
     const data = await response.json()
     expect(data._id).toBe('policy-1')
     expect(data.enabled).toBe(false)
-    expect(vi.mocked(updateFirewallPolicy)).toHaveBeenCalledWith('policy-1', false)
+    expect(vi.mocked(updateFirewallPolicy)).toHaveBeenCalledWith('policy-1', false, undefined)
   })
 
   it('should return 503 on network error', async () => {

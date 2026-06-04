@@ -7,7 +7,7 @@ vi.mock('@/lib/dal', () => ({
   verifySession: vi.fn(() => Promise.resolve({ isAuth: true, username: 'admin' })),
 }))
 
-vi.mock('@/lib/unifi/client', () => ({
+vi.mock('@/lib/unifi', () => ({
   getFirewallPolicies: vi.fn(() =>
     Promise.resolve([
       { _id: 'policy-1', name: 'Block Gaming', enabled: true },
@@ -42,7 +42,7 @@ describe('FirewallPage', () => {
 
   describe('Test 2: Page fetches initial data via getFirewallPolicies', () => {
     it('should call getFirewallPolicies to fetch initial data', async () => {
-      const { getFirewallPolicies } = await import('@/lib/unifi/client')
+      const { getFirewallPolicies } = await import('@/lib/unifi')
       const { default: FirewallPage } = await import('@/app/dashboard/firewall/page')
 
       render(await FirewallPage())

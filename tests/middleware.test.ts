@@ -67,7 +67,7 @@ describe('Route Protection (AUTH-04)', () => {
     expect(response.status).toBe(200)
   })
 
-  it('allows unauthenticated users to access root path', async () => {
+  it('redirects unauthenticated users from root path to /login', async () => {
     const { default: middleware } = await import('@/middleware')
 
     const req = new NextRequest(new URL('http://localhost/'), {
@@ -75,7 +75,8 @@ describe('Route Protection (AUTH-04)', () => {
     })
 
     const response = await middleware(req)
-    expect(response.status).toBe(200)
+    expect(response.status).toBe(307)
+    expect((response as NextResponse).headers.get('location')).toContain('/login')
   })
 
   it('protects nested routes under /dashboard', async () => {

@@ -62,7 +62,7 @@ describe('getUnifiClients', () => {
       isGuest: false,
       downloadRate: 125000,
       uploadRate: 125000,
-      trafficStatus: 'low', // 2 Mbps total = low
+      trafficStatus: 'high', // 2 Mbps total = high (>= 2 Mbps threshold)
     })
     expect(result.timestamp).toBeDefined()
   })

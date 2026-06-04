@@ -117,7 +117,7 @@ describe('ClientList', () => {
       expect(screen.getByText('IP Address')).toBeInTheDocument()
       expect(screen.getByText('MAC Address')).toBeInTheDocument()
       expect(screen.getByText('Status')).toBeInTheDocument()
-      expect(screen.getByText('Last Active')).toBeInTheDocument()
+      expect(screen.getByText('Last Busy')).toBeInTheDocument()
     })
   })
 

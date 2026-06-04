@@ -45,14 +45,13 @@ function stubContext(lastBusy: number | null = null) {
   })
 }
 
-// Hourly bucket shape returned by /api/insights/device-activity
-interface HourlyBucket {
-  hour: number
+// History bucket shape returned by /api/insights/device-history
+interface HistoryBucket {
+  hourTs: number
   avgMbps: number
-  active: boolean
 }
 
-function stubFetch(buckets: HourlyBucket[]) {
+function stubFetch(buckets: HistoryBucket[]) {
   global.fetch = vi.fn().mockResolvedValue({
     json: () => Promise.resolve(buckets),
   } as unknown as Response)
@@ -81,11 +80,10 @@ describe('ClientCard history expansion (UAT-04-04)', () => {
   })
 
   it('renders TrafficChart when DB returns active buckets', async () => {
-    const buckets: HourlyBucket[] = [
-      { hour: 10, avgMbps: 5.2, active: true },
-      { hour: 11, avgMbps: 3.1, active: true },
-      // zero-traffic hours are filtered out
-      { hour: 12, avgMbps: 0, active: false },
+    const buckets: HistoryBucket[] = [
+      { hourTs: 1718445600, avgMbps: 5.2 },  // some valid unix timestamp
+      { hourTs: 1718449200, avgMbps: 3.1 },
+      // zero-traffic hours are not filtered by source, just show 0 bandwidth
     ]
     stubFetch(buckets)
 
@@ -110,11 +108,10 @@ describe('ClientCard history expansion (UAT-04-04)', () => {
     })
   })
 
-  it('shows empty-state message when DB returns all-zero buckets', async () => {
-    const buckets: HourlyBucket[] = Array.from({ length: 24 }, (_, hour) => ({
-      hour,
+  it('shows chart with zero data when DB returns all-zero buckets', async () => {
+    const buckets: HistoryBucket[] = Array.from({ length: 24 }, (_, i) => ({
+      hourTs: 1718445600 + i * 3600,  // sequential hours
       avgMbps: 0,
-      active: false,
     }))
     stubFetch(buckets)
 
@@ -122,9 +119,10 @@ describe('ClientCard history expansion (UAT-04-04)', () => {
     fireEvent.click(screen.getByRole('button', { name: /View History/i }))
 
     await waitFor(() => {
-      expect(screen.getByText(/No traffic history recorded yet/i)).toBeInTheDocument()
+      expect(screen.getByLabelText(/Traffic chart showing bandwidth over time/i)).toBeInTheDocument()
     })
-    expect(screen.queryByTestId('responsive-container')).not.toBeInTheDocument()
+    expect(screen.getByTestId('responsive-container')).toBeInTheDocument()
+    expect(screen.queryByText(/No traffic history/i)).not.toBeInTheDocument()
   })
 
   it('fetches from the correct API endpoint with the client MAC', async () => {
@@ -138,7 +136,7 @@ describe('ClientCard history expansion (UAT-04-04)', () => {
       )
     })
     expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining('/api/insights/device-activity')
+      expect.stringContaining('/api/insights/device-history')
     )
   })
 

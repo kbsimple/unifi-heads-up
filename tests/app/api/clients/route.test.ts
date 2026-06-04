@@ -67,7 +67,7 @@ describe('GET /api/clients', () => {
     vi.mocked(getSession).mockResolvedValue({ username: 'admin', expiresAt: new Date(Date.now() + 86400000) })
     vi.mocked(getUnifiClients).mockRejectedValue(new Error('fetch failed: network error'))
 
-    const response = await GET()
+    const response = await GET(new Request('http://localhost/api/clients'))
 
     expect(response.status).toBe(503)
     const data = await response.json()
@@ -78,7 +78,7 @@ describe('GET /api/clients', () => {
     vi.mocked(getSession).mockResolvedValue({ username: 'admin', expiresAt: new Date(Date.now() + 86400000) })
     vi.mocked(getUnifiClients).mockRejectedValue(new Error('API error'))
 
-    const response = await GET()
+    const response = await GET(new Request('http://localhost/api/clients'))
 
     expect(response.status).toBe(500)
     const data = await response.json()

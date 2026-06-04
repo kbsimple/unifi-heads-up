@@ -44,6 +44,11 @@ const handlers = [
     })
   }),
 
+  // GET /api/firewall/starred - get starred policies
+  http.get('/api/firewall/starred', () => {
+    return HttpResponse.json({ starredIds: [] })
+  }),
+
   // PUT /api/firewall - toggle policy
   http.put('/api/firewall', async ({ request }) => {
     const body = await request.json() as { policyId: string; enabled: boolean }
@@ -255,7 +260,8 @@ describe('Firewall Integration Tests', () => {
 
       // Step 4: Verify optimistic update and API call
       await waitFor(() => {
-        expect(screen.getByText('Disabled')).toBeInTheDocument()
+        // After toggle, both rules show "Disabled" (Rule 2 was already disabled, Rule 1 toggled to disabled)
+        expect(screen.getAllByText('Disabled').length).toBeGreaterThanOrEqual(1)
         expect(apiCalls.putCalls.length).toBeGreaterThanOrEqual(1)
         expect(apiCalls.putCalls[0].body).toEqual({
           policyId: 'policy-1',

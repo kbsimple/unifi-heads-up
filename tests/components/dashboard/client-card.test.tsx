@@ -50,9 +50,9 @@ describe('ClientCard', () => {
     expect(screen.getByText(/No IP/)).toBeInTheDocument()
   })
 
-  it('should show last active time', () => {
+  it('should show last busy time', () => {
     renderWithProvider(<ClientCard client={mockClient} />)
 
-    expect(screen.getByText(/Last active:/)).toBeInTheDocument()
+    expect(screen.getByText(/Last busy:/)).toBeInTheDocument()
   })
 })

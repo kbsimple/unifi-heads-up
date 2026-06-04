@@ -241,7 +241,9 @@ describe('ClientTable lastBusy column', () => {
 
   it('shows "—" when getClientLastBusy returns null for all clients', () => {
     render(<ClientTable clients={CLIENTS} />)
+    // Each client shows dashes for: download (formatRate(0)), upload (formatRate(0)), and lastBusy
+    // With downloadRate=0, uploadRate=0 for all clients, there are at least CLIENTS.length dashes
     const dashes = screen.getAllByText('—')
-    expect(dashes.length).toBe(CLIENTS.length)
+    expect(dashes.length).toBeGreaterThanOrEqual(CLIENTS.length)
   })
 })

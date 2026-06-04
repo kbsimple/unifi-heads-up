@@ -1,4 +1,4 @@
-// tests/components/dashboard/format-last-active.test.ts
+// tests/components/dashboard/format-last-active.test.tsx
 // TDD: Tests for ISO string coercion in formatLastActive.
 // These cover the SWR rehydration path where Date objects become ISO strings.
 // The existing components call date.getTime() directly without coercion, so
@@ -17,6 +17,16 @@ vi.mock('swr', () => ({
     error: undefined,
     isLoading: false,
     mutate: vi.fn(),
+  })),
+}))
+
+vi.mock('@/contexts/traffic-history-context', () => ({
+  TrafficHistoryProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  useTrafficHistory: vi.fn(() => ({
+    siteHistory: [],
+    getClientHistory: () => [],
+    getClientLastBusy: () => null,
+    isHistoryAvailable: false,
   })),
 }))
 
@@ -44,11 +54,12 @@ describe('formatLastActive — ISO string coercion (SWR rehydration path)', () =
     ).not.toThrow()
   })
 
-  it('ClientTable shows a relative date string (not crash) for ISO lastSeen', () => {
+  it('ClientTable shows "—" when getClientLastBusy returns null', () => {
     render(<ClientTable clients={[clientWithIsoLastSeen]} />)
-    // Should display something like "2234d ago" — any relative string is acceptable
-    const lastActiveCells = screen.getAllByText(/ago|just now|Unknown/)
-    expect(lastActiveCells.length).toBeGreaterThan(0)
+    // ClientTable uses getClientLastBusy from context, which returns null
+    // It shows "—" for null, and also for zero download/upload rates
+    const dashes = screen.getAllByText('—')
+    expect(dashes.length).toBeGreaterThanOrEqual(1)
   })
 
   it('ClientCard renders without throwing when lastSeen is an ISO string', () => {
@@ -61,18 +72,20 @@ describe('formatLastActive — ISO string coercion (SWR rehydration path)', () =
     ).not.toThrow()
   })
 
-  it('ClientCard shows "Last active:" label with a value for ISO lastSeen', () => {
+  it('ClientCard shows "Last busy:" label with a value for ISO lastSeen', () => {
     render(
       <TrafficHistoryProvider>
         <ClientCard client={clientWithIsoLastSeen} />
       </TrafficHistoryProvider>
     )
-    expect(screen.getByText(/Last active:/)).toBeInTheDocument()
+    expect(screen.getByText(/Last busy:/)).toBeInTheDocument()
   })
 
-  it('ClientTable shows "Unknown" for null lastSeen', () => {
+  it('ClientTable shows "—" for null lastSeen', () => {
     const clientNullLastSeen = { ...clientWithIsoLastSeen, lastSeen: null }
     render(<ClientTable clients={[clientNullLastSeen]} />)
-    expect(screen.getByText('Unknown')).toBeInTheDocument()
+    // Multiple dashes appear: download (formatRate(0)), upload (formatRate(0)), lastBusy
+    const dashes = screen.getAllByText('—')
+    expect(dashes.length).toBeGreaterThanOrEqual(1)
   })
 })

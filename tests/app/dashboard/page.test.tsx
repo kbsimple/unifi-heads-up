@@ -7,7 +7,7 @@ vi.mock('@/lib/dal', () => ({
   verifySession: vi.fn(() => Promise.resolve({ isAuth: true, username: 'admin' })),
 }))
 
-vi.mock('@/lib/unifi/client', () => ({
+vi.mock('@/lib/unifi', () => ({
   getUnifiClients: vi.fn(() =>
     Promise.resolve({
       clients: [
