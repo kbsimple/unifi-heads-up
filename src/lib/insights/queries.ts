@@ -47,12 +47,13 @@ export function queryTopDevices(db: Database, minutes: number): TopDevice[] {
 export function queryDeviceActivity(
   db: Database,
   mac: string,
-  minutes: number
+  minutes: number,
+  tzOffsetHours: number = 0
 ): HourlyBucket[] {
   const rows = db
-    .prepare<[string, number], { hour: number; avgMbps: number }>(
+    .prepare<[number, string, number], { hour: number; avgMbps: number }>(
       `
-      SELECT CAST(strftime('%H', datetime(recorded_at, 'unixepoch')) AS INTEGER) AS hour,
+      SELECT CAST(strftime('%H', datetime(recorded_at + ? * 3600, 'unixepoch')) AS INTEGER) AS hour,
              (AVG(download_bps) + AVG(upload_bps)) / 1000000.0 AS avgMbps
       FROM snapshots
       WHERE client_mac = ?
@@ -61,7 +62,7 @@ export function queryDeviceActivity(
       ORDER BY hour
       `
     )
-    .all(mac, minutes)
+    .all(tzOffsetHours, mac, minutes)
 
   // Build a map for quick lookup
   const byHour = new Map<number, number>()

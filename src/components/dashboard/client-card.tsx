@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { TrafficBadge } from './traffic-badge'
 import { TrafficChart } from './traffic-chart'
 import { useTrafficHistory } from '@/contexts/traffic-history-context'
-import { formatTimeAgo, formatRate } from '@/lib/unifi/format'
+import { formatTimeAgo, formatRate, formatHourOfDay } from '@/lib/unifi/format'
 import type { NetworkClient } from '@/lib/unifi/types'
 
 interface ClientCardProps {
@@ -16,12 +16,6 @@ interface HourlyBucket {
   hour: number
   avgMbps: number
   active: boolean
-}
-
-function formatHourOfDay(hour: number): string {
-  const ampm = hour >= 12 ? 'pm' : 'am'
-  const h = hour % 12 || 12
-  return `${h}${ampm}`
 }
 
 export function ClientCard({ client }: ClientCardProps) {

@@ -6,6 +6,22 @@ import { queryDeviceActivity } from '@/lib/insights/queries'
 
 const VALID_MINUTES = new Set([5, 30, 60, 10080, 20160, 43200])
 
+function getPacificOffsetHours(): number {
+  const d = new Date()
+  const pacHour = parseInt(
+    new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/Los_Angeles',
+      hour: 'numeric',
+      hourCycle: 'h23',
+    }).format(d),
+    10
+  )
+  let offset = pacHour - d.getUTCHours()
+  if (offset < -12) offset += 24
+  if (offset > 12) offset -= 24
+  return offset
+}
+
 /**
  * GET /api/insights/device-activity?mac=XX:XX:XX:XX:XX:XX&minutes=5|30|60|10080|20160|43200
  * Returns exactly 24 hourly buckets for the given device over the given period.
@@ -35,7 +51,7 @@ export async function GET(req: Request) {
   }
 
   try {
-    const data = queryDeviceActivity(getDb(), mac, minutes)
+    const data = queryDeviceActivity(getDb(), mac, minutes, getPacificOffsetHours())
     return NextResponse.json(data)
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error'

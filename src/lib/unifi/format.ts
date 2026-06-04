@@ -1,3 +1,9 @@
+export function formatHourOfDay(hour: number): string {
+  const ampm = hour >= 12 ? 'pm' : 'am'
+  const h = hour % 12 || 12
+  return `${h}${ampm}`
+}
+
 export function formatRate(bytesPerSec: number): string {
   const mbps = (bytesPerSec * 8) / 1_000_000
   if (mbps < 0.1) return '—'

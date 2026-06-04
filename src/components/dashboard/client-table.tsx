@@ -1,10 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { Fragment, useState, useEffect } from 'react'
 import { TrafficBadge } from './traffic-badge'
+import { TrafficChart } from './traffic-chart'
 import { useTrafficHistory } from '@/contexts/traffic-history-context'
-import { formatTimeAgo, formatRate } from '@/lib/unifi/format'
+import { formatTimeAgo, formatRate, formatHourOfDay } from '@/lib/unifi/format'
 import type { NetworkClient } from '@/lib/unifi/types'
+import type { HourlyBucket } from '@/lib/insights/queries'
 
 interface ClientTableProps {
   clients: NetworkClient[]
@@ -50,7 +52,32 @@ function SortIndicator({ column, sortColumn, sortDirection }: {
 export function ClientTable({ clients, activeOnly = false }: ClientTableProps) {
   const [sortColumn, setSortColumn] = useState<SortColumn>(null)
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
+  const [expandedMac, setExpandedMac] = useState<string | null>(null)
+  const [historyData, setHistoryData] = useState<Record<string, HourlyBucket[]>>({})
+  const [historyLoading, setHistoryLoading] = useState<Set<string>>(new Set())
   const { getClientLastBusy } = useTrafficHistory()
+
+  useEffect(() => {
+    if (!expandedMac || historyData[expandedMac] !== undefined) return
+
+    setHistoryLoading((prev) => new Set(prev).add(expandedMac))
+    const mac = expandedMac
+    fetch(`/api/insights/device-activity?mac=${encodeURIComponent(mac)}&minutes=10080`)
+      .then((r) => r.json())
+      .then((data: HourlyBucket[]) => {
+        setHistoryData((prev) => ({ ...prev, [mac]: data }))
+      })
+      .catch(() => {
+        setHistoryData((prev) => ({ ...prev, [mac]: [] }))
+      })
+      .finally(() => {
+        setHistoryLoading((prev) => {
+          const next = new Set(prev)
+          next.delete(mac)
+          return next
+        })
+      })
+  }, [expandedMac, historyData])
 
   function handleSort(column: Exclude<SortColumn, null>) {
     if (column === sortColumn) {
@@ -89,7 +116,6 @@ export function ClientTable({ clients, activeOnly = false }: ClientTableProps) {
 
   const sorted = [...clients].sort((a, b) => {
     if (activeOnly) {
-      // Status is always primary sort (high first) in active-only mode
       const statusCmp = STATUS_ORDER[b.trafficStatus] - STATUS_ORDER[a.trafficStatus]
       if (statusCmp !== 0) return statusCmp
     }
@@ -99,6 +125,8 @@ export function ClientTable({ clients, activeOnly = false }: ClientTableProps) {
   function thClass(col: SortColumn, extra = '') {
     return `h-12 px-4 text-left text-xs font-medium uppercase text-zinc-500 cursor-pointer select-none hover:text-zinc-300 transition-colors ${extra}`
   }
+
+  const COL_COUNT = 9
 
   return (
     <div className="rounded-lg border border-zinc-800 bg-zinc-900">
@@ -136,31 +164,63 @@ export function ClientTable({ clients, activeOnly = false }: ClientTableProps) {
               Last Busy
               <SortIndicator column="lastBusy" sortColumn={sortColumn} sortDirection={sortDirection} />
             </th>
+            <th className={thClass(null, 'w-[90px] text-right cursor-default hover:text-zinc-500')}>
+              History
+            </th>
           </tr>
         </thead>
         <tbody>
           {sorted.map((client) => {
             const lastBusy = getClientLastBusy(client.id)
+            const isExpanded = expandedMac === client.mac
+            const history = historyData[client.mac]
+            const chartData = (history ?? [])
+              .filter((b) => b.avgMbps > 0)
+              .map((b) => ({ time: formatHourOfDay(b.hour), bandwidth: b.avgMbps }))
             return (
-              <tr
-                key={client.id}
-                className="border-b border-zinc-800 h-12 hover:bg-zinc-800/50 transition-colors"
-              >
-                <td className="px-4 font-medium text-zinc-100">{client.displayName}</td>
-                <td className="px-4 text-sm text-zinc-400">{client.ip ?? 'No IP'}</td>
-                <td className="px-4 text-sm text-zinc-400">{client.mac}</td>
-                <td className="px-4 text-right text-sm text-zinc-400">{formatRate(client.downloadRate)}</td>
-                <td className="px-4 text-right text-sm text-zinc-400">{formatRate(client.uploadRate)}</td>
-                <td className="px-4 text-right text-sm text-zinc-400">
-                  {client.signal !== null ? <SignalDot dbm={client.signal} /> : <span className="text-emerald-400 font-medium">wired</span>}
-                </td>
-                <td className="px-4 text-center">
-                  <TrafficBadge status={client.trafficStatus} />
-                </td>
-                <td className="px-4 text-right text-sm text-zinc-400">
-                  {lastBusy ? formatTimeAgo(lastBusy) : '—'}
-                </td>
-              </tr>
+              <Fragment key={client.id}>
+                <tr className="border-b border-zinc-800 h-12 hover:bg-zinc-800/50 transition-colors">
+                  <td className="px-4 font-medium text-zinc-100">{client.displayName}</td>
+                  <td className="px-4 text-sm text-zinc-400">{client.ip ?? 'No IP'}</td>
+                  <td className="px-4 text-sm text-zinc-400">{client.mac}</td>
+                  <td className="px-4 text-right text-sm text-zinc-400">{formatRate(client.downloadRate)}</td>
+                  <td className="px-4 text-right text-sm text-zinc-400">{formatRate(client.uploadRate)}</td>
+                  <td className="px-4 text-right text-sm text-zinc-400">
+                    {client.signal !== null ? <SignalDot dbm={client.signal} /> : <span className="text-emerald-400 font-medium">wired</span>}
+                  </td>
+                  <td className="px-4 text-center">
+                    <TrafficBadge status={client.trafficStatus} />
+                  </td>
+                  <td className="px-4 text-right text-sm text-zinc-400">
+                    {lastBusy ? formatTimeAgo(lastBusy) : '—'}
+                  </td>
+                  <td className="px-4 text-right">
+                    <button
+                      type="button"
+                      onClick={() => setExpandedMac(isExpanded ? null : client.mac)}
+                      aria-expanded={isExpanded}
+                      className="text-sm text-sky-600 hover:text-sky-500 cursor-pointer"
+                    >
+                      {isExpanded ? 'Hide' : 'View'}
+                    </button>
+                  </td>
+                </tr>
+                {isExpanded && (
+                  <tr className="border-b border-zinc-800 bg-zinc-950">
+                    <td colSpan={COL_COUNT} className="px-4 py-3">
+                      {historyLoading.has(client.mac) ? (
+                        <p className="text-sm text-zinc-500 text-center py-2">Loading history…</p>
+                      ) : chartData.length > 0 ? (
+                        <TrafficChart data={chartData} />
+                      ) : (
+                        <p className="text-sm text-zinc-500 text-center py-2">
+                          No traffic history recorded yet. Data accumulates over time.
+                        </p>
+                      )}
+                    </td>
+                  </tr>
+                )}
+              </Fragment>
             )
           })}
         </tbody>
