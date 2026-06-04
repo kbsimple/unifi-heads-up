@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { TrafficBadge } from './traffic-badge'
 import { TrafficChart } from './traffic-chart'
 import { useTrafficHistory } from '@/contexts/traffic-history-context'
-import { formatTimeAgo, formatRate, formatHourOfDay, getCurrentPacificHour } from '@/lib/unifi/format'
+import { formatTimeAgo, formatRate, formatHourOfDay } from '@/lib/unifi/format'
 import type { NetworkClient } from '@/lib/unifi/types'
 
 interface ClientCardProps {
@@ -44,9 +44,8 @@ export function ClientCard({ client }: ClientCardProps) {
   }, [showHistory, client.mac, dbHistory])
 
   // Only show hours that have non-zero activity
-  const currentHour = getCurrentPacificHour()
   const chartData = (dbHistory ?? [])
-    .filter((b) => b.avgMbps > 0 && b.hour <= currentHour)
+    .filter((b) => b.avgMbps > 0)
     .map((b) => ({
       time: formatHourOfDay(b.hour),
       bandwidth: b.avgMbps,

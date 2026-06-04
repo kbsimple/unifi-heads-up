@@ -4,7 +4,7 @@ import { Fragment, useState, useEffect } from 'react'
 import { TrafficBadge } from './traffic-badge'
 import { TrafficChart } from './traffic-chart'
 import { useTrafficHistory } from '@/contexts/traffic-history-context'
-import { formatTimeAgo, formatRate, formatHourOfDay, getCurrentPacificHour } from '@/lib/unifi/format'
+import { formatTimeAgo, formatRate, formatHourOfDay } from '@/lib/unifi/format'
 import type { NetworkClient } from '@/lib/unifi/types'
 import type { HourlyBucket } from '@/lib/insights/queries'
 
@@ -174,9 +174,8 @@ export function ClientTable({ clients, activeOnly = false }: ClientTableProps) {
             const lastBusy = getClientLastBusy(client.id)
             const isExpanded = expandedMac === client.mac
             const history = historyData[client.mac]
-            const currentHour = getCurrentPacificHour()
             const chartData = (history ?? [])
-              .filter((b) => b.avgMbps > 0 && b.hour <= currentHour)
+              .filter((b) => b.avgMbps > 0)
               .map((b) => ({ time: formatHourOfDay(b.hour), bandwidth: b.avgMbps }))
             return (
               <Fragment key={client.id}>
