@@ -1,3 +1,11 @@
+export function formatPacificHour(unixTs: number): string {
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Los_Angeles',
+    hour: 'numeric',
+    hour12: true,
+  }).format(new Date(unixTs * 1000))
+}
+
 export function getCurrentPacificHour(): number {
   return parseInt(
     new Intl.DateTimeFormat('en-US', {

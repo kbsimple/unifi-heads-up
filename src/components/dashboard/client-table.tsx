@@ -4,9 +4,9 @@ import { Fragment, useState, useEffect } from 'react'
 import { TrafficBadge } from './traffic-badge'
 import { TrafficChart } from './traffic-chart'
 import { useTrafficHistory } from '@/contexts/traffic-history-context'
-import { formatTimeAgo, formatRate, formatHourOfDay } from '@/lib/unifi/format'
+import { formatTimeAgo, formatRate, formatPacificHour } from '@/lib/unifi/format'
 import type { NetworkClient } from '@/lib/unifi/types'
-import type { HourlyBucket } from '@/lib/insights/queries'
+import type { HistoryBucket } from '@/lib/insights/queries'
 
 interface ClientTableProps {
   clients: NetworkClient[]
@@ -53,7 +53,7 @@ export function ClientTable({ clients, activeOnly = false }: ClientTableProps) {
   const [sortColumn, setSortColumn] = useState<SortColumn>(null)
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
   const [expandedMac, setExpandedMac] = useState<string | null>(null)
-  const [historyData, setHistoryData] = useState<Record<string, HourlyBucket[]>>({})
+  const [historyData, setHistoryData] = useState<Record<string, HistoryBucket[]>>({})
   const [historyLoading, setHistoryLoading] = useState<Set<string>>(new Set())
   const { getClientLastBusy } = useTrafficHistory()
 
@@ -62,9 +62,9 @@ export function ClientTable({ clients, activeOnly = false }: ClientTableProps) {
 
     setHistoryLoading((prev) => new Set(prev).add(expandedMac))
     const mac = expandedMac
-    fetch(`/api/insights/device-activity?mac=${encodeURIComponent(mac)}&minutes=10080`)
+    fetch(`/api/insights/device-history?mac=${encodeURIComponent(mac)}`)
       .then((r) => r.json())
-      .then((data: HourlyBucket[]) => {
+      .then((data: HistoryBucket[]) => {
         setHistoryData((prev) => ({ ...prev, [mac]: data }))
       })
       .catch(() => {
@@ -174,9 +174,10 @@ export function ClientTable({ clients, activeOnly = false }: ClientTableProps) {
             const lastBusy = getClientLastBusy(client.id)
             const isExpanded = expandedMac === client.mac
             const history = historyData[client.mac]
-            const chartData = (history ?? [])
-              .filter((b) => b.avgMbps > 0)
-              .map((b) => ({ time: formatHourOfDay(b.hour), bandwidth: b.avgMbps }))
+            const chartData = (history ?? []).map((b) => ({
+              time: formatPacificHour(b.hourTs),
+              bandwidth: b.avgMbps,
+            }))
             return (
               <Fragment key={client.id}>
                 <tr className="border-b border-zinc-800 h-12 hover:bg-zinc-800/50 transition-colors">
@@ -210,12 +211,8 @@ export function ClientTable({ clients, activeOnly = false }: ClientTableProps) {
                     <td colSpan={COL_COUNT} className="px-4 py-3">
                       {historyLoading.has(client.mac) ? (
                         <p className="text-sm text-zinc-500 text-center py-2">Loading history…</p>
-                      ) : chartData.length > 0 ? (
-                        <TrafficChart data={chartData} />
                       ) : (
-                        <p className="text-sm text-zinc-500 text-center py-2">
-                          No traffic history recorded yet. Data accumulates over time.
-                        </p>
+                        <TrafficChart data={chartData} />
                       )}
                     </td>
                   </tr>

@@ -38,6 +38,49 @@ export function queryTopDevices(db: Database, minutes: number): TopDevice[] {
   return rows
 }
 
+export interface HistoryBucket {
+  hourTs: number  // unix timestamp (start of hour, UTC)
+  avgMbps: number
+}
+
+/**
+ * Returns exactly `hours` hourly buckets as a time series ending at the current
+ * hour. Missing hours are filled with avgMbps=0.
+ */
+export function queryDeviceHistory(
+  db: Database,
+  mac: string,
+  hours: number
+): HistoryBucket[] {
+  const rows = db
+    .prepare<[string, number], { hourTs: number; avgMbps: number }>(
+      `
+      SELECT (recorded_at / 3600) * 3600 AS hourTs,
+             (AVG(download_bps) + AVG(upload_bps)) / 1000000.0 AS avgMbps
+      FROM snapshots
+      WHERE client_mac = ?
+        AND recorded_at >= strftime('%s','now') - (? * 3600)
+      GROUP BY hourTs
+      ORDER BY hourTs
+      `
+    )
+    .all(mac, hours)
+
+  const nowSec = Math.floor(Date.now() / 1000)
+  const currentHourTs = Math.floor(nowSec / 3600) * 3600
+  const startTs = currentHourTs - (hours - 1) * 3600
+
+  const byHour = new Map<number, number>()
+  for (const row of rows) {
+    byHour.set(row.hourTs, row.avgMbps)
+  }
+
+  return Array.from({ length: hours }, (_, i) => {
+    const ts = startTs + i * 3600
+    return { hourTs: ts, avgMbps: byHour.get(ts) ?? 0 }
+  })
+}
+
 /**
  * Returns exactly 24 hourly buckets (hour 0-23) for a given device over the
  * specified number of days. Missing hours are filled with avgMbps=0, active=false.

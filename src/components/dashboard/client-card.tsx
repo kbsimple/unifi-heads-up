@@ -5,34 +5,28 @@ import { Card, CardContent } from '@/components/ui/card'
 import { TrafficBadge } from './traffic-badge'
 import { TrafficChart } from './traffic-chart'
 import { useTrafficHistory } from '@/contexts/traffic-history-context'
-import { formatTimeAgo, formatRate, formatHourOfDay } from '@/lib/unifi/format'
+import { formatTimeAgo, formatRate, formatPacificHour } from '@/lib/unifi/format'
 import type { NetworkClient } from '@/lib/unifi/types'
+import type { HistoryBucket } from '@/lib/insights/queries'
 
 interface ClientCardProps {
   client: NetworkClient
 }
 
-interface HourlyBucket {
-  hour: number
-  avgMbps: number
-  active: boolean
-}
-
 export function ClientCard({ client }: ClientCardProps) {
   const [showHistory, setShowHistory] = useState(false)
-  const [dbHistory, setDbHistory] = useState<HourlyBucket[] | null>(null)
+  const [dbHistory, setDbHistory] = useState<HistoryBucket[] | null>(null)
   const [historyLoading, setHistoryLoading] = useState(false)
   const { getClientLastBusy } = useTrafficHistory()
   const lastBusy = getClientLastBusy(client.id)
 
-  // Fetch DB-backed history when the panel is opened for the first time
   useEffect(() => {
     if (!showHistory || dbHistory !== null) return
 
     setHistoryLoading(true)
-    fetch(`/api/insights/device-activity?mac=${encodeURIComponent(client.mac)}&minutes=10080`)
+    fetch(`/api/insights/device-history?mac=${encodeURIComponent(client.mac)}`)
       .then((r) => r.json())
-      .then((data: HourlyBucket[]) => {
+      .then((data: HistoryBucket[]) => {
         setDbHistory(data)
       })
       .catch(() => {
@@ -43,13 +37,10 @@ export function ClientCard({ client }: ClientCardProps) {
       })
   }, [showHistory, client.mac, dbHistory])
 
-  // Only show hours that have non-zero activity
-  const chartData = (dbHistory ?? [])
-    .filter((b) => b.avgMbps > 0)
-    .map((b) => ({
-      time: formatHourOfDay(b.hour),
-      bandwidth: b.avgMbps,
-    }))
+  const chartData = (dbHistory ?? []).map((b) => ({
+    time: formatPacificHour(b.hourTs),
+    bandwidth: b.avgMbps,
+  }))
 
   return (
     <Card className="bg-zinc-900 border-zinc-800 rounded-lg">
@@ -92,12 +83,8 @@ export function ClientCard({ client }: ClientCardProps) {
           <div className="mt-3">
             {historyLoading ? (
               <p className="text-sm text-zinc-500 py-3 text-center">Loading history…</p>
-            ) : chartData.length > 0 ? (
-              <TrafficChart data={chartData} />
             ) : (
-              <p className="text-sm text-zinc-500 py-3 text-center">
-                No traffic history recorded yet. Data accumulates over time.
-              </p>
+              <TrafficChart data={chartData} />
             )}
           </div>
         )}
