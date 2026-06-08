@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.0
-milestone_name: Local Edition
-status: Gap closure needed — Clear Schedule DELETE body missing `enabled` field
-stopped_at: context exhaustion at 90% (2026-05-21)
-last_updated: "2026-05-21T06:36:44.014Z"
-last_activity: "2026-05-17 — Phase 11 (Firewall Rule Scheduling) verification complete — gaps_found: Clear Schedule DELETE body missing enabled field"
+milestone: v3.0
+milestone_name: Statefulness & Insights
+status: Shipped — between milestones, doing maintenance/quick tasks
+stopped_at: context exhaustion at 94% (2026-06-08)
+last_updated: "2026-06-08T05:07:47.458Z"
+last_activity: "2026-06-04 — Completed quick task 260604-rg1: Remove groups feature entirely from the app"
 progress:
   total_phases: 2
   completed_phases: 2
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-04-24)
 
 ## Current Position
 
-Phase: Phase 11 — Firewall Rule Scheduling
-Plan: 11-02 (verification complete — gaps_found)
-Status: Gap closure needed — Clear Schedule DELETE body missing `enabled` field
-Last activity: 2026-06-04 — Completed quick task 260604-rg1: Remove groups feature entirely from the app
+Phase: Phase 11 — Firewall Rule Scheduling (last phase of v3.0, shipped 2026-05-17)
+Plan: 11-02 (re-verification complete — passed 4/4, gap resolved)
+Status: v3.0 shipped — all 11 phases complete, now doing maintenance/quick tasks
+Last activity: 2026-06-07 — Fixed Mbps conversion bug (8x too low on dashboard charts)
 
-Progress: [██████████] 100% plans complete (gap closure pending)
+Progress: [██████████] 100% — v3.0 shipped, no new milestone roadmap yet
 
 ## Performance Metrics
 
@@ -157,6 +157,6 @@ Future extension recorded: per-client DPI top-apps via `POST /proxy/network/api/
 
 ## Session Continuity
 
-Last session: 2026-05-21T06:36:44.011Z
-Stopped at: context exhaustion at 90% (2026-05-21)
+Last session: 2026-06-08T05:07:47.455Z
+Stopped at: context exhaustion at 94% (2026-06-08)
 Resume file: None
