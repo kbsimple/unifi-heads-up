@@ -9,6 +9,7 @@ import { EmptyState } from './empty-state'
 import { ErrorState } from './error-state'
 import { TrafficChart, formatHourLabel } from './traffic-chart'
 import { TrafficHistoryProvider, useTrafficHistory } from '@/contexts/traffic-history-context'
+import { bytesPerSecToMbps } from '@/lib/unifi/traffic'
 import { Card, CardContent } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
 import type { ClientsResponse } from '@/lib/unifi/types'
@@ -50,7 +51,7 @@ function ClientListInner({ initialData }: ClientListProps) {
 
   const siteChartData = siteHistory.map((sample) => ({
     time: formatHourLabel(sample.hourStart),
-    bandwidth: (sample.avgDownload + sample.avgUpload) / 1_000_000,
+    bandwidth: bytesPerSecToMbps(sample.avgDownload + sample.avgUpload),
   }))
 
   // Empty state when no clients

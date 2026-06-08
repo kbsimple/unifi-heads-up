@@ -128,7 +128,8 @@ describe('queryDeviceActivity', () => {
     // Push it back to yesterday to ensure it's within days window
     const ts = Math.floor(date.getTime() / 1000) - DAY
 
-    // 3_000_000 download + 2_000_000 upload = 5 Mbps average
+    // download_bps/upload_bps store bytes/sec — Mbps = bytes/sec * 8 / 1_000_000
+    // 3_000_000 + 2_000_000 = 5_000_000 bytes/sec → 40 Mbps average
     insert.run('aa:bb:cc:dd:ee:01', 3_000_000, 2_000_000, ts)
 
     const result = queryDeviceActivity(db, 'aa:bb:cc:dd:ee:01', 10080)
@@ -136,7 +137,7 @@ describe('queryDeviceActivity', () => {
 
     const hour10 = result.find(b => b.hour === 10)
     expect(hour10).toBeDefined()
-    expect(hour10!.avgMbps).toBeCloseTo(5.0, 1)
+    expect(hour10!.avgMbps).toBeCloseTo(40.0, 1)
     expect(hour10!.active).toBe(true)
   })
 
@@ -147,8 +148,8 @@ describe('queryDeviceActivity', () => {
     const date = new Date()
     date.setUTCHours(8, 0, 0, 0)
     const ts = Math.floor(date.getTime() / 1000) - DAY
-    // Exactly 0.5 Mbps
-    insert.run('aa:bb:cc:dd:ee:01', 250_000, 250_000, ts)
+    // Exactly 0.5 Mbps: 62_500 bytes/sec total * 8 / 1_000_000 = 0.5
+    insert.run('aa:bb:cc:dd:ee:01', 31_250, 31_250, ts)
 
     const result = queryDeviceActivity(db, 'aa:bb:cc:dd:ee:01', 10080)
     const hour8 = result.find(b => b.hour === 8)
@@ -162,8 +163,8 @@ describe('queryDeviceActivity', () => {
     const date = new Date()
     date.setUTCHours(3, 0, 0, 0)
     const ts = Math.floor(date.getTime() / 1000) - DAY
-    // 0.4 Mbps total (200_000 down + 200_000 up = 400_000 bps = 0.4 Mbps)
-    insert.run('aa:bb:cc:dd:ee:01', 200_000, 200_000, ts)
+    // 0.4 Mbps total: 25_000 down + 25_000 up = 50_000 bytes/sec * 8 / 1_000_000 = 0.4 Mbps
+    insert.run('aa:bb:cc:dd:ee:01', 25_000, 25_000, ts)
 
     const result = queryDeviceActivity(db, 'aa:bb:cc:dd:ee:01', 10080)
     const hour3 = result.find(b => b.hour === 3)

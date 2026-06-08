@@ -56,7 +56,7 @@ export function queryDeviceHistory(
     .prepare<[string, number], { hourTs: number; avgMbps: number }>(
       `
       SELECT (recorded_at / 3600) * 3600 AS hourTs,
-             (AVG(download_bps) + AVG(upload_bps)) / 1000000.0 AS avgMbps
+             (AVG(download_bps) + AVG(upload_bps)) * 8 / 1000000.0 AS avgMbps
       FROM snapshots
       WHERE client_mac = ?
         AND recorded_at >= strftime('%s','now') - (? * 3600)
@@ -85,7 +85,9 @@ export function queryDeviceHistory(
  * Returns exactly 24 hourly buckets (hour 0-23) for a given device over the
  * specified number of days. Missing hours are filled with avgMbps=0, active=false.
  *
- * avgMbps = (AVG(download_bps) + AVG(upload_bps)) / 1_000_000
+ * download_bps/upload_bps store bytes/sec (per NetworkClient.downloadRate),
+ * so converting to megabits/sec requires multiplying by 8:
+ * avgMbps = (AVG(download_bps) + AVG(upload_bps)) * 8 / 1_000_000
  */
 export function queryDeviceActivity(
   db: Database,
@@ -97,7 +99,7 @@ export function queryDeviceActivity(
     .prepare<[number, string, number], { hour: number; avgMbps: number }>(
       `
       SELECT CAST(strftime('%H', datetime(recorded_at + ? * 3600, 'unixepoch')) AS INTEGER) AS hour,
-             (AVG(download_bps) + AVG(upload_bps)) / 1000000.0 AS avgMbps
+             (AVG(download_bps) + AVG(upload_bps)) * 8 / 1000000.0 AS avgMbps
       FROM snapshots
       WHERE client_mac = ?
         AND recorded_at >= strftime('%s','now') - (? * 60)
