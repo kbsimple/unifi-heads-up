@@ -41,13 +41,15 @@ const mockClient = {
 
 describe('GET /api/clients', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    // resetAllMocks (not clearAllMocks) so queued mockReturnValueOnce values
+    // from a previous test can't bleed into the next one
+    vi.resetAllMocks()
     // Default: no cache
     vi.mocked(getLatestClients).mockReturnValue(null)
   })
 
   afterEach(() => {
-    vi.clearAllMocks()
+    vi.resetAllMocks()
   })
 
   it('should return 401 when no session', async () => {
@@ -78,13 +80,11 @@ describe('GET /api/clients', () => {
 
   it('should return stale cache and trigger background refresh', async () => {
     vi.mocked(getSession).mockResolvedValue({ username: 'admin', expiresAt: new Date(Date.now() + 86400000) })
-    // First call (fresh check) returns null, second call (stale check) returns data
-    vi.mocked(getLatestClients)
-      .mockReturnValueOnce(null) // Fresh check fails
-      .mockReturnValueOnce({ // Stale check succeeds
-        clients: [mockClient],
-        timestamp: Date.now() - 120000, // 2 minutes old (stale)
-      })
+    // Single cache lookup returns data older than CACHE_FRESH_MS (60s) → stale
+    vi.mocked(getLatestClients).mockReturnValue({
+      clients: [mockClient],
+      timestamp: Date.now() - 120000, // 2 minutes old (stale)
+    })
     // Mock getUnifiClients for the background refresh
     vi.mocked(getUnifiClients).mockResolvedValue({
       clients: [mockClient],

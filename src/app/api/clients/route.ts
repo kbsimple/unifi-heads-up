@@ -35,28 +35,21 @@ export async function GET(req: Request): Promise<Response> {
     )
   }
 
-  // Try to get cached data (considers max age)
-  const cached = getLatestClients(CACHE_FRESH_MS)
+  // Look up cache regardless of age — a single query covers hit/stale/miss
+  const cached = getLatestClients(Infinity)
 
   if (cached) {
-    // Cache hit - return immediately
+    const isFresh = Date.now() - cached.timestamp < CACHE_FRESH_MS
+
+    if (!isFresh) {
+      // Stale - return cached data immediately, refresh in background
+      refreshClientsCache()
+    }
+
     return NextResponse.json<ClientsCacheResponse>({
       clients: cached.clients,
       timestamp: cached.timestamp,
-      cacheStatus: 'hit',
-    })
-  }
-
-  // Cache miss or stale - try to get stale data while fetching fresh
-  const staleCache = getLatestClients(Infinity) // Get any cache regardless of age
-
-  if (staleCache) {
-    // Return stale data immediately, refresh in background
-    refreshClientsCache()
-    return NextResponse.json<ClientsCacheResponse>({
-      clients: staleCache.clients,
-      timestamp: staleCache.timestamp,
-      cacheStatus: 'stale',
+      cacheStatus: isFresh ? 'hit' : 'stale',
     })
   }
 

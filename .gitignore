@@ -44,3 +44,6 @@ next-env.d.ts
 # Environment variables
 .env.local
 .env*.local
+
+# runtime data (SQLite cache — contains live household network data)
+/data
