@@ -1,7 +1,7 @@
 import 'server-only'
 
 import { getUnifiClients } from '@/lib/unifi'
-import { insertSnapshots } from '@/lib/db'
+import { insertSnapshots, upsertLatestClients } from '@/lib/db'
 
 let started = false
 
@@ -13,6 +13,7 @@ export function startRecorder(): void {
     try {
       const { clients } = await getUnifiClients()
       insertSnapshots(clients)
+      upsertLatestClients(clients)
     } catch (err) {
       console.error('[recorder] snapshot failed', err)
     }
