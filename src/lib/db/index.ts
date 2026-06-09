@@ -26,6 +26,7 @@ export function getDb(): Database.Database {
       recorded_at INTEGER NOT NULL
     );
     CREATE INDEX IF NOT EXISTS idx_recorded_at ON snapshots (recorded_at);
+    CREATE INDEX IF NOT EXISTS idx_snapshots_mac_at ON snapshots (client_mac, recorded_at DESC);
 
     CREATE TABLE IF NOT EXISTS starred_rules (
       rule_id TEXT PRIMARY KEY,
@@ -82,14 +83,14 @@ export function purgeOldSnapshots(): void {
  * Called by the background recorder after each successful UniFi poll.
  */
 export function upsertLatestClients(clients: NetworkClient[]): void {
-  if (clients.length === 0) return
-
   const database = getDb()
   const now = Date.now()
 
   const upsertAll = database.transaction((rows: NetworkClient[]) => {
-    // Clear existing cache
+    // Always clear cache first — ensures getLatestClients returns null if poll
+    // returned zero clients, rather than silently serving stale data.
     database.prepare('DELETE FROM latest_clients').run()
+    if (rows.length === 0) return
 
     // Insert all clients
     const insert = database.prepare(`
@@ -207,7 +208,7 @@ export function getRecentAvgRates(
     FROM ranked
     WHERE rn <= ?
     GROUP BY client_mac
-  `).all([...macs, window]) as Array<{
+  `).all([...macs, window]) as Array<{ // params: ...macs, then window
     client_mac: string
     avg_download: number
     avg_upload: number

@@ -11,6 +11,10 @@ export const SNAPSHOT_WINDOW = 2
 
 let started = false
 
+export function _resetForTests(): void {
+  started = false
+}
+
 export function startRecorder(): void {
   if (started) return
   started = true

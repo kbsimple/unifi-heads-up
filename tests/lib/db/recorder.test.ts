@@ -26,13 +26,18 @@ vi.mock('@/lib/db', () => ({
 }))
 
 describe('src/lib/db/recorder.ts', () => {
+  // All imports are dynamic (inside each `it`) because vi.resetModules() in beforeEach
+  // resets the module registry so each test gets a fresh `started = false`. A static
+  // top-level import would bypass this and retain stale module state across tests.
   beforeEach(() => {
     vi.useFakeTimers()
     vi.clearAllMocks()
     vi.resetModules()
   })
 
-  afterEach(() => {
+  afterEach(async () => {
+    const { _resetForTests } = await import('@/lib/db/recorder')
+    _resetForTests()
     vi.useRealTimers()
   })
 
