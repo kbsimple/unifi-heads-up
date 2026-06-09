@@ -186,3 +186,35 @@ export function getLatestClients(
 
   return { clients, timestamp }
 }
+
+export function getRecentAvgRates(
+  macs: string[],
+  window: number
+): Map<string, { avgDownload: number; avgUpload: number }> {
+  if (macs.length === 0) return new Map()
+
+  const database = getDb()
+  const placeholders = macs.map(() => '?').join(',')
+
+  const rows = database.prepare(`
+    WITH ranked AS (
+      SELECT client_mac, download_bps, upload_bps,
+        ROW_NUMBER() OVER (PARTITION BY client_mac ORDER BY recorded_at DESC) AS rn
+      FROM snapshots
+      WHERE client_mac IN (${placeholders})
+    )
+    SELECT client_mac, AVG(download_bps) AS avg_download, AVG(upload_bps) AS avg_upload
+    FROM ranked
+    WHERE rn <= ?
+    GROUP BY client_mac
+  `).all([...macs, window]) as Array<{
+    client_mac: string
+    avg_download: number
+    avg_upload: number
+  }>
+
+  return new Map(rows.map(r => [r.client_mac, {
+    avgDownload: r.avg_download,
+    avgUpload: r.avg_upload,
+  }]))
+}

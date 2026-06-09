@@ -25,6 +25,7 @@ describe('src/lib/db/index.ts', () => {
   let getDb: () => import('better-sqlite3').Database
   let insertSnapshots: (clients: NetworkClient[]) => void
   let purgeOldSnapshots: () => void
+  let getRecentAvgRates: (macs: string[], window: number) => Map<string, { avgDownload: number; avgUpload: number }>
 
   beforeEach(async () => {
     tmpPath = `/tmp/test-snapshots-${Date.now()}-${Math.random().toString(36).slice(2)}.db`
@@ -37,6 +38,7 @@ describe('src/lib/db/index.ts', () => {
     getDb = mod.getDb
     insertSnapshots = mod.insertSnapshots
     purgeOldSnapshots = mod.purgeOldSnapshots
+    getRecentAvgRates = mod.getRecentAvgRates
   })
 
   afterEach(() => {
@@ -141,6 +143,73 @@ describe('src/lib/db/index.ts', () => {
       const rows = db.prepare('SELECT * FROM snapshots').all() as Array<{ client_mac: string }>
       const macs = rows.map((r) => r.client_mac)
       expect(macs).not.toContain('old:mac')
+    })
+  })
+
+  describe('getRecentAvgRates()', () => {
+    function insertRaw(mac: string, downloadBps: number, uploadBps: number, recordedAt: number) {
+      getDb().prepare(
+        'INSERT INTO snapshots (client_mac, download_bps, upload_bps, recorded_at) VALUES (?,?,?,?)'
+      ).run(mac, downloadBps, uploadBps, recordedAt)
+    }
+
+    it('returns an empty Map for an empty macs array', () => {
+      const result = getRecentAvgRates([], 3)
+      expect(result.size).toBe(0)
+    })
+
+    it('returns correct average for a single client with multiple snapshots', () => {
+      const now = Math.floor(Date.now() / 1000)
+      insertRaw('aa:bb:cc:00:00:01', 1000, 500, now - 120)
+      insertRaw('aa:bb:cc:00:00:01', 3000, 1500, now - 60)
+      insertRaw('aa:bb:cc:00:00:01', 5000, 2500, now)
+
+      const result = getRecentAvgRates(['aa:bb:cc:00:00:01'], 3)
+      const rates = result.get('aa:bb:cc:00:00:01')
+      expect(rates).toBeDefined()
+      expect(rates!.avgDownload).toBeCloseTo((1000 + 3000 + 5000) / 3)
+      expect(rates!.avgUpload).toBeCloseTo((500 + 1500 + 2500) / 3)
+    })
+
+    it('window=2 uses only the 2 most recent snapshots, ignoring older ones', () => {
+      const now = Math.floor(Date.now() / 1000)
+      insertRaw('aa:bb:cc:00:00:02', 100, 50, now - 180) // oldest — excluded
+      insertRaw('aa:bb:cc:00:00:02', 2000, 1000, now - 60) // 2nd most recent
+      insertRaw('aa:bb:cc:00:00:02', 4000, 2000, now)      // most recent
+
+      const result = getRecentAvgRates(['aa:bb:cc:00:00:02'], 2)
+      const rates = result.get('aa:bb:cc:00:00:02')
+      expect(rates).toBeDefined()
+      expect(rates!.avgDownload).toBeCloseTo((2000 + 4000) / 2)
+      expect(rates!.avgUpload).toBeCloseTo((1000 + 2000) / 2)
+    })
+
+    it('client with only 1 snapshot returns a result (average of 1 row)', () => {
+      const now = Math.floor(Date.now() / 1000)
+      insertRaw('aa:bb:cc:00:00:03', 8000, 4000, now)
+
+      const result = getRecentAvgRates(['aa:bb:cc:00:00:03'], 2)
+      const rates = result.get('aa:bb:cc:00:00:03')
+      expect(rates).toBeDefined()
+      expect(rates!.avgDownload).toBeCloseTo(8000)
+      expect(rates!.avgUpload).toBeCloseTo(4000)
+    })
+
+    it('client with no snapshots is absent from result (falls back gracefully)', () => {
+      const result = getRecentAvgRates(['no:snap:shots:here:00:01'], 2)
+      expect(result.has('no:snap:shots:here:00:01')).toBe(false)
+    })
+
+    it('returns averaged rates for multiple clients in one call', () => {
+      const now = Math.floor(Date.now() / 1000)
+      insertRaw('aa:bb:cc:00:00:04', 1000, 500, now - 60)
+      insertRaw('aa:bb:cc:00:00:04', 3000, 1500, now)
+      insertRaw('aa:bb:cc:00:00:05', 10000, 5000, now)
+
+      const result = getRecentAvgRates(['aa:bb:cc:00:00:04', 'aa:bb:cc:00:00:05'], 2)
+      expect(result.size).toBe(2)
+      expect(result.get('aa:bb:cc:00:00:04')!.avgDownload).toBeCloseTo(2000)
+      expect(result.get('aa:bb:cc:00:00:05')!.avgDownload).toBeCloseTo(10000)
     })
   })
 

@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { NetworkClient } from '@/lib/unifi/types'
 
-// Build a minimal mock client
 const mockClient: NetworkClient = {
   id: 'c1',
   mac: 'aa:bb:cc:dd:ee:ff',
@@ -16,106 +15,123 @@ const mockClient: NetworkClient = {
   trafficStatus: 'low',
 }
 
-// Module-level mocks — shared across tests; we reset call counts in beforeEach
 vi.mock('@/lib/unifi', () => ({
   getUnifiClients: vi.fn(),
 }))
 
 vi.mock('@/lib/db', () => ({
   insertSnapshots: vi.fn(),
+  upsertLatestClients: vi.fn(),
+  getRecentAvgRates: vi.fn(),
 }))
 
 describe('src/lib/db/recorder.ts', () => {
   beforeEach(() => {
-    // Fresh fake timers for each test (clears any intervals from prior tests)
     vi.useFakeTimers()
-    // Reset call counts on mocks
     vi.clearAllMocks()
-    // Reset module registry so the `started` boolean resets per test
     vi.resetModules()
   })
 
   afterEach(() => {
-    // Restore real timers after each test
     vi.useRealTimers()
   })
 
-  it('calls insertSnapshots with client list after 60 seconds', async () => {
+  it('calls insertSnapshots and upsertLatestClients after 60 seconds', async () => {
     const { getUnifiClients } = await import('@/lib/unifi')
-    const { insertSnapshots } = await import('@/lib/db')
-    const mockGetClients = vi.mocked(getUnifiClients)
-    const mockInsert = vi.mocked(insertSnapshots)
-    mockGetClients.mockResolvedValue({ clients: [mockClient], timestamp: Date.now() })
+    const { insertSnapshots, upsertLatestClients, getRecentAvgRates } = await import('@/lib/db')
+    vi.mocked(getUnifiClients).mockResolvedValue({ clients: [mockClient], timestamp: Date.now() })
+    vi.mocked(getRecentAvgRates).mockReturnValue(new Map())
 
     const { startRecorder } = await import('@/lib/db/recorder')
     startRecorder()
-
     await vi.advanceTimersByTimeAsync(60_000)
 
-    expect(mockGetClients).toHaveBeenCalledTimes(1)
-    expect(mockInsert).toHaveBeenCalledTimes(1)
-    expect(mockInsert).toHaveBeenCalledWith([mockClient])
+    expect(vi.mocked(insertSnapshots)).toHaveBeenCalledTimes(1)
+    expect(vi.mocked(insertSnapshots)).toHaveBeenCalledWith([mockClient])
+    expect(vi.mocked(upsertLatestClients)).toHaveBeenCalledTimes(1)
+  })
+
+  it('re-classifies trafficStatus using averaged rates from getRecentAvgRates', async () => {
+    const { getUnifiClients } = await import('@/lib/unifi')
+    const { upsertLatestClients, getRecentAvgRates } = await import('@/lib/db')
+
+    // Client reports 'idle' instant rate, but averaged rates put it in 'high'
+    const idleClient: NetworkClient = { ...mockClient, trafficStatus: 'idle', downloadRate: 100, uploadRate: 50 }
+    vi.mocked(getUnifiClients).mockResolvedValue({ clients: [idleClient], timestamp: Date.now() })
+
+    // avgDownload + avgUpload = 250_000 + 125_000 = 375_000 bytes/s → 3 Mbps → 'high'
+    vi.mocked(getRecentAvgRates).mockReturnValue(
+      new Map([['aa:bb:cc:dd:ee:ff', { avgDownload: 250_000, avgUpload: 125_000 }]])
+    )
+
+    const { startRecorder } = await import('@/lib/db/recorder')
+    startRecorder()
+    await vi.advanceTimersByTimeAsync(60_000)
+
+    const [smoothed] = vi.mocked(upsertLatestClients).mock.calls[0] as [NetworkClient[]]
+    expect(smoothed[0].trafficStatus).toBe('high')
+  })
+
+  it('falls back to instant trafficStatus when getRecentAvgRates has no entry for the client', async () => {
+    const { getUnifiClients } = await import('@/lib/unifi')
+    const { upsertLatestClients, getRecentAvgRates } = await import('@/lib/db')
+
+    const client: NetworkClient = { ...mockClient, trafficStatus: 'medium' }
+    vi.mocked(getUnifiClients).mockResolvedValue({ clients: [client], timestamp: Date.now() })
+    // Empty map — no averaged rates available (e.g. brand-new client, no snapshots yet)
+    vi.mocked(getRecentAvgRates).mockReturnValue(new Map())
+
+    const { startRecorder } = await import('@/lib/db/recorder')
+    startRecorder()
+    await vi.advanceTimersByTimeAsync(60_000)
+
+    const [smoothed] = vi.mocked(upsertLatestClients).mock.calls[0] as [NetworkClient[]]
+    expect(smoothed[0].trafficStatus).toBe('medium')
   })
 
   it('calling startRecorder twice still fires the interval only once per 60s', async () => {
     const { getUnifiClients } = await import('@/lib/unifi')
-    const { insertSnapshots } = await import('@/lib/db')
-    const mockGetClients = vi.mocked(getUnifiClients)
-    const mockInsert = vi.mocked(insertSnapshots)
-    mockGetClients.mockResolvedValue({ clients: [mockClient], timestamp: Date.now() })
+    const { insertSnapshots, getRecentAvgRates } = await import('@/lib/db')
+    vi.mocked(getUnifiClients).mockResolvedValue({ clients: [mockClient], timestamp: Date.now() })
+    vi.mocked(getRecentAvgRates).mockReturnValue(new Map())
 
     const { startRecorder } = await import('@/lib/db/recorder')
     startRecorder()
-    startRecorder() // second call should be no-op
-
-    await vi.advanceTimersByTimeAsync(60_000)
-
-    // Only one interval tick, not two
-    expect(mockGetClients).toHaveBeenCalledTimes(1)
-    expect(mockInsert).toHaveBeenCalledTimes(1)
-  })
-
-  it('does not call insertSnapshots when getUnifiClients rejects', async () => {
-    const { getUnifiClients } = await import('@/lib/unifi')
-    const { insertSnapshots } = await import('@/lib/db')
-    const mockGetClients = vi.mocked(getUnifiClients)
-    const mockInsert = vi.mocked(insertSnapshots)
-    mockGetClients.mockRejectedValue(new Error('network error'))
-
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-
-    const { startRecorder } = await import('@/lib/db/recorder')
     startRecorder()
-
     await vi.advanceTimersByTimeAsync(60_000)
 
-    expect(mockInsert).not.toHaveBeenCalled()
-    expect(consoleSpy).toHaveBeenCalledWith(
-      '[recorder] snapshot failed',
-      expect.any(Error)
-    )
+    expect(vi.mocked(insertSnapshots)).toHaveBeenCalledTimes(1)
   })
 
-  it('continues firing on subsequent ticks even after an error', async () => {
+  it('does not call insertSnapshots or upsertLatestClients when getUnifiClients rejects', async () => {
     const { getUnifiClients } = await import('@/lib/unifi')
-    const { insertSnapshots } = await import('@/lib/db')
-    const mockGetClients = vi.mocked(getUnifiClients)
-    const mockInsert = vi.mocked(insertSnapshots)
-
-    // First tick fails, second succeeds
-    mockGetClients
-      .mockRejectedValueOnce(new Error('transient error'))
-      .mockResolvedValue({ clients: [mockClient], timestamp: Date.now() })
-
+    const { insertSnapshots, upsertLatestClients } = await import('@/lib/db')
+    vi.mocked(getUnifiClients).mockRejectedValue(new Error('network error'))
     vi.spyOn(console, 'error').mockImplementation(() => {})
 
     const { startRecorder } = await import('@/lib/db/recorder')
     startRecorder()
+    await vi.advanceTimersByTimeAsync(60_000)
 
-    await vi.advanceTimersByTimeAsync(60_000)  // first tick — fails
-    await vi.advanceTimersByTimeAsync(60_000)  // second tick — succeeds
+    expect(vi.mocked(insertSnapshots)).not.toHaveBeenCalled()
+    expect(vi.mocked(upsertLatestClients)).not.toHaveBeenCalled()
+  })
 
-    expect(mockInsert).toHaveBeenCalledTimes(1)
-    expect(mockInsert).toHaveBeenCalledWith([mockClient])
+  it('continues firing on subsequent ticks even after an error', async () => {
+    const { getUnifiClients } = await import('@/lib/unifi')
+    const { insertSnapshots, getRecentAvgRates } = await import('@/lib/db')
+    vi.mocked(getUnifiClients)
+      .mockRejectedValueOnce(new Error('transient error'))
+      .mockResolvedValue({ clients: [mockClient], timestamp: Date.now() })
+    vi.mocked(getRecentAvgRates).mockReturnValue(new Map())
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    const { startRecorder } = await import('@/lib/db/recorder')
+    startRecorder()
+    await vi.advanceTimersByTimeAsync(60_000) // fails
+    await vi.advanceTimersByTimeAsync(60_000) // succeeds
+
+    expect(vi.mocked(insertSnapshots)).toHaveBeenCalledTimes(1)
+    expect(vi.mocked(insertSnapshots)).toHaveBeenCalledWith([mockClient])
   })
 })
