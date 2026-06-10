@@ -73,6 +73,9 @@ export function TopDevicesChart({
               data={chartData}
               layout="vertical"
               margin={{ top: 4, right: 16, left: 8, bottom: 4 }}
+              // Disable the default cursor rectangle that Recharts renders over the
+              // full chart area when hovering or clicking a bar.
+              cursor={false}
             >
               <XAxis
                 type="number"
@@ -111,6 +114,9 @@ export function TopDevicesChart({
               <Bar
                 dataKey="totalBytes"
                 cursor="pointer"
+                // Disable the default white stroke outline Recharts adds around the
+                // active (clicked) bar — selection is shown via Cell fill color instead.
+                activeBar={false}
                 onClick={(data: BarRectangleItem) => {
                   const mac = (data.payload as TopDevice)?.mac
                   if (mac) onSelectDevice(mac)
