@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-24)
 Phase: Phase 11 — Firewall Rule Scheduling (last phase of v3.0, shipped 2026-05-17)
 Plan: 11-02 (re-verification complete — passed 4/4, gap resolved)
 Status: v3.0 shipped — all 11 phases complete, now doing maintenance/quick tasks
-Last activity: 2026-06-09 — Smooth dashboard traffic status with rolling snapshot average (SNAPSHOT_WINDOW=2)
+Last activity: 2026-06-10 — Completed quick task 260610-icb: Fix insights tab bar chart click overlay (Recharts cursor/activeBar)
 
 Progress: [██████████] 100% — v3.0 shipped, no new milestone roadmap yet
 
@@ -122,6 +122,7 @@ None.
 | 260604-tf1 | Fix all 28 failing tests — update stale expectations to match current source | 2026-06-04 | 0ee37e4 | [260604-tf1-fix-failing-tests](./quick/260604-tf1-fix-failing-tests/) |
 | 260607-instant | Instant dashboard load via SQLite client cache with stale-while-revalidate | 2026-06-07 | 7708fec | [260607-instant-cache](./quick/260607-instant-cache/) |
 | 260609-3e2 | Smooth dashboard traffic status with rolling snapshot average (SNAPSHOT_WINDOW=2) | 2026-06-09 | 31135f8 | [260609-3e2-snapshot-avg-traffic-status](./quick/260609-3e2-snapshot-avg-traffic-status/) |
+| 260610-icb | Fix insights tab bar chart click overlay (Recharts cursor/activeBar) | 2026-06-10 | 21d36c0 | [260610-icb-insights-bar-click-overlay](./quick/260610-icb-insights-bar-click-overlay/) |
 
 ### Blockers/Concerns
 
