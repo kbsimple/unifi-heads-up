@@ -73,9 +73,6 @@ export function TopDevicesChart({
               data={chartData}
               layout="vertical"
               margin={{ top: 4, right: 16, left: 8, bottom: 4 }}
-              // Disable the default cursor rectangle that Recharts renders over the
-              // full chart area when hovering or clicking a bar.
-              cursor={false}
             >
               <XAxis
                 type="number"
@@ -110,6 +107,7 @@ export function TopDevicesChart({
                 labelFormatter={(label) => `Device: ${label}`}
                 labelStyle={{ color: '#a1a1aa' }}
                 itemStyle={{ color: '#f4f4f5' }}
+                cursor={false}
               />
               <Bar
                 dataKey="totalBytes"
