@@ -1,14 +1,21 @@
 import { defineConfig } from '@playwright/test'
+import path from 'path'
+
+// Project root is one level up from this config file (which lives in e2e/)
+const projectRoot = path.resolve(__dirname, '..')
 
 export default defineConfig({
-  testDir: './e2e/tests',
-  outputDir: './e2e/test-results',
+  testDir: './tests',
+  outputDir: './test-results',
   use: {
     baseURL: 'http://localhost:3001',
     trace: 'on-first-retry',
   },
   webServer: {
-    command: 'npm run build && npm run start -- -p 3001',
+    // Build the standalone Next.js output, copy static assets, then start the server.
+    // cwd is set to projectRoot so npm, .next, and public paths resolve correctly.
+    command: 'npm run build && cp -r .next/static .next/standalone/.next/static && cp -r public .next/standalone/public && PORT=3001 HOSTNAME=0.0.0.0 node .next/standalone/server.js',
+    cwd: projectRoot,
     url: 'http://localhost:3001/api/health',
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
@@ -24,7 +31,7 @@ export default defineConfig({
     },
   },
   projects: [
-    { name: 'setup', testMatch: /auth\.setup\.ts/ },
+    { name: 'setup', testDir: './fixtures', testMatch: /auth\.setup\.ts/ },
     {
       name: 'chromium',
       use: {

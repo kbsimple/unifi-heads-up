@@ -10,8 +10,9 @@ test.describe('Authentication (E2E-AUTH)', () => {
   })
 
   test('unauthenticated access to /dashboard redirects to /login', async ({ browser }) => {
-    // Create a fresh context WITHOUT storageState — no session cookie is sent
-    const context = await browser.newContext()
+    // Create a fresh context with an empty storageState to bypass the chromium project's
+    // default storageState — no session cookie is sent, so the server redirects to /login
+    const context = await browser.newContext({ storageState: { cookies: [], origins: [] } })
     const page = await context.newPage()
     await page.goto('/dashboard')
     await expect(page).toHaveURL('/login')
@@ -19,7 +20,7 @@ test.describe('Authentication (E2E-AUTH)', () => {
   })
 
   test('unauthenticated access to /dashboard/firewall redirects to /login', async ({ browser }) => {
-    const context = await browser.newContext()
+    const context = await browser.newContext({ storageState: { cookies: [], origins: [] } })
     const page = await context.newPage()
     await page.goto('/dashboard/firewall')
     await expect(page).toHaveURL('/login')
@@ -29,8 +30,8 @@ test.describe('Authentication (E2E-AUTH)', () => {
   test('logout clears session and redirects to /login', async ({ page }) => {
     await page.goto('/dashboard')
     await expect(page).toHaveURL('/dashboard')
-    // Click logout button — use case-insensitive match since button text may vary
-    await page.getByRole('button', { name: /log.?out/i }).click()
+    // Logout button renders as "Sign out" (from LogoutButton component)
+    await page.getByRole('button', { name: /sign.?out/i }).click()
     await expect(page).toHaveURL('/login')
     // Verify session is cleared: navigating to /dashboard redirects back to /login
     await page.goto('/dashboard')
