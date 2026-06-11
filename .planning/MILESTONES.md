@@ -50,3 +50,33 @@ Full dev mock layer — `UNIFI_MOCK=true` facade activates 6 mock network client
 
 - Roadmap: `.planning/milestones/v1.1-ROADMAP.md`
 - Requirements: `.planning/milestones/v1.1-REQUIREMENTS.md`
+
+---
+
+## v4.0 Quality & Testing — Shipped 2026-06-11
+
+**Phases:** 12 | **Plans:** 2 | **Tasks:** 4 | **Timeline:** 2 days (2026-06-10 → 2026-06-11)
+**Files changed:** 18 | **LOC added:** ~2,099 insertions
+
+### Delivered
+
+Full Playwright E2E test suite — 15 browser-level tests (1 auth setup + 14 chromium) covering auth flows, dashboard mock data, firewall toggle mutations, and insights page rendering. Tests run against a real Next.js standalone server with `UNIFI_MOCK=true`, providing pre-deploy confidence that the full stack works together.
+
+### Key Accomplishments
+
+1. Playwright E2E infrastructure: `playwright.config.ts` with standalone webServer, bcrypt auth env, setup + chromium projects, `reuseExistingServer` for fast local iteration
+2. Form-based auth setup: `auth.setup.ts` logs in once via real /login form, saves storageState (HTTP-only JWT cookie), all 14 chromium tests inherit the authenticated session
+3. Auth flow tests: authenticated access to /dashboard, unauthenticated redirects from /dashboard and /dashboard/firewall, logout with post-logout session verification
+4. Dashboard assertions: mock client names via `getByRole('cell')`, traffic status badges scoped to table via `[data-slot="badge"]` locator
+5. Firewall toggle mutation E2E: `getByRole('switch')` selects both policies by name; toggle clicks verified against mock's module-level state through full browser → Next.js server → SWR mutation cycle
+6. Insights page structural assertions: 6 time-range tabs visible, Top Devices section present — works with empty SQLite DB
+
+### Known Deferred Items at Close: 23 (see STATE.md Deferred Items)
+
+- 4 live-hardware UAT/verification gaps (Phases 06–07, require physical UniFi console — deferred since v2.0)
+- 18 quick task status files missing (all tasks completed per STATE.md, status files never created)
+- 1 todo: /api/statusz page UI enhancement (non-blocking)
+
+### Archive
+
+- Roadmap: `.planning/milestones/v4.0-ROADMAP.md`

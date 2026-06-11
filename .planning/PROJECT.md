@@ -27,6 +27,7 @@ A web application for monitoring home network traffic and managing firewall rule
 - ✓ Insights page: heaviest-traffic devices ranked over 7/14/30 days — v3.0 (Phase 10)
 - ✓ Insights page: per-device hourly activity patterns over 7/14/30 days — v3.0 (Phase 10)
 - ✓ Firewall rule scheduling: 2h/6h/24h duration presets, auto-disable via UniFi native schedule, expiry badge — v3.0 (Phase 11)
+- ✓ Critical user flows verified by automated E2E tests (auth, dashboard, firewall, insights) against real Next.js server — v4.0 (Phase 12)
 
 ### Active
 
@@ -67,14 +68,14 @@ A web application for monitoring home network traffic and managing firewall rule
 
 ## Current State
 
-**Shipped:** v3.0 Statefulness & Insights (2026-05-17)
-**Next:** v4.0 — to be defined
+**Shipped:** v4.0 Quality & Testing (2026-06-11)
+**Next:** v5.0 — to be defined
 
-The app is fully self-hosted on LAN via Docker, records continuous bandwidth snapshots into SQLite, shows an insights page with per-device usage patterns, lets users star and filter firewall rules, and supports time-limited scheduling of firewall rules.
+The app is fully self-hosted on LAN via Docker, records continuous bandwidth snapshots into SQLite, shows an insights page with per-device usage patterns, lets users star and filter firewall rules, supports time-limited scheduling of firewall rules, and is now covered by a Playwright E2E test suite (15 browser-level tests) that runs against a real standalone Next.js server before each deploy.
 
-**Codebase:** ~5,066 LOC TypeScript/TSX. Next.js 15 + Tailwind CSS 4 + shadcn/ui + better-sqlite3. 44 test files.
+**Codebase:** ~5,066 LOC TypeScript/TSX (source). Next.js 15 + Tailwind CSS 4 + shadcn/ui + better-sqlite3 + Playwright. 44 unit test files (319 tests) + 4 E2E spec files (15 tests).
 
-**Known tech debt:** 26 test regressions in pre-v3.0 test files (Phase 8-11 tests: 51/51 green). Schedule expiry badge timezone display may be offset on non-UTC servers.
+**Known tech debt:** Schedule expiry badge timezone display may be offset on non-UTC servers. Live-hardware UAT for Phases 6–7 (LAN UniFi console) remains deferred. Auth file path hardcoded in two E2E files (drift risk).
 
 ## Key Decisions
 
@@ -91,6 +92,9 @@ The app is fully self-hosted on LAN via Docker, records continuous bandwidth sna
 | Facade at index.ts (not per-request) | Evaluate UNIFI_MOCK once at module init — simpler, server restart to flip | ✓ Good — clean and predictable |
 | In-memory toggle state (module-level var) | Resets on server restart (intentional) — no persistence needed for dev | ✓ Good — correct scope, MOCK-05 satisfied |
 | Mock intercepts at client interface | Real client.ts unchanged — zero production risk from mock layer | ✓ Good — clean separation, routes exercise real code paths |
+| UNIFI_MOCK=true as E2E mock strategy | undici.Agent ignores HTTP_PROXY, ruling out MSW/proxy approaches — in-process mock is the only clean option | ✓ Good — zero extra infrastructure, test env identical to dev env |
+| Playwright standalone server (node .next/standalone/server.js) | `npm start` incompatible with `output: standalone`; standalone requires manual static asset copy | ✓ Good — correct production-like build tested, cp commands are standard Next.js standalone deployment steps |
+| bcrypt ADMIN_PASSWORD in playwright.config.ts | `NODE_ENV=production` server rejects `DEV_ADMIN_PASSWORD` plaintext; E2E must use bcrypt hash | ✓ Good — correct security behavior verified by the tests themselves |
 
 ---
 
@@ -112,4 +116,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-17 after v3.0 Statefulness & Insights milestone*
+*Last updated: 2026-06-11 after v4.0 Quality & Testing milestone*

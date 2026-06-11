@@ -2,7 +2,7 @@
 gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Quality & Testing
-status: In progress
+status: complete
 stopped_at: ""
 last_updated: "2026-06-11T01:12:25Z"
 last_activity: "2026-06-11 — Phase 12 Plan 02 complete — Dashboard, Firewall, and Insights E2E specs; full suite 15/15 passing"
@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-24)
 
 **Core value:** Visibility and control over home network traffic — users must be able to see which devices are actively using bandwidth and pause/resume internet access for specific devices or groups.
-**Current focus:** v3.0 Statefulness & Insights — SQLite traffic history, starred firewall rules, and multi-day insights page
+**Current focus:** v4.0 shipped — planning next milestone
 
 ## Current Position
 
@@ -150,6 +150,32 @@ Items acknowledged and deferred at milestone close on 2026-04-20 (v1.0):
 | verification_gap | Phase 04: 04-VERIFICATION.md | human_needed — final human verification not performed |
 | quick_task | 260418-ocd-update-readme-with-comprehensive-instruc | missing status file (task completed per STATE.md) |
 | quick_task | 260419-ci0-write-vitest-rtl-tests-covering-all-5-ph | missing status file (task completed per STATE.md) |
+
+Items acknowledged and deferred at milestone close on 2026-06-11 (v4.0):
+
+| Category | Item | Status |
+|----------|------|--------|
+| uat_gap | Phase 06: 06-HUMAN-UAT.md | partial — live-hardware UAT requires physical UniFi console (deferred since v2.0) |
+| uat_gap | Phase 07: 07-HUMAN-UAT.md | unknown — Docker UAT requires LAN hardware (deferred since v2.0) |
+| verification_gap | Phase 06: 06-VERIFICATION.md | human_needed — live hardware verification pending |
+| verification_gap | Phase 07: 07-VERIFICATION.md | human_needed — live Docker deployment verification pending |
+| quick_task | 260423-las-fix-dashboard-lastseen-date-crash | missing status file (task completed per STATE.md) |
+| quick_task | 260423-moc-mock-mode-vercel-uat-setup | missing status file (task completed per STATE.md) |
+| quick_task | 260424-262-fix-unifi-api-urls-console-id | missing status file (task completed per STATE.md) |
+| quick_task | 260425-pm2-add-pm2-deployment-option | missing status file (task completed per STATE.md) |
+| quick_task | 260516-srt-update-sort-order-and-status-thresholds | missing status file (task completed per STATE.md) |
+| quick_task | 260517-0jr-toggle-pending-state | missing status file (task completed per STATE.md) |
+| quick_task | 260517-2ee-fix-lan-login | missing status file (task completed per STATE.md) |
+| quick_task | 260517-jq1-rule-toggle-swr-shape-fix | missing status file (task completed per STATE.md) |
+| quick_task | 260517-y8v-server-telemetry | missing status file (task completed per STATE.md) |
+| quick_task | 260604-rg1-remove-groups-feature | missing status file (task completed per STATE.md) |
+| quick_task | 260604-tf1-fix-failing-tests | missing status file (task completed per STATE.md) |
+| quick_task | 260607-instant-cache | missing status file (task completed per STATE.md) |
+| quick_task | 260607-mbps-conversion-fix | missing status file (task completed per STATE.md) |
+| quick_task | 260609-3e2-snapshot-avg-traffic-status | missing status file (task completed per STATE.md) |
+| quick_task | 260610-dad-device-activity-display-names | missing status file (task completed per STATE.md) |
+| quick_task | 260610-icb-insights-bar-click-overlay | missing status file (task completed per STATE.md) |
+| todo | 2026-05-17-add-statusz-page.md | pending — /api/statusz page UI enhancement, non-blocking |
 
 ## Session Log
 

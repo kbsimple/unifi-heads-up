@@ -84,9 +84,55 @@
 
 ---
 
+## Milestone: v4.0 — Quality & Testing
+
+**Shipped:** 2026-06-11
+**Phases:** 1 (Phase 12) | **Plans:** 2 | **Tasks:** 4
+
+### What Was Built
+
+- Playwright E2E infrastructure: `playwright.config.ts` with standalone Next.js webServer, setup + chromium projects, `reuseExistingServer` for fast local iteration
+- Auth setup fixture: `auth.setup.ts` logs in via real /login form, saves storageState (HTTP-only JWT cookie) — all 14 chromium tests inherit auth without re-logging in
+- 4 auth flow specs: authenticated access, two unauthenticated redirects, logout + post-logout session verification
+- 4 dashboard specs: mock client table cell assertions, scoped traffic badge locator
+- 3 firewall specs: policy visibility, toggle mutations (enabled→disabled and disabled→enabled) through full stack
+- 3 insights specs: structural page load, 6 time-range tab presence, Top Devices section
+- Total: 15 tests (1 setup + 14 chromium), all green; 319/319 unit tests remain green
+
+### What Worked
+
+- `UNIFI_MOCK=true` in webServer.env was the only viable mock strategy — undici.Agent ignores HTTP_PROXY, so in-process mock was the right and correct default
+- Pre-computed bcrypt hash in playwright.config.ts was clean — no runtime bcrypt generation needed
+- Wave-based planning (01: infrastructure, 02: flow tests) made execution incremental and debuggable
+- `reuseExistingServer: !process.env.CI` provides fast local iteration after the first build
+- Plan-checker blocker on missing `npx tsc --noEmit` in verify blocks caught a gap before execution started
+
+### What Was Inefficient
+
+- Multiple selector corrections during execution (logout text, dashboard client name, badge scoping) — these could have been researched in the research phase by reading the component source
+- The webServer startup command is a long inline shell string — a small script would be more maintainable and testable independently
+- Auth file path duplication (two hardcoded strings) was avoidable with a shared constants file
+
+### Patterns Established
+
+- Standalone Next.js E2E startup: `npm run build && cp -r .next/static .next/standalone/.next/static && cp -r public .next/standalone/public && PORT=N HOSTNAME=0.0.0.0 node .next/standalone/server.js`
+- Unauthenticated Playwright context: `browser.newContext({ storageState: { cookies: [], origins: [] } })` — explicit empty override to bypass project-level storageState
+- Dashboard table selectors: `getByRole('cell', { name })` for client names; `page.getByRole('table').locator('[data-slot="badge"]').filter({ hasText: X }).first()` for status badges
+- Firewall switch selectors: `getByRole('switch', { name: /policy name/i })` — Radix Switch renders with correct role and accessible name
+
+### Key Lessons
+
+1. Read component source before writing selectors — auth.spec.ts logout selector would have been right first time if `LogoutButton.tsx` was read during research
+2. `output: standalone` + Playwright webServer requires the static asset copy step — Next.js does not include `public/` or `.next/static/` in the standalone output automatically
+3. `baseURL` must be inside `use: {}` in Playwright config, not top-level — the TypeScript types make this obvious if you read them, but the runtime error is confusing
+4. bcrypt hash belongs in config, not computed at test runtime — pre-generate with a known plaintext and commit the hash
+
+---
+
 ## Cross-Milestone Trends
 
 | Milestone | Phases | Plans | Days | LOC | Req Coverage |
 |-----------|--------|-------|------|-----|--------------|
 | v1.0 MVP  | 4      | 16    | 5    | ~7,076 | 8/8 reqs |
 | v1.1 Dev Mocking | 1 | 2 | 1 | ~9 files | 8/8 reqs |
+| v4.0 Quality & Testing | 1 | 2 | 2 | ~2,099 insertions | 1/1 req (E2E coverage) |

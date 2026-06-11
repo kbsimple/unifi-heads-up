@@ -6,7 +6,7 @@
 - ✅ **v1.1 Dev Mocking** — Phase 5 (shipped 2026-04-19)
 - ✅ **v2.0 Local Edition** — Phases 6–7 (shipped 2026-04-24)
 - ✅ **v3.0 Statefulness & Insights** — Phases 8–11 (shipped 2026-05-17)
-- ✅ **v4.0 Quality & Testing** — Phase 12 (complete 2026-06-11)
+- ✅ **v4.0 Quality & Testing** — Phase 12 (shipped 2026-06-11)
 
 ## Phases
 
@@ -42,9 +42,14 @@ Full archive: `.planning/milestones/v1.1-ROADMAP.md`
 - [x] **Phase 9: Starred Firewall Rules** - Add server-side star preferences with star indicator and filter on the firewall rules page
 - [x] **Phase 10: Insights Page** - New page with ranked heaviest-traffic devices and per-device hourly heatmap, user-selectable 7/14/30d range
 
-### v4.0 Quality & Testing
+<details>
+<summary>✅ v4.0 Quality & Testing (Phase 12) — SHIPPED 2026-06-11</summary>
 
-- [ ] **Phase 12: End-to-End Tests** — Start a real Next.js server, mock the UniFi API, and run browser-level assertions across the main user flows (dashboard, firewall, insights)
+- [x] Phase 12: End-to-End Tests (2/2 plans) — completed 2026-06-11
+
+Full archive: `.planning/milestones/v4.0-ROADMAP.md`
+
+</details>
 
 ---
 
