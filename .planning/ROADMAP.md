@@ -140,7 +140,7 @@ Full archive: `.planning/milestones/v1.1-ROADMAP.md`
 ### Phase 12: End-to-End Tests
 **Goal**: Critical user flows are verified by automated tests that run a real Next.js server and a mock UniFi API, giving confidence that the full stack works together before each Docker deploy
 **Depends on**: Phase 7 (Docker/server setup) and Phase 11 (all features complete)
-**Plans**: TBD
+**Plans**: 2 plans
   - [ ] 12-01-PLAN.md — Playwright setup + mock UniFi API server + auth flow tests
   - [ ] 12-02-PLAN.md — Dashboard, Firewall, and Insights flow tests
 
