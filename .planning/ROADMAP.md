@@ -6,6 +6,7 @@
 - ✅ **v1.1 Dev Mocking** — Phase 5 (shipped 2026-04-19)
 - ✅ **v2.0 Local Edition** — Phases 6–7 (shipped 2026-04-24)
 - ✅ **v3.0 Statefulness & Insights** — Phases 8–11 (shipped 2026-05-17)
+- 🚧 **v4.0 Quality & Testing** — Phase 12 (in progress)
 
 ## Phases
 
@@ -40,6 +41,10 @@ Full archive: `.planning/milestones/v1.1-ROADMAP.md`
 - [x] **Phase 8: SQLite Snapshot Infrastructure** - Record per-client bandwidth snapshots every 60s with 30-day retention, driven by a background server interval
 - [x] **Phase 9: Starred Firewall Rules** - Add server-side star preferences with star indicator and filter on the firewall rules page
 - [x] **Phase 10: Insights Page** - New page with ranked heaviest-traffic devices and per-device hourly heatmap, user-selectable 7/14/30d range
+
+### v4.0 Quality & Testing
+
+- [ ] **Phase 12: End-to-End Tests** — Start a real Next.js server, mock the UniFi API, and run browser-level assertions across the main user flows (dashboard, firewall, insights)
 
 ---
 
@@ -132,6 +137,13 @@ Full archive: `.planning/milestones/v1.1-ROADMAP.md`
   - [x] 11-02-PLAN.md — SchedulePicker + ScheduleBadge components + FirewallCard integration
 **UI hint**: yes
 
+### Phase 12: End-to-End Tests
+**Goal**: Critical user flows are verified by automated tests that run a real Next.js server and a mock UniFi API, giving confidence that the full stack works together before each Docker deploy
+**Depends on**: Phase 7 (Docker/server setup) and Phase 11 (all features complete)
+**Plans**: TBD
+  - [ ] 12-01-PLAN.md — Playwright setup + mock UniFi API server + auth flow tests
+  - [ ] 12-02-PLAN.md — Dashboard, Firewall, and Insights flow tests
+
 ---
 
 ## Progress
@@ -149,3 +161,4 @@ Full archive: `.planning/milestones/v1.1-ROADMAP.md`
 | 9. Starred Firewall Rules | v3.0 | 1/1 | Complete (human UAT deferred) | 2026-05-17 |
 | 10. Insights Page | v3.0 | 3/3 | Complete | 2026-05-17 |
 | 11. Firewall Rule Scheduling | v3.0 | 2/2 | Complete | 2026-05-17 |
+| 12. End-to-End Tests | v4.0 | 0/2 | Not started | — |

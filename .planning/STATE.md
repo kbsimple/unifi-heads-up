@@ -66,6 +66,7 @@ Progress: [██████████] 100% — v3.0 shipped, no new milesto
 ### Roadmap Evolution
 
 - Phase 11 added: Firewall rule scheduling — temporary duration on enabled rules with auto-disable
+- Phase 12 added: End-to-end tests — real Next.js server + mock UniFi API + browser-level assertions (Playwright)
 
 ### Decisions
 
