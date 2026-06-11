@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Statefulness & Insights
-status: Shipped — between milestones, doing maintenance/quick tasks
-stopped_at: context exhaustion at 94% (2026-06-08)
-last_updated: "2026-06-08T05:07:47.458Z"
-last_activity: "2026-06-04 — Completed quick task 260604-rg1: Remove groups feature entirely from the app"
+milestone: v4.0
+milestone_name: Quality & Testing
+status: Ready to execute
+stopped_at: ""
+last_updated: "2026-06-10T00:00:00.000Z"
+last_activity: "2026-06-10 — Phase 12 (End-to-End Tests) planned — 2 plans in 2 waves"
 progress:
-  total_phases: 2
-  completed_phases: 2
-  total_plans: 6
-  completed_plans: 6
-  percent: 100
+  total_phases: 1
+  completed_phases: 0
+  total_plans: 2
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-04-24)
 
 ## Current Position
 
-Phase: Phase 11 — Firewall Rule Scheduling (last phase of v3.0, shipped 2026-05-17)
-Plan: 11-02 (re-verification complete — passed 4/4, gap resolved)
-Status: v3.0 shipped — all 11 phases complete, now doing maintenance/quick tasks
+Phase: Phase 12 — End-to-End Tests (v4.0, planning complete 2026-06-10)
+Plan: 12-01 (next to execute)
+Status: v4.0 in progress — Phase 12 planned, ready to execute (2 plans, 2 waves)
 Last activity: 2026-06-10 — Completed quick task 260610-dad: Fix Device Activity dropdown client display names
 
 Progress: [██████████] 100% — v3.0 shipped, no new milestone roadmap yet
