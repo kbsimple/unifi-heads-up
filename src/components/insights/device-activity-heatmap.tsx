@@ -18,9 +18,6 @@ interface DeviceActivityHeatmapProps {
   onSelectDevice: (mac: string) => void
 }
 
-function shortMac(mac: string): string {
-  return mac.slice(-8)
-}
 
 function cellColor(avgMbps: number): string {
   if (avgMbps === 0) return 'bg-zinc-800'
@@ -55,7 +52,9 @@ export function DeviceActivityHeatmap({
         {/* Header: label + device selector */}
         <div className="flex items-center justify-between gap-4">
           <span className="text-sm text-zinc-400">
-            {selectedMac ? `Showing: ${shortMac(selectedMac)}` : 'Select a device'}
+            {selectedMac
+              ? `Showing: ${allDevices.find(d => d.mac === selectedMac)?.displayName ?? selectedMac}`
+              : 'Select a device'}
           </span>
           {allDevices.length > 0 && (
             <select
@@ -70,7 +69,7 @@ export function DeviceActivityHeatmap({
               )}
               {allDevices.map(d => (
                 <option key={d.mac} value={d.mac}>
-                  {shortMac(d.mac)}
+                  {d.displayName ?? d.mac}
                 </option>
               ))}
             </select>
