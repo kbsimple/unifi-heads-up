@@ -6,7 +6,7 @@
 - ✅ **v1.1 Dev Mocking** — Phase 5 (shipped 2026-04-19)
 - ✅ **v2.0 Local Edition** — Phases 6–7 (shipped 2026-04-24)
 - ✅ **v3.0 Statefulness & Insights** — Phases 8–11 (shipped 2026-05-17)
-- 🚧 **v4.0 Quality & Testing** — Phase 12 (in progress)
+- ✅ **v4.0 Quality & Testing** — Phase 12 (complete 2026-06-11)
 
 ## Phases
 
@@ -142,7 +142,7 @@ Full archive: `.planning/milestones/v1.1-ROADMAP.md`
 **Depends on**: Phase 7 (Docker/server setup) and Phase 11 (all features complete)
 **Plans**: 2 plans
   - [x] 12-01-PLAN.md — Playwright setup + mock UniFi API server + auth flow tests
-  - [ ] 12-02-PLAN.md — Dashboard, Firewall, and Insights flow tests
+  - [x] 12-02-PLAN.md — Dashboard, Firewall, and Insights flow tests
 
 ---
 
@@ -161,4 +161,4 @@ Full archive: `.planning/milestones/v1.1-ROADMAP.md`
 | 9. Starred Firewall Rules | v3.0 | 1/1 | Complete (human UAT deferred) | 2026-05-17 |
 | 10. Insights Page | v3.0 | 3/3 | Complete | 2026-05-17 |
 | 11. Firewall Rule Scheduling | v3.0 | 2/2 | Complete | 2026-05-17 |
-| 12. End-to-End Tests | v4.0 | 1/2 | In progress | — |
+| 12. End-to-End Tests | v4.0 | 2/2 | Complete | 2026-06-11 |

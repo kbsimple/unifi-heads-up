@@ -4,14 +4,14 @@ milestone: v4.0
 milestone_name: Quality & Testing
 status: In progress
 stopped_at: ""
-last_updated: "2026-06-11T00:58:22Z"
-last_activity: "2026-06-11 — Phase 12 Plan 01 complete — Playwright E2E infrastructure and auth tests"
+last_updated: "2026-06-11T01:12:25Z"
+last_activity: "2026-06-11 — Phase 12 Plan 02 complete — Dashboard, Firewall, and Insights E2E specs; full suite 15/15 passing"
 progress:
   total_phases: 1
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
-  percent: 50
+  completed_plans: 2
+  percent: 100
 ---
 
 # Project State
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-04-24)
 
 ## Current Position
 
-Phase: Phase 12 — End-to-End Tests (v4.0, planning complete 2026-06-10)
-Plan: 12-02 (next to execute)
-Status: v4.0 in progress — Phase 12 underway, Plan 01 complete (1/2 plans done)
-Last activity: 2026-06-10 — Completed quick task 260610-dad: Fix Device Activity dropdown client display names
+Phase: Phase 12 — End-to-End Tests (v4.0, complete 2026-06-11)
+Plan: 12-02 (complete — all plans done)
+Status: v4.0 complete — Phase 12 finished, all 2 plans done
+Last activity: 2026-06-11 — Completed 12-02-PLAN.md — Dashboard, Firewall, and Insights E2E specs; 15/15 tests passing
 
 Progress: [██████████] 100% — v3.0 shipped, no new milestone roadmap yet
 
@@ -61,6 +61,7 @@ Progress: [██████████] 100% — v3.0 shipped, no new milesto
 | Phase 11-firewall-rule-scheduling P01 | 4 | 3 tasks | 6 files |
 | Phase 11-firewall-rule-scheduling P02 | 2 | 3 tasks | 5 files |
 | Phase 12-e2e-tests P01 | 5 | 2 tasks | 6 files |
+| Phase 12-e2e-tests P02 | 9 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -96,6 +97,11 @@ Recent decisions affecting current work:
 - [Phase 12-e2e-tests P01]: baseURL placed in use object not top-level — TypeScript PlaywrightTestConfig requires it inside use{}
 - [Phase 12-e2e-tests P01]: ADMIN_PASSWORD uses bcrypt hash in playwright.config.ts — NODE_ENV=production server rejects DEV_ADMIN_PASSWORD plaintext fallback
 - [Phase 12-e2e-tests P01]: Port 3001 for E2E webServer — avoids collision with dev server on 3000
+- [Phase 12-e2e-tests P02]: output: standalone incompatible with next start — use node .next/standalone/server.js with static asset copy step
+- [Phase 12-e2e-tests P02]: playwright.config.ts uses cwd: projectRoot (__dirname/../) — Playwright resolves webServer paths from config file directory, not project root
+- [Phase 12-e2e-tests P02]: setup project needs explicit testDir: ./fixtures — auth.setup.ts is outside global testDir ./tests
+- [Phase 12-e2e-tests P02]: unauthenticated browser.newContext() must pass { storageState: { cookies: [], origins: [] } } — project storageState is inherited otherwise
+- [Phase 12-e2e-tests P02]: dashboard table selectors: getByRole('cell') for client names — card view hidden at default viewport; getByRole('table').locator('[data-slot=badge]') for badges
 
 ### Pending Todos
 
@@ -165,6 +171,6 @@ Future extension recorded: per-client DPI top-apps via `POST /proxy/network/api/
 
 ## Session Continuity
 
-Last session: 2026-06-11T00:58:22Z
-Stopped at: Completed 12-01-PLAN.md — Playwright E2E infrastructure and auth tests
+Last session: 2026-06-11T01:12:25Z
+Stopped at: Completed 12-02-PLAN.md — Dashboard, Firewall, and Insights E2E specs (Phase 12 complete)
 Resume file: None
