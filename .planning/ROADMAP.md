@@ -141,7 +141,7 @@ Full archive: `.planning/milestones/v1.1-ROADMAP.md`
 **Goal**: Critical user flows are verified by automated tests that run a real Next.js server and a mock UniFi API, giving confidence that the full stack works together before each Docker deploy
 **Depends on**: Phase 7 (Docker/server setup) and Phase 11 (all features complete)
 **Plans**: 2 plans
-  - [ ] 12-01-PLAN.md — Playwright setup + mock UniFi API server + auth flow tests
+  - [x] 12-01-PLAN.md — Playwright setup + mock UniFi API server + auth flow tests
   - [ ] 12-02-PLAN.md — Dashboard, Firewall, and Insights flow tests
 
 ---
@@ -161,4 +161,4 @@ Full archive: `.planning/milestones/v1.1-ROADMAP.md`
 | 9. Starred Firewall Rules | v3.0 | 1/1 | Complete (human UAT deferred) | 2026-05-17 |
 | 10. Insights Page | v3.0 | 3/3 | Complete | 2026-05-17 |
 | 11. Firewall Rule Scheduling | v3.0 | 2/2 | Complete | 2026-05-17 |
-| 12. End-to-End Tests | v4.0 | 0/2 | Not started | — |
+| 12. End-to-End Tests | v4.0 | 1/2 | In progress | — |

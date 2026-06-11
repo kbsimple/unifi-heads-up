@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Quality & Testing
-status: Ready to execute
+status: In progress
 stopped_at: ""
-last_updated: "2026-06-10T00:00:00.000Z"
-last_activity: "2026-06-10 — Phase 12 (End-to-End Tests) planned — 2 plans in 2 waves"
+last_updated: "2026-06-11T00:58:22Z"
+last_activity: "2026-06-11 — Phase 12 Plan 01 complete — Playwright E2E infrastructure and auth tests"
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 2
-  completed_plans: 0
-  percent: 0
+  completed_plans: 1
+  percent: 50
 ---
 
 # Project State
@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-04-24)
 ## Current Position
 
 Phase: Phase 12 — End-to-End Tests (v4.0, planning complete 2026-06-10)
-Plan: 12-01 (next to execute)
-Status: v4.0 in progress — Phase 12 planned, ready to execute (2 plans, 2 waves)
+Plan: 12-02 (next to execute)
+Status: v4.0 in progress — Phase 12 underway, Plan 01 complete (1/2 plans done)
 Last activity: 2026-06-10 — Completed quick task 260610-dad: Fix Device Activity dropdown client display names
 
 Progress: [██████████] 100% — v3.0 shipped, no new milestone roadmap yet
@@ -60,6 +60,7 @@ Progress: [██████████] 100% — v3.0 shipped, no new milesto
 | Phase 08-sqlite-snapshot-infrastructure P01 | 65 | 3 tasks | 7 files |
 | Phase 11-firewall-rule-scheduling P01 | 4 | 3 tasks | 6 files |
 | Phase 11-firewall-rule-scheduling P02 | 2 | 3 tasks | 5 files |
+| Phase 12-e2e-tests P01 | 5 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -92,6 +93,9 @@ Recent decisions affecting current work:
 - [Phase 11-firewall-rule-scheduling]: POST /api/firewall/schedule always sets enabled=true alongside schedule (UX: scheduling implies enabling)
 - [Phase 11-firewall-rule-scheduling]: DELETE /api/firewall/schedule GETs current policies to preserve existing enabled state before writing ALWAYS
 - [Phase 11-firewall-rule-scheduling]: base-ui Popover has no asChild — PopoverTrigger renders natively as button; Clock icon placed directly inside trigger
+- [Phase 12-e2e-tests P01]: baseURL placed in use object not top-level — TypeScript PlaywrightTestConfig requires it inside use{}
+- [Phase 12-e2e-tests P01]: ADMIN_PASSWORD uses bcrypt hash in playwright.config.ts — NODE_ENV=production server rejects DEV_ADMIN_PASSWORD plaintext fallback
+- [Phase 12-e2e-tests P01]: Port 3001 for E2E webServer — avoids collision with dev server on 3000
 
 ### Pending Todos
 
@@ -161,6 +165,6 @@ Future extension recorded: per-client DPI top-apps via `POST /proxy/network/api/
 
 ## Session Continuity
 
-Last session: 2026-06-08T05:07:47.455Z
-Stopped at: context exhaustion at 94% (2026-06-08)
+Last session: 2026-06-11T00:58:22Z
+Stopped at: Completed 12-01-PLAN.md — Playwright E2E infrastructure and auth tests
 Resume file: None
