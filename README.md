@@ -13,6 +13,20 @@ Built for a family household. Connects to the UniFi console directly over LAN us
 
 ---
 
+## Screenshots
+
+| Login | Dashboard |
+|-------|-----------|
+| ![Login page](docs/screenshots/01-login.png) | ![Dashboard — Network Clients](docs/screenshots/02-dashboard.png) |
+
+| Firewall Rules | Insights |
+|----------------|----------|
+| ![Firewall rule toggles](docs/screenshots/03-firewall.png) | ![Traffic insights](docs/screenshots/04-insights.png) |
+
+> Screenshots captured against the built-in mock data (`UNIFI_MOCK=true`). Refresh them by running the `take-screenshots` skill.
+
+---
+
 ## Quick Start (Docker on LAN)
 
 The recommended way to run this in your home. Takes about 5 minutes.
