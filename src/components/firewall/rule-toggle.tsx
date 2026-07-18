@@ -9,6 +9,7 @@ import type { FirewallPolicy } from '@/lib/unifi/types'
 
 interface RuleToggleProps {
   policy: FirewallPolicy
+  extraMutateKeys?: string[]
 }
 
 /**
@@ -17,7 +18,7 @@ interface RuleToggleProps {
  * Only updates displayed state after the server confirms success (SWR revalidation).
  * On error, re-enables in original position and shows a toast.
  */
-export function RuleToggle({ policy }: RuleToggleProps) {
+export function RuleToggle({ policy, extraMutateKeys = [] }: RuleToggleProps) {
   const [isPending, setIsPending] = useState(false)
   const { mutate } = useSWRConfig()
 
@@ -32,6 +33,8 @@ export function RuleToggle({ policy }: RuleToggleProps) {
       if (!response.ok) throw new Error('Failed to update firewall rule')
       // Revalidate from server — do not optimistically update
       await mutate('/api/firewall')
+      // Revalidate any additional SWR keys (e.g. device-rules cache for the expanded row)
+      await Promise.all(extraMutateKeys.map(key => mutate(key)))
     } catch {
       toast.error('Unable to update firewall rule. Changes reverted automatically.')
     } finally {

@@ -3,6 +3,7 @@
 import { Fragment, useState, useEffect } from 'react'
 import { TrafficBadge } from './traffic-badge'
 import { TrafficChart, WindowSelector } from './traffic-chart'
+import { InlineFirewallRules } from './inline-firewall-rules'
 import { useTrafficHistory } from '@/contexts/traffic-history-context'
 import { formatTimeAgo, formatRate, formatBucketLabel } from '@/lib/unifi/format'
 import type { NetworkClient } from '@/lib/unifi/types'
@@ -231,6 +232,10 @@ export function ClientTable({ clients, activeOnly = false }: ClientTableProps) {
                           <TrafficChart data={chartData} />
                         </div>
                       )}
+                      <div className="mt-3 pt-3 border-t border-zinc-800 flex items-center gap-3">
+                        <span className="text-xs text-zinc-500 shrink-0">Firewall rules</span>
+                        <InlineFirewallRules mac={client.mac} />
+                      </div>
                     </td>
                   </tr>
                 )}
