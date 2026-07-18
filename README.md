@@ -15,9 +15,9 @@ Built for a family household. Connects to the UniFi console directly over LAN us
 
 ## Screenshots
 
-| Login | Dashboard |
-|-------|-----------|
-| ![Login page](docs/screenshots/01-login.png) | ![Dashboard — Network Clients](docs/screenshots/02-dashboard.png) |
+| Dashboard | Device Activity |
+|-----------|----------------|
+| ![Dashboard — Network Clients](docs/screenshots/01-dashboard.png) | ![Device traffic chart](docs/screenshots/02-device-activity.png) |
 
 | Firewall Rules | Insights |
 |----------------|----------|

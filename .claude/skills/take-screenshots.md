@@ -7,8 +7,8 @@ Invoke this skill whenever the UI changes significantly, before updating README.
 
 | File | Page |
 |------|------|
-| `docs/screenshots/01-login.png` | Login page |
-| `docs/screenshots/02-dashboard.png` | Dashboard — Network Clients table |
+| `docs/screenshots/01-dashboard.png` | Dashboard — Network Clients table |
+| `docs/screenshots/02-device-activity.png` | Dashboard — device traffic chart expanded |
 | `docs/screenshots/03-firewall.png` | Firewall — policy toggle list |
 | `docs/screenshots/04-insights.png` | Insights — traffic charts |
 
@@ -49,7 +49,7 @@ Check that all four files were written and are non-empty:
 ls -lh docs/screenshots/
 ```
 
-All four files (`01-login.png` through `04-insights.png`) must be present with sizes > 10 KB.
+All four files (`01-dashboard.png` through `04-insights.png`) must be present with sizes > 10 KB.
 
 ### 4 — Report
 
