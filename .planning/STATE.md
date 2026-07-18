@@ -111,7 +111,7 @@ None.
 
 | Idea | Notes |
 |------|-------|
-| Per-client top apps (DPI) | `POST /proxy/network/api/s/default/stat/stadpi` with `{"type":"by_app","macs":[...]}` returns per-client app byte counts. Counters are cumulative — need snapshot delta (same pattern as bandwidth recorder). App names are numeric IDs decoded via `dynamic.dpi.js` lookup table from the controller. DPI must be enabled in UniFi Network settings. v1 API path only. |
+| Per-client top apps (DPI) | **Hardware:** Dream Machine series required — confirmed on Dream Router 7. **API:** `POST /proxy/network/api/s/default/stat/stadpi` with `{"type":"by_app","macs":[...]}` returns cumulative per-app byte counts keyed by numeric app ID. **Prerequisites:** DPI enabled in Settings → Traffic Management → Deep Packet Inspection. **App ID decode:** numeric IDs map to app names via lookup table on controller (`dynamic.dpi.js`); fetch once at startup. **Delta recording:** byte counts are cumulative totals — need a periodic snapshot recorder (same pattern as existing bandwidth recorder) and a `dpi_snapshots` SQLite table to compute per-app deltas over a time window. **UI:** "Top Apps" section in the per-device expanded row (e.g. "YouTube · 1.2 GB, Netflix · 800 MB, Discord · 120 MB" for last 24h). **Scope:** new recorder + DB schema + app ID lookup + query layer + UI card — meaningful but self-contained feature. |
 
 ### Quick Tasks Completed
 
