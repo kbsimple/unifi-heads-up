@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { decrypt } from '@/lib/session'
 
 // Protected routes require authentication
-const protectedRoutes = ['/dashboard']
+const protectedRoutes = ['/dashboard', '/dpi-probe']
 
 // Public routes accessible without authentication
 const publicRoutes = ['/login', '/']
