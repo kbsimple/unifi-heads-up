@@ -5,8 +5,7 @@ A self-hosted web app for monitoring home network traffic and managing firewall 
 ## What it does
 
 - **Live bandwidth status** — see which devices are idle, low, medium, or high traffic at a glance
-- **Firewall rule toggles** — pause and resume internet access for devices or groups without logging into the UniFi console
-- **Device groups** — organise devices (e.g. "Kids", "Work") and apply rules to the whole group
+- **Firewall rule toggles** — pause and resume internet access for devices without logging into the UniFi console
 - **Traffic insights** — hourly heatmap and top-devices chart showing bandwidth usage over time (up to 30 days)
 
 Built for a family household. Connects to the UniFi console directly over LAN using the local API.
@@ -270,7 +269,7 @@ npx tsc --noEmit
 src/
   app/              # Next.js App Router
     (auth)/         # Login route
-    (dashboard)/    # Protected dashboard (clients, firewall, groups, insights)
+    (dashboard)/    # Protected dashboard (clients, firewall, insights)
     api/            # API routes (/api/clients, /api/firewall, /api/insights/*)
     actions/        # Server Actions (auth)
   components/       # React components
