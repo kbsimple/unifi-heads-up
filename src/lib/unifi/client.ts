@@ -22,6 +22,7 @@ import {
   type UnifiSchedule,
 } from './types'
 import { calculateTrafficStatus } from './traffic'
+import { parsePacificDateTime } from './format'
 
 // Singleton Agent — scoped TLS bypass (D-02, D-03)
 // rejectUnauthorized: false handles the console's self-signed cert only —
@@ -104,13 +105,14 @@ function transformClient(apiClient: z.infer<typeof UnifiClientSchema>): NetworkC
     lastSeen: apiClient.last_seen ? new Date(apiClient.last_seen * 1000) : null,
     isWired: apiClient.is_wired ?? false,
     isGuest: apiClient.is_guest ?? false,
-    downloadRate: apiClient['rx_bytes-r'],
-    uploadRate: apiClient['tx_bytes-r'],
+    downloadRate: apiClient['tx_bytes-r'],
+    uploadRate: apiClient['rx_bytes-r'],
     signal: apiClient.signal ?? null,
     trafficStatus: calculateTrafficStatus(
       apiClient['rx_bytes-r'],
       apiClient['tx_bytes-r']
     ),
+    lastBusy: null,
   }
 }
 
@@ -222,8 +224,8 @@ export async function isZoneBasedFirewallEnabled(): Promise<boolean> {
  */
 function scheduleEndFromSchedule(schedule: UnifiSchedule | undefined): number | undefined {
   if (!schedule || schedule.mode !== 'ONE_TIME_ONLY') return undefined
-  const dt = new Date(`${schedule.date}T${schedule.time_range_end}`)
-  return isNaN(dt.getTime()) ? undefined : dt.getTime()
+  const ms = parsePacificDateTime(schedule.date, schedule.time_range_end)
+  return isNaN(ms) ? undefined : ms
 }
 
 /**
