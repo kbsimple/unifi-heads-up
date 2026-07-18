@@ -5,9 +5,9 @@ milestone_name: Streamlining Management UX Flows
 status: in_progress
 stopped_at: ""
 last_updated: "2026-07-18T00:00:00Z"
-last_activity: "2026-07-18 - Milestone v5.0 started, defining requirements"
+last_activity: "2026-07-18 - Milestone v5.0 roadmap created (5 phases, 11 requirements)"
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-07-18)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: Phase 13 — Schema Extension & Mock Update (not started)
 Plan: —
-Status: Defining requirements for v5.0
-Last activity: 2026-07-18 — Milestone v5.0 started
+Status: Roadmap created, ready to begin Phase 13
+Last activity: 2026-07-18 — v5.0 roadmap created (5 phases: 13–17)
 
-Progress: [░░░░░░░░░░] 0% — roadmap not yet created
+Progress: [░░░░░░░░░░] 0% — 0/5 phases complete
 
 ## Performance Metrics
 
@@ -69,6 +69,7 @@ Progress: [░░░░░░░░░░] 0% — roadmap not yet created
 
 - Phase 11 added: Firewall rule scheduling — temporary duration on enabled rules with auto-disable
 - Phase 12 added: End-to-end tests — real Next.js server + mock UniFi API + browser-level assertions (Playwright)
+- Phases 13–17 added: v5.0 Streamlining Management UX Flows — schema/mock, statusz page, mapping logic, device-rules API, inline toggle UI
 
 ### Decisions
 
@@ -102,6 +103,10 @@ Recent decisions affecting current work:
 - [Phase 12-e2e-tests P02]: setup project needs explicit testDir: ./fixtures — auth.setup.ts is outside global testDir ./tests
 - [Phase 12-e2e-tests P02]: unauthenticated browser.newContext() must pass { storageState: { cookies: [], origins: [] } } — project storageState is inherited otherwise
 - [Phase 12-e2e-tests P02]: dashboard table selectors: getByRole('cell') for client names — card view hidden at default viewport; getByRole('table').locator('[data-slot=badge]') for badges
+- [v5.0 roadmap]: Phase 13 (schema + mock) must precede Phase 15 (mapping logic) — mock must have ZBF MAC fields or unit tests are vacuously passing
+- [v5.0 roadmap]: Phase 16 (device-rules route) is a composition layer between mapping logic and UI — testable in mock mode before UI is built
+- [v5.0 roadmap]: MAPP-F01 (IP group resolution) deferred to future requirements — unverified API endpoint, HIGH complexity
+- [v5.0 roadmap]: ZBF field names (source.client_macs / destination.client_macs) need live-console verification before finalizing Phase 15
 
 ### Pending Todos
 
@@ -112,6 +117,7 @@ None.
 | Idea | Notes |
 |------|-------|
 | Per-client top apps (DPI) | **Hardware:** Dream Machine series required — confirmed on Dream Router 7. **API:** `POST /proxy/network/api/s/default/stat/stadpi` with `{"type":"by_app","macs":[...]}` returns cumulative per-app byte counts keyed by numeric app ID. **Prerequisites:** DPI enabled in Settings → Traffic Management → Deep Packet Inspection. **App ID decode:** numeric IDs map to app names via lookup table on controller (`dynamic.dpi.js`); fetch once at startup. **Delta recording:** byte counts are cumulative totals — need a periodic snapshot recorder (same pattern as existing bandwidth recorder) and a `dpi_snapshots` SQLite table to compute per-app deltas over a time window. **UI:** "Top Apps" section in the per-device expanded row (e.g. "YouTube · 1.2 GB, Netflix · 800 MB, Discord · 120 MB" for last 24h). **Scope:** new recorder + DB schema + app ID lookup + query layer + UI card — meaningful but self-contained feature. |
+| IP group membership matching (MAPP-F01) | Resolve IP group IDs to member IPs and check containment. Requires unverified `/firewall-address-groups` API endpoint. HIGH complexity; deferred pending live-hardware verification. |
 
 ### Quick Tasks Completed
 
@@ -179,7 +185,7 @@ Items acknowledged and deferred at milestone close on 2026-06-11 (v4.0):
 | quick_task | 260609-3e2-snapshot-avg-traffic-status | missing status file (task completed per STATE.md) |
 | quick_task | 260610-dad-device-activity-display-names | missing status file (task completed per STATE.md) |
 | quick_task | 260610-icb-insights-bar-click-overlay | missing status file (task completed per STATE.md) |
-| todo | 2026-05-17-add-statusz-page.md | pending — /api/statusz page UI enhancement, non-blocking |
+| todo | 2026-05-17-add-statusz-page.md | resolved — /statusz page scoped to Phase 14 of v5.0 roadmap |
 
 ## Session Log
 
@@ -199,8 +205,15 @@ Items acknowledged and deferred at milestone close on 2026-06-11 (v4.0):
 
 Future extension recorded: per-client DPI top-apps via `POST /proxy/network/api/s/default/stat/stadpi`.
 
+### 2026-07-18 — v5.0 milestone start + roadmap
+
+| # | Change | Commit |
+|---|--------|--------|
+| 1 | v5.0 requirements defined: 11 requirements across MAPP, FWUX, HLTH categories | — |
+| 2 | v5.0 roadmap created: Phases 13–17 mapped to all 11 requirements | — |
+
 ## Session Continuity
 
-Last session: 2026-06-11T01:12:25Z
-Stopped at: Completed 12-02-PLAN.md — Dashboard, Firewall, and Insights E2E specs (Phase 12 complete)
+Last session: 2026-07-18T00:00:00Z
+Stopped at: v5.0 roadmap created — Phases 13–17 defined, ready for Phase 13 planning
 Resume file: None

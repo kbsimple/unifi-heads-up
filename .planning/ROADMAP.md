@@ -7,6 +7,7 @@
 - ✅ **v2.0 Local Edition** — Phases 6–7 (shipped 2026-04-24)
 - ✅ **v3.0 Statefulness & Insights** — Phases 8–11 (shipped 2026-05-17)
 - ✅ **v4.0 Quality & Testing** — Phase 12 (shipped 2026-06-11)
+- **v5.0 Streamlining Management UX Flows** — Phases 13–17 (active)
 
 ## Phases
 
@@ -50,6 +51,14 @@ Full archive: `.planning/milestones/v1.1-ROADMAP.md`
 Full archive: `.planning/milestones/v4.0-ROADMAP.md`
 
 </details>
+
+### v5.0 Streamlining Management UX Flows
+
+- [ ] **Phase 13: Schema Extension & Mock Update** - Extend UniFi schema and mock data with ZBF MAC fields so mapping logic has realistic test fixtures
+- [ ] **Phase 14: /statusz Page** - Enhance the /api/statusz endpoint and add a /statusz UI page showing DB health, UniFi proxy reachability, and app version
+- [ ] **Phase 15: Mapping Logic** - Implement mapping.ts to determine which firewall rules apply to a device by MAC/IP using ZBF or legacy mode
+- [ ] **Phase 16: Device Rules API Route** - Add GET /api/firewall/device-rules route that composes the mapping layer and returns applicable rules for a device
+- [ ] **Phase 17: Inline Toggle UI** - Add inline firewall rule list with toggles to the expanded device row in the dashboard
 
 ---
 
@@ -151,6 +160,64 @@ Full archive: `.planning/milestones/v4.0-ROADMAP.md`
 
 ---
 
+### Phase 13: Schema Extension & Mock Update
+**Goal**: The UniFi firewall policy schema and mock data include ZBF MAC address fields, giving mapping logic realistic test fixtures to validate against
+**Depends on**: Phase 12
+**Requirements**: (infrastructure — prerequisite for Phase 15)
+**Success Criteria** (what must be TRUE):
+  1. The `FirewallPolicy` Zod schema accepts `source.client_macs` and `destination.client_macs` arrays from ZBF responses without validation errors
+  2. Mock firewall policies include at least one ZBF policy with `source.client_macs` and one legacy policy with `srcMac`, covering both matching paths
+  3. All existing unit tests and E2E tests pass unchanged — schema extension is backward-compatible
+**Plans**: TBD
+
+### Phase 14: /statusz Page
+**Goal**: Users and operators can view the app health status at /statusz without logging in — DB connectivity, UniFi proxy reachability, and app version at a glance
+**Depends on**: Phase 12
+**Requirements**: HLTH-01, HLTH-02, HLTH-03, HLTH-04
+**Success Criteria** (what must be TRUE):
+  1. `GET /api/statusz` returns a JSON body containing DB ping latency (ms) and a pass/fail indicator for the `SELECT 1` health check
+  2. `GET /api/statusz` returns a UniFi proxy reachability result using the scoped `undici` Agent — no TLS errors from the self-signed console cert
+  3. `GET /api/statusz` returns `version` and `releaseDate` read from `package.json`
+  4. The `/statusz` page is accessible without authentication and displays colored indicators (green/red) for DB health, UniFi proxy, app version, and release date
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 15: Mapping Logic
+**Goal**: The app correctly determines which firewall rules apply to a specific device, using ZBF MAC matching or legacy IP/MAC matching based on the active firewall mode — with unit tests that flag if live-console ZBF field names need adjustment
+**Depends on**: Phase 13 (schema + mock with ZBF fields)
+**Requirements**: MAPP-01, MAPP-02, MAPP-03
+**Success Criteria** (what must be TRUE):
+  1. Given a device MAC address, `getRulesForDevice()` returns the firewall policies whose `source.client_macs` or `destination.client_macs` contain that MAC (ZBF mode)
+  2. Given a device IP address, `getRulesForDevice()` returns the policies whose `srcAddress` matches that IP (legacy mode only)
+  3. The mapping path (ZBF vs legacy) is selected once at module init via `isZoneBasedFirewallEnabled()` — not re-evaluated per request
+  4. Unit tests cover both ZBF and legacy matching paths using mock policies; a test comment flags that ZBF field names need live-console verification before production use
+**Plans**: TBD
+
+### Phase 16: Device Rules API Route
+**Goal**: A server-side API route composes the mapping layer and returns applicable firewall rules for a given device, testable in mock mode
+**Depends on**: Phase 15 (mapping logic)
+**Requirements**: (infrastructure — enables Phase 17)
+**Success Criteria** (what must be TRUE):
+  1. `GET /api/firewall/device-rules?mac={mac}` returns a JSON array of matching firewall policies (id, name, enabled) for the given MAC address
+  2. The route returns an empty array (not an error) when no rules match the device
+  3. The route works in `UNIFI_MOCK=true` mode — existing mock policies with MAC fields are returned as expected
+  4. Unit tests for the route pass with mock data covering both match and no-match cases
+**Plans**: TBD
+
+### Phase 17: Inline Toggle UI
+**Goal**: Users can see and toggle applicable firewall rules directly from the expanded device row in the dashboard, without navigating to the Firewall page
+**Depends on**: Phase 16 (device rules API route)
+**Requirements**: FWUX-01, FWUX-02, FWUX-03, FWUX-04
+**Success Criteria** (what must be TRUE):
+  1. Expanding a device row that has matching firewall rules shows a compact list of those rules with name and an enabled/disabled toggle
+  2. Clicking a toggle in the expanded row enables or disables the rule — the change is confirmed by the API and reflected immediately
+  3. After toggling a rule from the expanded row, the Firewall page shows the same updated state without a page reload (shared SWR cache)
+  4. Expanding a device row with no matching rules shows a small indicator icon; hovering or tapping it displays "No firewall rules apply to this device"
+**Plans**: TBD
+**UI hint**: yes
+
+---
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -167,3 +234,8 @@ Full archive: `.planning/milestones/v4.0-ROADMAP.md`
 | 10. Insights Page | v3.0 | 3/3 | Complete | 2026-05-17 |
 | 11. Firewall Rule Scheduling | v3.0 | 2/2 | Complete | 2026-05-17 |
 | 12. End-to-End Tests | v4.0 | 2/2 | Complete | 2026-06-11 |
+| 13. Schema Extension & Mock Update | v5.0 | 0/? | Not started | - |
+| 14. /statusz Page | v5.0 | 0/? | Not started | - |
+| 15. Mapping Logic | v5.0 | 0/? | Not started | - |
+| 16. Device Rules API Route | v5.0 | 0/? | Not started | - |
+| 17. Inline Toggle UI | v5.0 | 0/? | Not started | - |

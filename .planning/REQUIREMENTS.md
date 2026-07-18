@@ -44,23 +44,27 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| MAPP-01 | — | Pending |
-| MAPP-02 | — | Pending |
-| MAPP-03 | — | Pending |
-| FWUX-01 | — | Pending |
-| FWUX-02 | — | Pending |
-| FWUX-03 | — | Pending |
-| FWUX-04 | — | Pending |
-| HLTH-01 | — | Pending |
-| HLTH-02 | — | Pending |
-| HLTH-03 | — | Pending |
-| HLTH-04 | — | Pending |
+| MAPP-01 | Phase 15 | Pending |
+| MAPP-02 | Phase 15 | Pending |
+| MAPP-03 | Phase 15 | Pending |
+| FWUX-01 | Phase 17 | Pending |
+| FWUX-02 | Phase 17 | Pending |
+| FWUX-03 | Phase 17 | Pending |
+| FWUX-04 | Phase 17 | Pending |
+| HLTH-01 | Phase 14 | Pending |
+| HLTH-02 | Phase 14 | Pending |
+| HLTH-03 | Phase 14 | Pending |
+| HLTH-04 | Phase 14 | Pending |
 
 **Coverage:**
 - v5.0 requirements: 11 total
-- Mapped to phases: 0 (roadmap not yet created)
-- Unmapped: 11 ⚠️
+- Mapped to phases: 11 (Phase 14: 4, Phase 15: 3, Phase 17: 4)
+- Unmapped: 0 ✓
+
+**Infrastructure phases (no direct requirements — enable requirement delivery):**
+- Phase 13: Schema Extension & Mock Update — prerequisite for Phase 15 mapping logic
+- Phase 16: Device Rules API Route — composition layer enabling Phase 17 UI
 
 ---
 *Requirements defined: 2026-07-18*
-*Last updated: 2026-07-18 after initial definition*
+*Last updated: 2026-07-18 after roadmap creation (all 11 requirements mapped)*
