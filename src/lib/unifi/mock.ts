@@ -104,6 +104,11 @@ let mockPolicies: FirewallPolicy[] = [
   { _id: 'policy-1', name: 'Block Gaming Consoles',  enabled: true  },
   { _id: 'policy-2', name: 'Pause Kids Devices',     enabled: false },
   { _id: 'policy-3', name: 'Guest Network Restrict', enabled: true  },
+  // Phase 13: ZBF example — targets Nintendo Switch (aa:bb:cc:dd:ee:06) via source.client_macs
+  // NOTE: ZBF field names (source.client_macs) need live-console verification before production use
+  { _id: 'policy-zbf-1', name: 'Block Nintendo Switch', enabled: true,  source: { client_macs: ['aa:bb:cc:dd:ee:06'] } },
+  // Phase 13: Legacy example — targets MacBook Pro via srcMac (.passthrough() preserves this field)
+  { _id: 'policy-legacy-1', name: 'Block MacBook', enabled: false, srcMac: 'aa:bb:cc:dd:ee:01' } as FirewallPolicy,
 ]
 
 export async function getUnifiClients(): Promise<ClientsResponse> {

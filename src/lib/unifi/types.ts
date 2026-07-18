@@ -79,9 +79,22 @@ export const UnifiScheduleSchema = z.union([
 export type UnifiSchedule = z.infer<typeof UnifiScheduleSchema>
 
 /**
+ * Zod schema for a ZBF firewall policy endpoint (source or destination).
+ * Phase 13: Typed so mapping logic can access client_macs without casting.
+ */
+export const FirewallPolicyEndpointSchema = z.object({
+  client_macs: z.array(z.string()).optional(),
+  zone_id: z.string().optional(),
+  matching_target: z.string().optional(),
+})
+
+export type FirewallPolicyEndpoint = z.infer<typeof FirewallPolicyEndpointSchema>
+
+/**
  * Zod schema for UniFi firewall policy
  * Per D-08: Minimal display fields only - _id, name, enabled
  * Phase 11: Extended with optional schedule (raw from API) and scheduleEnd (computed Unix ms)
+ * Phase 13: Extended with typed source/destination for ZBF MAC matching
  */
 export const FirewallPolicySchema = z.object({
   _id: z.string(),
@@ -91,6 +104,8 @@ export const FirewallPolicySchema = z.object({
   // Computed field: Unix ms of schedule end time. Set by getFirewallPolicies()
   // from schedule.mode === 'ONE_TIME_ONLY' date + time_range_end. Not from API.
   scheduleEnd: z.number().optional(),
+  source: FirewallPolicyEndpointSchema.optional(),
+  destination: FirewallPolicyEndpointSchema.optional(),
 }).passthrough()
 
 /**
