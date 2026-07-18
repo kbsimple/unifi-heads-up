@@ -1,3 +1,27 @@
+const PACIFIC_TZ = 'America/Los_Angeles'
+
+/**
+ * Parse a date+time string stored in Pacific time and return UTC milliseconds.
+ * Avoids the naive `new Date("YYYY-MMDDTHH:MM")` trap, which is interpreted as
+ * server-local (UTC in Docker) rather than the timezone the UniFi console uses.
+ */
+export function parsePacificDateTime(dateStr: string, timeStr: string): number {
+  const naive = new Date(`${dateStr}T${timeStr}:00`)
+  if (isNaN(naive.getTime())) return NaN
+  const pacHour = parseInt(
+    new Intl.DateTimeFormat('en-US', {
+      timeZone: PACIFIC_TZ,
+      hour: 'numeric',
+      hourCycle: 'h23',
+    }).format(naive),
+    10
+  )
+  let offsetHours = pacHour - naive.getUTCHours()
+  if (offsetHours < -12) offsetHours += 24
+  if (offsetHours > 12) offsetHours -= 24
+  return naive.getTime() - offsetHours * 3_600_000
+}
+
 export function formatPacificHour(unixTs: number): string {
   return new Intl.DateTimeFormat('en-US', {
     timeZone: 'America/Los_Angeles',

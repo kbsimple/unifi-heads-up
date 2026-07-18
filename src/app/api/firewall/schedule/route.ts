@@ -6,6 +6,21 @@ import { updateFirewallPolicy } from '@/lib/unifi'
 import { ERROR_MESSAGES } from '@/lib/definitions'
 import type { UnifiSchedule } from '@/lib/unifi/types'
 
+const SCHEDULE_TZ = 'America/Los_Angeles'
+
+function tzDate(date: Date): string {
+  return new Intl.DateTimeFormat('sv-SE', { timeZone: SCHEDULE_TZ }).format(date)
+}
+
+function tzTime(date: Date): string {
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: SCHEDULE_TZ,
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).format(date)
+}
+
 /**
  * Schema for POST request body
  * Per threat model T-11-01: Zod enforces int, min(1), max(24) on durationHours
@@ -57,20 +72,23 @@ export async function POST(request: Request) {
 
     const { policyId, durationHours } = result.data
 
-    // Compute schedule window: now → now + durationHours
+    // Compute schedule window: now → now + durationHours (all times in SCHEDULE_TZ)
     const now = new Date()
     const end = new Date(now.getTime() + durationHours * 60 * 60 * 1000)
 
-    if (end.getDate() !== now.getDate()) {
+    const nowDate = tzDate(now)
+    const endDate = tzDate(end)
+
+    if (nowDate !== endDate) {
       return NextResponse.json(
         { error: 'VALIDATION_ERROR', message: 'Schedule duration crosses midnight. Choose a shorter duration.' },
         { status: 400 }
       )
     }
 
-    const date = now.toISOString().slice(0, 10) // "YYYY-MM-DD"
-    const start = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
-    const endTime = `${String(end.getHours()).padStart(2, '0')}:${String(end.getMinutes()).padStart(2, '0')}`
+    const date = nowDate
+    const start = tzTime(now)
+    const endTime = tzTime(end)
 
     const schedule: UnifiSchedule = {
       mode: 'ONE_TIME_ONLY',
