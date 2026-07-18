@@ -1,537 +1,363 @@
-# Architecture Research
+# Architecture Patterns
 
-**Domain:** Next.js application with external API integration (Unifi Site Manager)
-**Researched:** 2026-04-14
-**Confidence:** HIGH
+**Domain:** Next.js full-stack app — UniFi LAN API integration
+**Milestone:** v5.0 — Rule-to-Device Mapping + Firewall Shortcut + /statusz
+**Researched:** 2026-07-18
+**Confidence:** HIGH (based on direct code inspection of the live codebase)
 
-## Standard Architecture
+---
 
-### System Overview
+## Existing Architecture (as-built)
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                           PRESENTATION LAYER                             │
-├─────────────────────────────────────────────────────────────────────────┤
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────────┐ │
-│  │  Server         │  │  Client         │  │  Layouts                │ │
-│  │  Components     │  │  Components     │  │  (dashboard, auth)      │ │
-│  │  (data fetch)   │  │  (interactivity)│  │                         │ │
-│  └────────┬────────┘  └────────┬────────┘  └─────────────────────────┘ │
-│           │                    │                                        │
-│           │                    │                                        │
-├───────────┴────────────────────┴────────────────────────────────────────┤
-│                           APPLICATION LAYER                              │
-├─────────────────────────────────────────────────────────────────────────┤
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────────┐ │
-│  │  Server Actions │  │  Route Handlers │  │  Auth Layer            │ │
-│  │  (mutations)    │  │  (API routes)   │  │  (Auth.js v5)          │ │
-│  └────────┬────────┘  └────────┬────────┘  └───────────┬─────────────┘ │
-│           │                    │                       │               │
-├───────────┴────────────────────┴───────────────────────┴───────────────┤
-│                           SERVICE LAYER                                 │
-├─────────────────────────────────────────────────────────────────────────┤
-│  ┌─────────────────────────────────────────────────────────────────┐   │
-│  │                    Unifi API Client                              │   │
-│  │  - Token management    - Rate limiting    - Error handling      │   │
-│  │  - Request retry       - Response transformation                │   │
-│  └─────────────────────────────────────────────────────────────────┘   │
-│           │                                                              │
-├───────────┴─────────────────────────────────────────────────────────────┤
-│                           EXTERNAL SERVICES                             │
-├─────────────────────────────────────────────────────────────────────────┤
-│  ┌─────────────────┐  ┌─────────────────┐                               │
-│  │  Site Manager   │  │  Unifi OS      │                               │
-│  │  Proxy API      │  │  Console       │                               │
-│  │  (api.ui.com)    │  │  (local)       │                               │
-│  └─────────────────┘  └─────────────────┘                               │
-└─────────────────────────────────────────────────────────────────────────┘
-```
-
-### Component Responsibilities
-
-| Component | Responsibility | Typical Implementation |
-|-----------|----------------|------------------------|
-| Server Components | Fetch and render data server-side, SEO-critical pages | `async function` components with direct data fetching |
-| Client Components | Interactive UI elements, polling, user input | Components marked with `'use client'` |
-| Route Handlers | API endpoints for webhooks, external integrations | `app/api/*/route.ts` with GET/POST/PUT/DELETE exports |
-| Server Actions | Mutations triggered from UI (form submissions, toggles) | `'use server'` exported async functions |
-| Service Layer | External API client abstraction, business logic | Classes/functions in `lib/services/` |
-| Auth Layer | Authentication, session management, authorization | Auth.js v5 with middleware and session utilities |
-| Data Access Layer | Authorized data fetching with caching | `lib/dal/` with React `cache()` and `server-only` |
-
-## Recommended Project Structure
+The app is already live and deviates somewhat from the original research ARCHITECTURE.md (which was written before implementation began). The actual patterns in the codebase:
 
 ```
-src/
-├── app/                          # Next.js App Router
-│   ├── (auth)/                   # Route group for auth pages
-│   │   ├── login/
-│   │   │   └── page.tsx
-│   │   └── layout.tsx            # Minimal auth layout
-│   ├── (dashboard)/              # Route group for authenticated pages
-│   │   ├── clients/
-│   │   │   └── page.tsx          # Device/clients list view
-│   │   ├── groups/
-│   │   │   └── page.tsx          # Device groups view
-│   │   ├── firewall/
-│   │   │   └── page.tsx          # Firewall rule toggles
-│   │   └── layout.tsx            # Dashboard layout with nav
-│   ├── api/                      # Route Handlers (minimal)
-│   │   ├── auth/
-│   │   │   └── [...nextauth]/route.ts  # Auth.js handler
-│   │   └── webhooks/            # External webhooks if needed
-│   ├── actions/                  # Server Actions
-│   │   ├── firewall.ts           # Toggle firewall rules
-│   │   └── auth.ts               # Auth-related actions
-│   ├── layout.tsx                # Root layout
-│   ├── page.tsx                  # Home/redirect
-│   ├── loading.tsx               # Loading states
-│   └── error.tsx                 # Error boundaries
-├── components/
-│   ├── ui/                       # Primitive UI components
-│   │   ├── button.tsx
-│   │   ├── card.tsx
-│   │   └── skeleton.tsx
-│   └── features/                 # Domain-specific components
-│       ├── traffic-status.tsx    # Traffic indicator (high/med/low/idle)
-│       ├── client-list.tsx       # Device list with status
-│       └── firewall-toggle.tsx   # Rule enable/disable toggle
-├── lib/
-│   ├── auth.ts                   # Auth.js configuration
-│   ├── dal/                      # Data Access Layer
-│   │   ├── clients.ts            # Client device queries
-│   │   ├── firewall.ts           # Firewall rule queries
-│   │   └── index.ts              # Export and utilities
-│   ├── services/                 # External API clients
-│   │   ├── unifi-client.ts       # Site Manager API client
-│   │   └── rate-limiter.ts       # Rate limiting utility
-│   └── utils/                    # Shared utilities
-│       ├── cn.ts                 # Class name utility
-│       └── format.ts             # Data formatting
-├── hooks/                        # Client-side hooks
-│   ├── use-polling.ts            # Polling hook for traffic data
-│   └── use-traffic-status.ts     # Traffic status calculation
-└── types/                        # TypeScript definitions
-    ├── unifi.ts                  # Unifi API types
-    └── next-auth.d.ts            # Auth.js type extensions
+Browser
+  |
+  |--- SWR polling (60s) ---> /api/clients       GET  (ClientList, ClientTable)
+  |--- SWR polling (60s) ---> /api/firewall      GET  (FirewallList)
+  |--- on expand -----------> /api/insights/device-history?mac=...&window=... (ClientTable)
+  |--- on star toggle ------> /api/firewall/starred POST (FirewallList)
+  |--- on rule toggle ------> /api/firewall      PUT  (RuleToggle)
+
+Server (Next.js App Router)
+  |
+  |--- src/lib/unifi/index.ts (facade)
+  |     |--- UNIFI_MOCK=true  --> src/lib/unifi/mock.ts
+  |     |--- UNIFI_MOCK=false --> src/lib/unifi/client.ts
+  |           |--- getUnifiClients()        -> undici fetch /stat/sta
+  |           |--- getFirewallPolicies()    -> undici fetch /firewall-policies
+  |           |--- updateFirewallPolicy()   -> undici GET + PUT /firewall-policies/{id}
+  |           |--- isZoneBasedFirewallEnabled() -> undici fetch /site-feature-migration
+  |
+  |--- SQLite (better-sqlite3) for bandwidth snapshots, starred rules, insights
 ```
 
-### Structure Rationale
+### Key Existing Patterns
 
-- **Route Groups `(auth)` and `(dashboard)`:** Separate layouts without affecting URLs - auth pages have minimal chrome, dashboard has navigation
-- **Server Actions in `app/actions/`:** Collected separately for mutations, easier to audit security
-- **Minimal `api/` directory:** Only for Auth.js handler and potential webhooks - Server Actions replace most API routes
-- **`lib/dal/` for data access:** Encapsulates Unifi API calls with authorization checks and caching
-- **`lib/services/` for API client:** Abstracts Site Manager Proxy communication, handles auth tokens, rate limits
+**Toggle mutation chain** (how rule toggles work today):
+```
+RuleToggle (client component)
+  → PUT /api/firewall { policyId, enabled }
+  → route.ts calls updateFirewallPolicy(policyId, enabled)
+  → on success: mutate('/api/firewall')   [SWR global cache invalidation]
+```
 
-## Architectural Patterns
+**Lazy on-expand fetch** (how device history works today):
+```
+ClientTable (client component)
+  → row expand triggers useEffect
+  → fetch /api/insights/device-history?mac=...&window=...
+  → stores result in component-local Map { "${mac}:${window}": HistoryBucket[] }
+```
 
-### Pattern 1: Backend-for-Frontend (BFF)
+These two patterns are the templates for v5.0 features.
 
-**What:** Route handlers act as a proxy layer between frontend and external APIs, keeping secrets server-side and providing a stable internal contract.
+---
 
-**When to use:** Always for external API integrations - never expose API keys to the browser.
+## v5.0 Integration Architecture
 
-**Trade-offs:**
-- Pro: Security (secrets stay server-side), response normalization, centralized error handling
-- Con: Additional network hop, more code to maintain
+### Feature 1: Rule-to-Device Mapping + Inline Toggle
 
-**Example:**
+#### Where does the mapping logic live?
+
+**Answer: `src/lib/unifi/mapping.ts` — a new pure library function.**
+
+The mapping logic is a pure function: `(policies, addressGroups, device) => FirewallPolicy[]`. It does not need network access, database access, or React context. It belongs in the lib layer alongside other UniFi domain logic.
+
+Do not co-locate it with the API route or the client fetch — those are data plumbing layers. Mapping is business logic and should be unit-testable in isolation.
+
+#### Does IP group membership require a separate fetch?
+
+**Answer: Yes. A new `getAddressGroups()` function is needed.**
+
+UniFi firewall policies reference address groups by ID in source/destination fields. The `FirewallPolicySchema` uses `.passthrough()`, so the raw `source` and `destination` objects are preserved in the response — but they contain group IDs, not group members. The address group contents (which IPs/MACs belong to each group) live at a separate endpoint.
+
+Confirmed endpoint pattern from the existing v2 API base URL structure:
+```
+GET /proxy/network/v2/api/site/default/firewall-address-groups
+```
+
+This must be added as a new exported function in `client.ts`, mocked in `mock.ts`, and exported from `index.ts`.
+
+The address groups fetch composes with `getFirewallPolicies()` via `Promise.all` inside the new API route — they are independent and should run in parallel.
+
+#### New API route: `GET /api/firewall/device-rules`
+
+```
+GET /api/firewall/device-rules?mac=aa:bb:cc:dd:ee:01&ip=192.168.1.101
+→ returns FirewallPolicy[] matching that device
+```
+
+This route:
+1. Verifies session (same pattern as existing routes)
+2. `Promise.all([getFirewallPolicies(), getAddressGroups()])`
+3. Calls `mapPoliciesToDevice(policies, groups, { mac, ip })`
+4. Returns matched policies array
+
+#### How should the expanded device row get its matched rules?
+
+**Answer: Client-side fetch on expand, using the same lazy useEffect pattern as device history.**
+
+The dashboard page already fetches clients at server render time. Firewall data is NOT fetched at page load — it's only needed when a row is expanded. Adding firewall data to the page-level server fetch would add 2 API calls to every dashboard load, for a feature that's only accessed on demand.
+
+The existing `ClientTable` component already has the lazy-fetch infrastructure (useEffect + component-local state map). The device-rules fetch follows the same pattern:
+
 ```typescript
-// lib/services/unifi-client.ts
-import 'server-only'
+// Inside ClientTable, when a row expands:
+const deviceRulesKey = expandedMac 
+  ? `/api/firewall/device-rules?mac=${expandedMac}&ip=${expandedIp}` 
+  : null
 
-const SITE_MANAGER_API = 'https://api.ui.com'
-
-interface UnifiClientConfig {
-  apiKey: string
-  siteId: string
-}
-
-export class UnifiClient {
-  private config: UnifiClientConfig
-  private rateLimiter: RateLimiter
-
-  constructor(config: UnifiClientConfig) {
-    this.config = config
-    this.rateLimiter = new RateLimiter(100) // 100 req/min
-  }
-
-  async getClients(): Promise<UnifiClient[]> {
-    return this.rateLimiter.execute(async () => {
-      const response = await fetch(
-        `${SITE_MANAGER_API}/sites/${this.config.siteId}/clients`,
-        {
-          headers: { 'x-api-key': this.config.apiKey },
-          signal: AbortSignal.timeout(8000),
-        }
-      )
-      if (!response.ok) throw new UnifiApiError(response.status, 'Failed to fetch clients')
-      return response.json()
-    })
-  }
-
-  async toggleFirewallRule(ruleId: string, enabled: boolean): Promise<void> {
-    return this.rateLimiter.execute(async () => {
-      const response = await fetch(
-        `${SITE_MANAGER_API}/sites/${this.config.siteId}/firewall/rules/${ruleId}`,
-        {
-          method: 'PATCH',
-          headers: {
-            'x-api-key': this.config.apiKey,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ enabled }),
-          signal: AbortSignal.timeout(8000),
-        }
-      )
-      if (!response.ok) throw new UnifiApiError(response.status, 'Failed to toggle rule')
-    })
-  }
-}
-
-// Singleton with request-scoped config
-export function getUnifiClient(): UnifiClient {
-  const apiKey = process.env.UNIFI_API_KEY
-  const siteId = process.env.UNIFI_SITE_ID
-  if (!apiKey || !siteId) throw new Error('Missing Unifi configuration')
-  return new UnifiClient({ apiKey, siteId })
-}
+// SWR is cleaner here than manual useEffect (unlike history which uses window param):
+const { data: deviceRules } = useSWR(deviceRulesKey, fetcher)
 ```
 
-### Pattern 2: Data Access Layer (DAL)
+Note: Use SWR for device-rules (not useEffect + local state map) because the key is simple (mac + ip, no window param) and SWR gives automatic cache invalidation after toggle.
 
-**What:** A dedicated layer that handles data fetching with authorization, caching, and request memoization built in.
+#### How do we ensure toggling a rule in the device row updates the Firewall page?
 
-**When to use:** All server-side data fetching - prevents direct database/API access from components.
+**Answer: Extend `RuleToggle` with an optional `extraMutateKeys` prop.**
 
-**Trade-offs:**
-- Pro: Consistent authorization, automatic caching, type-safe responses
-- Con: Additional abstraction layer
+The existing `RuleToggle` calls `mutate('/api/firewall')` after a successful toggle. The Firewall page's `FirewallList` is subscribed to `/api/firewall` via SWR and will pick up this invalidation automatically. No changes needed to the Firewall page.
 
-**Example:**
+The device row needs an additional cache invalidation: it must also invalidate its own SWR key (`/api/firewall/device-rules?mac=...&ip=...`) so the matched rules panel refreshes with the new enabled state.
+
+Minimal change to `RuleToggle`:
+
 ```typescript
-// lib/dal/clients.ts
-import 'server-only'
-import { cache } from 'react'
-import { getUnifiClient } from '@/lib/services/unifi-client'
-import { auth } from '@/lib/auth'
+interface RuleToggleProps {
+  policy: FirewallPolicy
+  extraMutateKeys?: string[]   // NEW — optional additional SWR keys to invalidate
+}
 
-// Request-scoped caching with React cache()
-export const getClients = cache(async () => {
-  const session = await auth()
-  if (!session?.user) throw new Error('Unauthorized')
-
-  const client = getUnifiClient()
-  const clients = await client.getClients()
-
-  // Transform to minimal DTO
-  return clients.map(c => ({
-    id: c.id,
-    name: c.name || c.hostname || 'Unknown',
-    mac: c.mac,
-    traffic: {
-      tx: c.tx_bytes || 0,
-      rx: c.rx_bytes || 0,
-    },
-    lastSeen: c.last_seen,
-  }))
-})
-
-// lib/dal/firewall.ts
-import 'server-only'
-import { cache } from 'react'
-import { getUnifiClient } from '@/lib/services/unifi-client'
-import { auth } from '@/lib/auth'
-
-export const getFirewallRules = cache(async () => {
-  const session = await auth()
-  if (!session?.user) throw new Error('Unauthorized')
-
-  const client = getUnifiClient()
-  const rules = await client.getFirewallRules()
-
-  return rules.map(r => ({
-    id: r.id,
-    name: r.name,
-    description: r.description,
-    enabled: r.enabled,
-    target: r.target_devices,
-  }))
-})
-```
-
-### Pattern 3: Server Actions for Mutations
-
-**What:** Server-side functions called directly from components for mutations, with automatic revalidation.
-
-**When to use:** Form submissions, toggles, any data mutation from the UI.
-
-**Trade-offs:**
-- Pro: Type-safe, automatic CSRF protection, progressive enhancement
-- Con: POST-only, not cacheable, coupled to Next.js
-
-**Example:**
-```typescript
-// app/actions/firewall.ts
-'use server'
-
-import { auth } from '@/lib/auth'
-import { getUnifiClient } from '@/lib/services/unifi-client'
-import { revalidatePath } from 'next/cache'
-import { z } from 'zod'
-
-const toggleSchema = z.object({
-  ruleId: z.string(),
-  enabled: z.boolean(),
-})
-
-export async function toggleFirewallRule(formData: FormData) {
-  // 1. Authenticate
-  const session = await auth()
-  if (!session?.user) {
-    return { error: 'Unauthorized' }
-  }
-
-  // 2. Validate input
-  const result = toggleSchema.safeParse({
-    ruleId: formData.get('ruleId'),
-    enabled: formData.get('enabled') === 'true',
-  })
-  if (!result.success) {
-    return { error: 'Invalid input' }
-  }
-
-  // 3. Execute
-  try {
-    const client = getUnifiClient()
-    await client.toggleFirewallRule(result.data.ruleId, result.data.enabled)
-
-    // 4. Revalidate cache
-    revalidatePath('/firewall')
-
-    return { success: true }
-  } catch (error) {
-    return { error: 'Failed to toggle rule' }
-  }
+// In handleToggle, after mutate('/api/firewall'):
+for (const key of (extraMutateKeys ?? [])) {
+  await mutate(key)
 }
 ```
 
-### Pattern 4: Polling for Client-Side Updates
+The device row passes `extraMutateKeys={[deviceRulesKey]}`. The Firewall page does not pass `extraMutateKeys` (undefined = no change to existing behavior).
 
-**What:** Client-side hook that periodically refreshes server-rendered data.
+Do NOT use `revalidatePath` or Server Actions for toggle — the existing PUT `/api/firewall` route + SWR invalidation is the correct pattern for this app. Do not duplicate the toggle logic.
 
-**When to use:** Real-time-ish data like traffic status where 5-minute averages are sufficient.
+---
 
-**Trade-offs:**
-- Pro: Simple implementation, works with Server Components
-- Con: Not truly real-time, creates load on server
+### Feature 2: /statusz Health Page
 
-**Example:**
-```typescript
-// hooks/use-polling.ts
-'use client'
+The `/api/statusz` endpoint exists and returns `{ uptime, buildId, nodeVersion, memoryMb, nodeEnv }`. The milestone requires adding DB connectivity and UniFi proxy reachability to this response.
 
-import { useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
-
-export function usePolling(intervalMs: number, enabled: boolean = true) {
-  const router = useRouter()
-  const intervalRef = useRef<NodeJS.Timeout | null>(null)
-
-  useEffect(() => {
-    if (!enabled) return
-
-    intervalRef.current = setInterval(() => {
-      router.refresh() // Re-fetches server component data
-    }, intervalMs)
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-      }
-    }
-  }, [intervalMs, enabled, router])
-}
-
-// Usage in component
-// app/(dashboard)/clients/page.tsx
-'use client'
-
-import { usePolling } from '@/hooks/use-polling'
-
-export default function ClientsPage() {
-  usePolling(30000) // Refresh every 30 seconds
-
-  return <ClientList />
-}
-```
-
-## Data Flow
-
-### Request Flow
+**API route extension:**
 
 ```
-[User views clients page]
-         ↓
-[Server Component: clients/page.tsx]
-         ↓
-[DAL: getClients()] → [Auth check] → [UnifiClient.getClients()]
-         ↓                                      ↓
-[Render HTML with data]                  [Site Manager Proxy API]
-         ↓                                      ↓
-[Client receives HTML]                   [api.ui.com response]
-         ↓
-[Client Component: usePolling(30000)]
-         ↓ (every 30s)
-[router.refresh()] → Triggers server re-render
+GET /api/statusz
+→ currently: { uptime, buildId, nodeVersion, memoryMb, nodeEnv }
+→ after:    { uptime, buildId, nodeVersion, memoryMb, nodeEnv,
+               db: { ok: boolean, error?: string },
+               unifi: { ok: boolean, latencyMs?: number, error?: string } }
 ```
 
-### Mutation Flow
+The DB check is a simple `SELECT 1` on the existing SQLite db. The UniFi check is a lightweight ping — either a HEAD to the console's base URL or the existing `site-feature-migration` endpoint with a short timeout. The `/api/statusz` route is unauthenticated (same as `/api/health`).
+
+**New page:**
 
 ```
-[User clicks firewall toggle]
-         ↓
-[Client Component: captures click]
-         ↓
-[Form submission to Server Action]
-         ↓
-[toggleFirewallRule(formData)]
-         ↓
-[Auth check] → [Validate input] → [UnifiClient.toggleFirewallRule()]
-         ↓                                      ↓
-[revalidatePath('/firewall')]            [Site Manager Proxy API]
-         ↓
-[Server re-renders with updated data]
+src/app/statusz/page.tsx    — Server Component, reads from /api/statusz, renders status table
 ```
 
-### Key Data Flows
+No authentication required on the statusz page (it's an ops/health page). This is consistent with the existing `/api/health` pattern.
 
-1. **Traffic Status Fetch:** Server Component → DAL → UnifiClient → Site Manager API → Render
-2. **Firewall Toggle:** Client Component → Server Action → UnifiClient → Site Manager API → Revalidate
-3. **Authentication:** Middleware → Auth.js → Session check → Redirect or continue
-4. **Polling Refresh:** Client hook → router.refresh() → Server Component re-executes
+---
 
-## Scaling Considerations
+## File Map: New vs Modified
 
-| Scale | Architecture Adjustments |
-|-------|--------------------------|
-| Family household (current) | Monolith on Vercel is ideal - simple, fast, sufficient |
-| Extended family (10-20 users) | Add response caching, consider ISR for semi-static data |
-| Community (100+ users) | Add Redis for rate limit coordination, consider dedicated API gateway |
+### New Files
 
-### Scaling Priorities
+| File | What |
+|------|------|
+| `src/lib/unifi/mapping.ts` | Pure function: `mapPoliciesToDevice(policies, groups, device)` |
+| `src/app/api/firewall/device-rules/route.ts` | GET handler: session verify → fetch → map → respond |
+| `src/app/statusz/page.tsx` | Server Component page for health status display |
 
-1. **First bottleneck:** Site Manager API rate limits (10,000 req/min for v1 stable)
-   - Mitigation: Aggressive client-side caching, ISR for device lists
-2. **Second bottleneck:** Vercel serverless function timeout (10s hobby, 60s pro)
-   - Mitigation: Move long operations to background jobs if needed
+### Modified Files
 
-## Anti-Patterns
+| File | Change |
+|------|--------|
+| `src/lib/unifi/types.ts` | Add `AddressGroup` Zod schema + type. Add typed `source`/`destination` fields to `FirewallPolicySchema` (can keep passthrough but add explicit fields for the matching logic to use). |
+| `src/lib/unifi/client.ts` | Add `getAddressGroups()` function |
+| `src/lib/unifi/mock.ts` | Add mock address groups + `getAddressGroups()` mock that returns groups matching the mock policies |
+| `src/lib/unifi/index.ts` | Export `getAddressGroups` |
+| `src/components/dashboard/client-table.tsx` | Add device-rules SWR fetch in expanded row; render matched rules with `RuleToggle` + "Manage all rules →" link |
+| `src/components/firewall/rule-toggle.tsx` | Add optional `extraMutateKeys?: string[]` prop |
+| `src/app/api/statusz/route.ts` | Add `db` and `unifi` health checks to response |
 
-### Anti-Pattern 1: Client-Side External API Calls
+---
 
-**What people do:** Call `api.ui.com` directly from client components.
+## Data Flow Diagrams
 
-**Why it's wrong:** Exposes API keys in browser, triggers CORS errors, no rate limit control.
+### Rule-to-Device Match Flow
 
-**Do this instead:** Always use Route Handlers or Server Actions as proxies. API keys stay server-side in environment variables.
+```
+[User expands device row in ClientTable]
+         |
+         v
+[SWR: GET /api/firewall/device-rules?mac=aa:bb:cc:dd:ee:01&ip=192.168.1.101]
+         |
+         v
+[route.ts: verify session]
+         |
+         v
+[Promise.all([getFirewallPolicies(), getAddressGroups()])]
+         |
+         v
+[mapPoliciesToDevice(policies, groups, { mac, ip })]
+         |
+         v
+[Returns: FirewallPolicy[] — matched policies only]
+         |
+         v
+[ClientTable renders: rule name + RuleToggle for each match]
+         |
+         v
+[If no matches: section hidden (no empty state noise — per acceptance criteria)]
+```
 
-### Anti-Pattern 2: Missing Timeouts
+### Toggle-from-Device-Row → Firewall Page Sync
 
-**What people do:** Fetch external APIs without timeout configuration.
+```
+[User toggles rule in expanded device row]
+         |
+         v
+[RuleToggle: PUT /api/firewall { policyId, enabled }]
+         |
+         v
+[route.ts: updateFirewallPolicy(policyId, enabled)]
+         |
+         v
+[mutate('/api/firewall')]                  [mutate('/api/firewall/device-rules?mac=...&ip=...')]
+         |                                           |
+         v                                           v
+[FirewallList refreshes]              [Device row matched rules refresh]
+[on /dashboard/firewall]              [in expanded ClientTable row]
+```
 
-**Why it's wrong:** Requests hang indefinitely, exhaust serverless function time, poor UX.
+---
 
-**Do this instead:** Always set timeouts with `AbortSignal.timeout(8000)` or AbortController.
+## Component Boundaries After v5.0
 
-### Anti-Pattern 3: Authentication in Middleware Only
+| Component | Responsibility | New in v5.0? |
+|-----------|---------------|--------------|
+| `src/lib/unifi/mapping.ts` | Pure matching logic: policy × device × address groups | NEW |
+| `src/app/api/firewall/device-rules/route.ts` | Server-side match endpoint | NEW |
+| `src/app/statusz/page.tsx` | Health status UI | NEW |
+| `src/lib/unifi/client.ts::getAddressGroups()` | Fetch address group members from UniFi | NEW function in existing file |
+| `ClientTable` (expanded row) | Render matched rules + `RuleToggle` per match | MODIFIED |
+| `RuleToggle` | Toggle + multi-key SWR invalidation | MODIFIED (additive) |
+| `src/app/api/statusz/route.ts` | DB + UniFi health check response | MODIFIED |
 
-**What people do:** Rely solely on middleware for route protection.
+---
 
-**Why it's wrong:** CVE-2025-29927 showed middleware bypass vulnerabilities. Defense-in-depth is required.
+## Mapping Logic: What to Match
 
-**Do this instead:** Verify authentication in every Server Action and DAL function, not just middleware.
+The `mapPoliciesToDevice()` function must handle three match patterns observed in UniFi ZBF policies (based on the passthrough fields the real API returns):
 
-### Anti-Pattern 4: Over-Fetching from External API
+| Pattern | Field | Match condition |
+|---------|-------|----------------|
+| Direct IP | `source.matching_target === "IP"` | `source.ip_address === device.ip` |
+| Direct MAC | `source.matching_target === "MAC_ADDRESS"` | `source.mac_address.toLowerCase() === device.mac.toLowerCase()` |
+| Address group | `source.matching_target === "OBJECT"` | look up `source.address_group_id` in groups; check if `device.ip` or `device.mac` is in `group.group_members` |
+| Network/subnet | `source.matching_target === "NETWORK"` or subnet CIDR | parse CIDR, check if `device.ip` falls within — optional, may skip if not observed |
 
-**What people do:** Return full Unifi API responses to client components.
+**Critical constraint:** The actual field names (`source`, `matching_target`, `ip_address`, `address_group_id`, `group_members`) are based on observed UniFi API patterns from community sources. These MUST be verified against a live console before the matching logic is finalized. The mock should be designed to cover all three primary patterns so the mapping function is exercised in tests before live verification.
 
-**Why it's wrong:** Exposes unnecessary data, increases payload size, potential security issues.
+---
 
-**Do this instead:** Transform responses in DAL to minimal DTOs with only needed fields.
+## Build Order (Recommended)
 
-### Anti-Pattern 5: Stale Data After Mutations
+The mapping layer must precede the UI because the API route depends on it, and the UI depends on the API route.
 
-**What people do:** Mutate data via Server Actions but forget to revalidate.
+### Step 1: Types + Mapping Core (no network, fully testable)
 
-**Why it's wrong:** UI shows stale data after successful operations.
+1. Extend `types.ts` with `AddressGroup` schema and typed source/destination fields on `FirewallPolicySchema`
+2. Create `mapping.ts` with `mapPoliciesToDevice()`
+3. Write unit tests for all three match patterns (direct IP, direct MAC, group membership)
 
-**Do this instead:** Always call `revalidatePath()` or `revalidateTag()` after mutations.
+**Rationale:** This is the highest-risk area (UniFi API shape uncertainty). Getting the matching logic right in isolation, with tests, before any UI work prevents rework.
 
-## Integration Points
+### Step 2: Data Fetching (new function + mock)
 
-### External Services
+1. Add `getAddressGroups()` to `client.ts`
+2. Add `getAddressGroups()` mock to `mock.ts` — mock groups MUST exercise the group membership path (so mock policies that reference group IDs, and mock groups containing mock device IPs/MACs)
+3. Export from `index.ts`
 
-| Service | Integration Pattern | Notes |
-|---------|---------------------|-------|
-| Site Manager Proxy (`api.ui.com`) | UnifiClient in service layer | Rate limits: 10k req/min, requires API key |
-| Auth.js v5 | Middleware + session utilities | JWT sessions recommended for serverless |
+**Rationale:** The mock is what enables development without a live console. Mock design is critical — the groups must mirror the real API structure so the mapping logic is exercised.
 
-### Internal Boundaries
+### Step 3: API Route
 
-| Boundary | Communication | Notes |
-|----------|---------------|-------|
-| Server Components ↔ DAL | Direct function calls | Request-scoped with React cache() |
-| Client Components ↔ Server Actions | Form submission / useServerAction | Type-safe, automatic revalidation |
-| DAL ↔ Service Layer | Direct function calls | Services are singletons |
-| Service Layer ↔ External API | HTTP fetch | Rate-limited, timeout-configured |
+1. Create `src/app/api/firewall/device-rules/route.ts`
+2. Test with mock mode against the mock clients' known MACs/IPs
 
-## Build Order Implications
+**Rationale:** With mapping and fetching working, the route is straightforward composition. Test manually before UI work.
 
-Based on dependencies between components, suggested implementation order:
+### Step 4: UI Integration
 
-### Phase 1: Foundation
-1. **Project structure** - Set up folder organization
-2. **Service Layer** - UnifiClient with auth and rate limiting
-3. **Auth Layer** - Auth.js v5 with credentials provider
+1. Modify `RuleToggle` with `extraMutateKeys` prop (smallest, most isolated change)
+2. Modify `ClientTable` expanded row: add SWR fetch + render matched rules
+3. Test toggle → Firewall page revalidation end-to-end
 
-**Rationale:** Service layer must exist before DAL can function. Auth must work before protected routes.
+**Rationale:** UI is last because it depends on everything above. The `RuleToggle` change is deliberately minimal so existing Firewall page behavior is unchanged.
 
-### Phase 2: Read Operations
-1. **DAL functions** - getClients, getFirewallRules
-2. **Server Components** - Dashboard pages that display data
-3. **UI components** - Primitive and feature components
+### Step 5: /statusz (independent, can run in parallel with Steps 1-4)
 
-**Rationale:** DAL depends on service layer. Components depend on DAL for data.
+1. Extend `src/app/api/statusz/route.ts` with DB + UniFi checks
+2. Create `src/app/statusz/page.tsx`
 
-### Phase 3: Write Operations
-1. **Server Actions** - toggleFirewallRule
-2. **Interactive components** - Toggle switches, forms
-3. **Polling** - Real-time-ish updates for traffic
+**Rationale:** Statusz has zero dependencies on the mapping layer. It can be built in parallel or after, at any point.
 
-**Rationale:** Mutations depend on existing read paths. Polling depends on data display working.
+---
 
-### Phase 4: Polish
-1. **Error boundaries** - Graceful failure handling
-2. **Loading states** - Skeletons and Suspense
-3. **Caching optimization** - Revalidation strategies
+## What NOT to Do
 
-**Rationale:** These are cross-cutting concerns that build on working core functionality.
+### Do not duplicate the toggle logic
+
+The `PUT /api/firewall` route and `updateFirewallPolicy()` are the single source of truth for toggle operations. Do not create a new "device row toggle" endpoint or Server Action. `RuleToggle` calls `PUT /api/firewall` directly; the device row reuses `RuleToggle` unchanged (except for `extraMutateKeys`).
+
+### Do not add firewall data to the dashboard page server fetch
+
+`DashboardPage` calls `getUnifiClients()` + `queryAllLastBusy()` at render time. Adding `getFirewallPolicies()` or `getAddressGroups()` here would load firewall data on every dashboard visit, for every user, even if they never expand a row. The lazy SWR approach is correct — only fetch when the row is expanded.
+
+### Do not use `revalidatePath` for toggle revalidation
+
+The app uses SWR with direct API routes, not Server Actions with `revalidatePath`. Mixing patterns would be confusing. The existing SWR key invalidation pattern (`mutate('/api/firewall')`) is the correct approach — extend it with `extraMutateKeys`, don't switch mechanisms.
+
+### Do not hard-code match fields without testing against live hardware
+
+The `source.matching_target` field names are inferred from community sources and the Art-of-WiFi API reference, not from this codebase's own live data. The `FirewallPolicySchema` passthrough currently throws away whatever shape these fields have. Design the mock to encode these field shapes explicitly, and treat the live hardware verification (UAT) as a required gate before shipping this feature.
+
+---
+
+## Phase-Specific Research Flags
+
+| Phase topic | Likely needs deeper research | Reason |
+|-------------|------------------------------|--------|
+| Step 1: Mapping logic | YES — before coding | Need to verify real UniFi API field names for source/destination on live console. Check `firewall-policies` response shape against what passthrough preserves. |
+| Step 2: Address groups endpoint | YES — before coding | Confirm `/firewall-address-groups` is the correct endpoint. Check v1 vs v2 path variation (same issue as the clients endpoint). |
+| Step 4: ClientTable expanded row | UNLIKELY — standard SWR pattern | Pattern is identical to device history fetch. No new patterns needed. |
+| Step 5: statusz page | UNLIKELY | No new patterns. DB check is a `SELECT 1`. UniFi check is a fetch with timeout. |
+
+---
 
 ## Sources
 
-- [Next.js Data Fetching Patterns](https://nextjs.org/docs/14/app/building-your-application/data-fetching/patterns) - HIGH confidence (official docs)
-- [Next.js App Router Project Structure](https://www.buttercups.tech/blog/react/nextjs-app-router-project-structure-best-practices-guide) - MEDIUM confidence (community guide)
-- [How I Structure Real-World Next.js Apps](https://medium.com/@vigneshuthra/how-i-structure-real-world-next-js-apps-using-the-app-router-2025-edition-58a5c8f447fb) - MEDIUM confidence (experienced developer)
-- [Server Actions vs API Routes](https://unanswered.io/guide/server-actions-vs-api-routes-nextjs) - HIGH confidence (clear technical distinction)
-- [Next.js Authentication Guide 2026](https://workos.com/blog/nextjs-app-router-authentication-guide-2026) - HIGH confidence (auth provider, comprehensive)
-- [Auth.js v5 with Next.js 16](https://dev.to/huangyongshan46a11y/authjs-v5-with-nextjs-16-the-complete-authentication-guide-2026-2lg) - HIGH confidence (official patterns)
-- [Building a Scalable API Layer in Next.js](https://medium.com/codetodeploy/building-a-scalable-api-layer-in-next-js-best-practices-a0ca15216fb6) - MEDIUM confidence (practical guide)
-- [TanStack Query with Next.js App Router](https://noqta.tn/en/tutorials/tanstack-query-v5-nextjs-data-fetching-guide-2026) - MEDIUM confidence (comprehensive tutorial)
-- [Next.js Polling Patterns](https://dev.to/whoffagents/real-time-features-in-nextjs-sse-polling-and-websockets-without-a-separate-server-2k3b) - MEDIUM confidence (practical patterns)
-- [Handling API Rate Limiting in Next.js](https://medium.com/@mohantaankit2002/handling-api-rate-limiting-in-next-js-best-practices-for-reliable-integrations-794721ef326b) - MEDIUM confidence (best practices)
-
----
-*Architecture research for: Unifi Network Dashboard with external Site Manager API*
-*Researched: 2026-04-14*
+- `src/lib/unifi/client.ts` — Direct inspection (HIGH confidence)
+- `src/lib/unifi/types.ts` — Direct inspection (HIGH confidence)
+- `src/lib/unifi/index.ts` — Direct inspection (HIGH confidence)
+- `src/lib/unifi/mock.ts` — Direct inspection (HIGH confidence)
+- `src/app/api/firewall/route.ts` — Direct inspection (HIGH confidence)
+- `src/app/dashboard/page.tsx` — Direct inspection (HIGH confidence)
+- `src/components/dashboard/client-table.tsx` — Direct inspection (HIGH confidence)
+- `src/components/firewall/rule-toggle.tsx` — Direct inspection (HIGH confidence)
+- `src/components/firewall/firewall-list.tsx` — Direct inspection (HIGH confidence)
+- `.planning/milestones/v1.0-phases/03-firewall-control/03-RESEARCH.md` — Prior research on UniFi firewall API (HIGH confidence)
+- `.planning/todos/pending/2026-07-18-firewall-shortcut-from-device-activity.md` — Feature spec (HIGH confidence)
+- Art-of-WiFi UniFi-API-client API_REFERENCE.md — UniFi firewall-address-groups endpoint pattern (MEDIUM confidence — community, well-maintained)

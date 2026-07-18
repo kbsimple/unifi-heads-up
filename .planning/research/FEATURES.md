@@ -1,182 +1,262 @@
-# Feature Research
+# Feature Landscape — v5.0 Streamlining Management UX Flows
 
-**Domain:** Network Monitoring Dashboard (Home/Consumer)
-**Researched:** 2026-04-14
-**Confidence:** HIGH
+**Domain:** Home Network Management Dashboard (rule-to-device mapping + inline controls + health UI)
+**Researched:** 2026-07-18
+**Overall confidence:** HIGH (codebase read + aiounifi model confirmed + UniFi API verified)
 
-## Feature Landscape
+---
 
-### Table Stakes (Users Expect These)
+## Table Stakes
 
-Features users assume exist. Missing these = product feels incomplete.
+Features users expect from v5.0. Missing any of these makes the milestone feel incomplete.
 
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
-| **Device List** | Basic visibility — users expect to see what's on their network | LOW | UniFi API provides client devices endpoint; needs name resolution, grouping |
-| **Real-Time Status** | "Is my internet working?" — fundamental question | LOW | Traffic status (high/medium/low/idle) covers this; polling every 5 min sufficient |
-| **Device Naming** | Users want to identify devices by name, not MAC | MEDIUM | UniFi allows device names; fallback to hostname, then MAC |
-| **Bandwidth Visibility** | "Who's using the internet?" — core monitoring question | MEDIUM | UniFi Flow Insights or client stats API; 5-min rolling average |
-| **Simple Authentication** | Private dashboard needs access control | LOW | Family household = simple auth, not enterprise SSO |
-| **Mobile-Friendly UI** | Home users check from phones, not just desktops | MEDIUM | Responsive design, touch-friendly controls |
-| **Clear Visual Indicators** | Red/yellow/green status at a glance | LOW | Color coding for traffic levels; semantic colors for status |
+| Rule-to-device mapping (MAC) | Users want "does this device have a rule on it?" | MEDIUM | `source.client_macs[]` in ZBF policies; `srcMac` in legacy rules |
+| Rule-to-device mapping (IP) | Some rules target a specific IP, not MAC | MEDIUM | `srcAddress` in legacy API; ZBF targets zones not IPs — de-emphasize |
+| Inline toggle in expanded device row | Core value of v5.0; avoids nav to Firewall page | MEDIUM | Reuse `RuleToggle` component; add compact list below traffic chart |
+| "No rules apply" empty state | Users need to know the feature worked, not just nothing showed | LOW | Show one-liner — do not hide section entirely |
+| /statusz page with DB + proxy status | Health visibility — required for self-hosted ops | LOW | Extend existing `/api/statusz` endpoint; add new `/statusz` page |
 
-### Differentiators (Competitive Advantage)
+---
 
-Features that set the product apart. Not required, but valuable.
+## Differentiators
+
+Features that give this milestone tangible value beyond the baseline.
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| **Device Groups** | Organize devices by family member, function (kids, IoT, work) | MEDIUM | Custom grouping not in UniFi native; adds significant value for families |
-| **Group Traffic Aggregation** | See "Kids" bandwidth as aggregate, not just per-device | MEDIUM | Requires device groups first; simplifies at-a-glance monitoring |
-| **Firewall Rule Toggling** | Pause internet for groups without complex firewall UI | HIGH | UniFi API supports rule enable/disable; major UX improvement over native UI |
-| **Simple UX for Non-Technical Users** | Parents/grandparents can use it, not just network admins | MEDIUM | This is the key differentiator — UniFi native UI is complex |
-| **Historical Trend View** | See if bandwidth has been high for past hour/day | MEDIUM | UniFi API provides historical data; useful for spotting patterns |
-| **Threshold Defaults** | Pre-configured "high/medium/low" removes configuration burden | LOW | Smart defaults for home networks (high >100Mbps, etc.) |
+| IP group / network membership matching | Catches rules that apply indirectly (e.g., "all 192.168.1.x devices") | HIGH | Requires second API call to `/rest/firewallgroup`; legacy API only |
+| Rule count badge on device row | At-a-glance "this device has 2 rules" before expanding | LOW | Display count after mapping runs; badge in collapsed row |
+| Matched-rule name as link to Firewall page | One-click deep-link for power users | LOW | Append `?highlight=<policyId>` to /firewall link |
+| Mock data support for mapping | Inline toggle works in dev (`UNIFI_MOCK=true`) without real console | MEDIUM | Extend mock to add `source.client_macs` fields to some policies |
 
-### Anti-Features (Commonly Requested, Often Problematic)
+---
 
-Features that seem good but create problems.
+## Anti-Features
 
-| Feature | Why Requested | Why Problematic | Alternative |
-|---------|---------------|-----------------|-------------|
-| **Real-Time WebSocket Streaming** | "I want live updates" | 5-min averages don't benefit from real-time; adds complexity, connection management, reconnect logic; UniFi API doesn't support WebSocket for client stats | Polling with 30-60s refresh is sufficient |
-| **Create New Firewall Rules** | "I want to block new things" | Firewall rule creation is complex (source/dest/ports/protocols); one mistake can break network access; requires networking knowledge | Toggle existing rules — user pre-configures in UniFi native UI |
-| **Per-Device Threshold Customization** | "I want different thresholds per device" | Configuration explosion; maintenance burden; users don't actually need it for home use | Smart defaults cover 95% of use cases; add if validated later |
-| **Alert Notifications (Email/Push)** | "Tell me when something happens" | Alert fatigue for home users; thresholds constantly change; "set and forget" leads to ignored alerts | Dashboard check is sufficient; add notifications only if users request it |
-| **Deep Network Diagnostics** | "I want ping, traceroute, DNS lookup" | Debugging tools for network engineers; overwhelms non-technical users; they don't know what to do with results | Keep it simple: status visibility, not diagnostic tools |
-| **Bandwidth Limiting/Throttling** | "I want to limit my kid's bandwidth" | UniFi supports this but requires QoS setup; complex to configure correctly; often misconfigured | Use firewall toggles (pause) or UniFi native UI for QoS |
-| **Multiple User Roles** | "Admin vs. viewer roles" | Over-engineering for family use; adds permission complexity | Single auth level for family; if needed later, add then |
+Features to explicitly not build in v5.0.
+
+| Anti-Feature | Why Avoid | What to Do Instead |
+|--------------|-----------|-------------------|
+| Schedule picker in inline view | Adds cognitive load to a simple "pause this device" action; power-user feature belongs on Firewall page | Show toggle only in inline view; link "See all rules" to /firewall for advanced controls |
+| Zone-based matching display | ZBF zones are network-level (LAN→WAN), not device-level; showing zone rules as "applying" to a device is misleading | Only show rules that explicitly reference the device by MAC or IP |
+| Real-time rule-match refresh | Rule membership doesn't change second-by-second; polling adds complexity | Fetch rule mapping once on row expand; refresh on next expand |
+| Creating new firewall rules from device row | Out of scope for the project; dangerous without full rule context | Toggle-only; link to UniFi console for rule creation |
+| "Apply a rule" action from device row | Same risk as above | Toggle only — the rule must pre-exist |
+
+---
+
+## Rule-to-Device Matching Strategy
+
+### What the UniFi API Exposes
+
+The app currently uses the `/proxy/network/v2/api/site/default/firewall-policies` endpoint (ZBF style). The existing `FirewallPolicySchema` uses `.passthrough()`, so `source` and `destination` fields are already returned but not extracted.
+
+**ZBF policy source/destination structure (confirmed via aiounifi model):**
+
+```
+source: {
+  matching_target: string      // e.g. "ANY", "CLIENT", "ZONE", "IP"
+  zone_id: string              // network zone — not device-specific
+  client_macs?: string[]       // list of MAC addresses when targeting specific clients
+  port_matching_type: string
+  match_opposite_ports: boolean
+}
+```
+
+**Legacy firewallrule (pre-ZBF) fields from Pulumi registry — confirmed HIGH confidence:**
+
+```
+srcMac: string                 // exact MAC address
+srcAddress: string             // IPv4 address or CIDR
+srcFirewallGroupIds: string[]  // references to firewallgroup objects
+srcNetworkId: string           // network/VLAN ID
+dstAddress, dstFirewallGroupIds, dstNetworkId (same pattern)
+```
+
+### Matching Priority Order (implement in this order)
+
+1. **MAC match (ZBF):** `source.client_macs` includes `device.mac` — highest confidence, directly device-targeted
+2. **MAC match (legacy):** `srcMac === device.mac`
+3. **IP match (legacy):** `srcAddress === device.ip` (exact) or CIDR containment if device.ip non-null
+4. **IP group match (legacy):** fetch `/rest/firewallgroup`, check if `device.ip` is in any group referenced by `srcFirewallGroupIds` — expensive, do as best-effort
+
+### What pfSense and OPNsense Do (for comparison)
+
+Neither pfSense nor OPNsense has a native "show which rules apply to this device" UI. Rules are managed globally per-interface; matching a device to its rules requires reading all rules and filtering by source/destination alias membership. This app is building something that doesn't exist in the open-source alternatives — it's a genuine differentiator. The implementation pattern of "fetch all policies, filter client-side by MAC/IP" is the right approach.
+
+### Handling the ZBF vs Legacy Ambiguity
+
+The app already calls `isZoneBasedFirewallEnabled()` at startup. In ZBF mode:
+- Most policies are zone-to-zone (e.g., LAN→WAN, all devices in zone); these should NOT be shown per-device
+- Only policies with `source.client_macs` populated target specific devices
+- In legacy mode: use `srcMac`, `srcAddress`, `srcFirewallGroupIds`
+
+Rule: only surface a policy in the inline view if it has explicit device-level targeting. Zone-level policies that apply broadly to all LAN devices are not useful to show per-device.
+
+### Dynamic IP Problem
+
+Devices can get new DHCP leases. IP-based rule matching reflects the current lease, not history. MAC matching is always preferred. This is a known limitation — document it, but don't try to solve it in v5.0.
+
+---
+
+## Inline Firewall Shortcut UI
+
+### Layout within the Expanded Device Row
+
+The expanded row currently shows:
+```
+[Traffic history label]    [Window selector: 1h / 6h / 24h / 7d]
+[Traffic chart — full width]
+```
+
+For v5.0, add below the chart:
+
+```
+[Traffic history label]    [Window selector]
+[Traffic chart — full width]
+
+─────────────────────────────────
+Firewall Rules (2 rules apply)
+
+  Block Gaming Consoles     [toggle switch]
+  Pause Kids Devices        [toggle switch]
+
+  See all rules →
+─────────────────────────────────
+```
+
+### Design Decisions for Non-Technical Family Users
+
+**Use compact list rows, not cards.** Cards (like FirewallCard) have too much chrome for inline display. A simple `flex` row with rule name on the left and a Switch on the right is sufficient.
+
+**Show rule name only.** No badge, no star, no schedule picker in the inline view. The full FirewallCard experience lives on the /firewall page.
+
+**Always show the section.** When the section loads and finds no matching rules, show: "No firewall rules apply to this device." This prevents the user from thinking the feature is broken or missing.
+
+**Loading state.** Show a small skeleton or "Loading rules..." while the mapping fetch is in progress. The mapping is a separate async fetch triggered on row expand.
+
+**"See all rules" link.** A text link at the bottom of the section pointing to `/firewall`. Gives power users an escape hatch without cluttering the inline view.
+
+**Toggle behavior.** Reuse the existing `RuleToggle` component and its `/api/firewall` PUT endpoint. After toggle, revalidate the firewall SWR cache — same behavior as the Firewall page. No need to refresh the client table.
+
+### Fetch Trigger and Caching
+
+Fetch the device's matched rules on row expand, keyed by device MAC (same pattern as the history chart fetch). Cache the result in component state during the session. Do not refetch on every poll cycle — rule membership is stable.
+
+New API endpoint needed: `GET /api/firewall/device-rules?mac=<mac>` — returns the subset of policies that match the device. This keeps matching logic server-side and off the client.
+
+---
+
+## /statusz Health Page
+
+### What Exists Today
+
+The existing `/api/statusz` endpoint returns:
+```json
+{
+  "uptime": 3600,
+  "buildId": "abc123",
+  "nodeVersion": "v22.0.0",
+  "memoryMb": 128,
+  "nodeEnv": "production"
+}
+```
+
+Missing: DB connectivity check, UniFi proxy reachability.
+
+### Table Stakes Health Checks
+
+| Check | Why It Matters | How to Implement |
+|-------|---------------|-----------------|
+| DB connectivity | If SQLite is locked/corrupted, snapshots fail silently | Run `SELECT 1` query; report ok/error + latency |
+| UniFi proxy reachability | Core feature fails if console unreachable | HEAD request to `${UNIFI_HOST}` with short timeout (2s); report ok/error + latency |
+| App version / build ID | Needed to confirm deployment succeeded | Already in statusz; keep |
+| Uptime | Tells ops if the app has restarted | Already in statusz; keep |
+
+### Nice-to-Have Health Checks
+
+| Check | Value | Complexity |
+|-------|-------|------------|
+| Mock mode indicator | Shows whether UNIFI_MOCK=true is active | LOW — check env var |
+| Memory RSS | Spot memory leaks | Already in statusz; keep |
+| Last successful DB snapshot time | Confirm recording is working | MEDIUM — query max(recorded_at) from snapshots |
+| Node version | Debugging info | Already in statusz; keep |
+
+### /statusz Page UI Pattern
+
+Simple vertical stack of status rows. Green dot = ok, red dot = error. Non-technical users see "Everything is working" or "Something is wrong — contact your admin." Technical users see the detail.
+
+```
+DB             [green] OK (2ms)
+UniFi Console  [green] OK (45ms)
+Version        abc123 (production)
+Uptime         2h 14m
+Mock Mode      Off
+```
+
+No historical graphs, no time series, no refresh button needed — auto-refresh on a short interval (10s) is sufficient. The page should not require authentication (consistent with existing `/api/health` which is unauthenticated for Docker health probes), OR require auth if the team prefers. Either is acceptable; keeping it unauthenticated is simpler.
+
+---
 
 ## Feature Dependencies
 
 ```
-[Device Groups]
-    └──requires──> [Device List]
-    └──enables───> [Group Traffic Aggregation]
-                       └──requires──> [Bandwidth Visibility]
+[Rule-to-device mapping API]
+    └──requires──> [Firewall policies fetch] (already exists)
+    └──enables───> [Inline firewall shortcut]
+                       └──requires──> [RuleToggle component] (already exists)
+                       └──requires──> [GET /api/firewall/device-rules endpoint] (new)
 
-[Firewall Rule Toggling]
-    └──requires──> [Authentication] (private dashboard)
-    └──requires──> [UniFi API Integration]
-
-[Historical Trend View]
-    └──requires──> [Bandwidth Visibility]
-    └──requires──> [Data Storage] (even if minimal caching)
-
-[Simple UX for Non-Technical Users]
-    └──depends on──> [Clear Visual Indicators]
-    └──depends on──> [Mobile-Friendly UI]
-    └──conflicts with──> [Deep Network Diagnostics]
-
-[Threshold Defaults]
-    └──enables───> [Real-Time Status] (no config needed)
+[/statusz page UI]
+    └──requires──> [Extended /api/statusz endpoint] (DB + proxy checks)
+    └──is independent of──> [Rule mapping]
 ```
 
-### Dependency Notes
+---
 
-- **Device Groups requires Device List**: Cannot group devices without first listing them from the API
-- **Group Traffic Aggregation requires Device Groups**: Aggregation needs a grouping concept to exist first
-- **Firewall Rule Toggling requires Authentication**: Toggling firewall rules is destructive; must be authenticated
-- **Firewall Rule Toggling requires UniFi API Integration**: Needs API access to UniFi controller to modify rules
-- **Historical Trend View requires Data Storage**: Even minimal historical view needs some form of data persistence or caching
-- **Simple UX conflicts with Deep Network Diagnostics**: These are fundamentally different user experiences; keep separate or hide diagnostics
+## MVP Recommendation for v5.0
 
-## MVP Definition
+Build in this order:
 
-### Launch With (v1)
+1. **Extend `/api/statusz`** — Add DB check (SELECT 1) and UniFi proxy check (HEAD request). Low risk, independent, tests the deployment health story first. Time: ~2h.
 
-Minimum viable product — what's needed to validate the concept.
+2. **Create `/statusz` page** — Static SSR page reading from the extended endpoint. Non-technical UI: colored dots, simple labels. Time: ~2h.
 
-- [ ] **Device List** — Essential: Users must see what devices are on their network
-- [ ] **Real-Time Status (Traffic Levels)** — Essential: Core value proposition — "at-a-glance" traffic status
-- [ ] **Device Naming** — Essential: Device identification without MAC addresses
-- [ ] **Simple Authentication** — Essential: Private dashboard needs access control
-- [ ] **Mobile-Friendly UI** — Essential: Home users check from phones
-- [ ] **Clear Visual Indicators** — Essential: Red/yellow/green status at a glance
+3. **Server-side rule mapping function** — Pure function `matchPolicies(mac, ip, policies)` that filters policies by MAC/IP match. No IP group lookup in v5.0 (defer). Covered by unit tests. Time: ~3h.
 
-### Add After Validation (v1.x)
+4. **`GET /api/firewall/device-rules?mac=<mac>` endpoint** — Fetches all policies, runs mapping function, returns matched subset. Time: ~2h.
 
-Features to add once core is working.
+5. **Inline firewall section in `client-table.tsx`** — Adds a new section below the traffic chart in the expanded row. Fetches from `/api/firewall/device-rules`. Shows compact rule list or empty state. Reuses `RuleToggle`. Time: ~4h.
 
-- [ ] **Device Groups** — Trigger: Users request organizing devices by family member or function
-- [ ] **Group Traffic Aggregation** — Trigger: Device Groups are implemented; users want group-level visibility
-- [ ] **Firewall Rule Toggling** — Trigger: Users want to pause internet for specific devices/groups without complex UniFi UI
-- [ ] **Historical Trend View** — Trigger: Users ask "was bandwidth high an hour ago?" or "when did this start?"
+6. **Mock data update** — Add `source.client_macs` to some mock policies to wire up the inline view in dev mode. Time: ~1h.
 
-### Future Consideration (v2+)
+Defer IP group membership lookup (extra API call to `/rest/firewallgroup`) to a follow-on. MAC + exact IP matching covers the most common home-network rule patterns.
 
-Features to defer until product-market fit is established.
+---
 
-- [ ] **Per-Device Threshold Customization** — Defer: Not validated as needed; smart defaults cover most cases
-- [ ] **Alert Notifications** — Defer: Requires user configuration, rate limiting, delivery infrastructure
-- [ ] **Bandwidth Limiting/Throttling** — Defer: Complex QoS setup; high risk of misconfiguration
-- [ ] **Multiple User Roles** — Defer: Over-engineering for family use
+## Edge Cases and Expected Behaviors
 
-## Feature Prioritization Matrix
+| Scenario | Expected Behavior |
+|----------|-----------------|
+| Device has no matching rules | Show "No firewall rules apply to this device." below chart. Do not hide the section. |
+| Device IP is null (no DHCP lease) | MAC-only matching; skip IP checks. Show matched rules or empty state. |
+| Device IP changes (DHCP re-lease) | Next row expand re-fetches; stale match shown until then. Acceptable. |
+| Rule fetch fails (network error) | Show "Unable to load rules for this device. Try again." with retry link. |
+| All rules are zone-level (ZBF, no client_macs) | Empty state: "No firewall rules are configured for this specific device." |
+| Many rules match (>5) | Show all — do not paginate. Home networks rarely have more than 5 device-targeted rules. If it happens, a scrollable inline list is sufficient. |
+| Toggle fails from inline view | Same behavior as main Firewall page: error toast, switch reverts, SWR invalidates. |
+| `/statusz` DB check fails | Red dot, error message. Page still renders (don't throw on failed check). |
+| `/statusz` UniFi check fails | Red dot for UniFi row; green for DB row. Independent checks. |
 
-| Feature | User Value | Implementation Cost | Priority |
-|---------|------------|---------------------|----------|
-| Device List | HIGH | LOW | P1 |
-| Real-Time Status | HIGH | LOW | P1 |
-| Device Naming | HIGH | LOW | P1 |
-| Simple Authentication | HIGH | MEDIUM | P1 |
-| Mobile-Friendly UI | HIGH | MEDIUM | P1 |
-| Clear Visual Indicators | HIGH | LOW | P1 |
-| Device Groups | MEDIUM | MEDIUM | P2 |
-| Group Traffic Aggregation | MEDIUM | MEDIUM | P2 |
-| Firewall Rule Toggling | HIGH | HIGH | P2 |
-| Historical Trend View | MEDIUM | MEDIUM | P2 |
-| Per-Device Thresholds | LOW | MEDIUM | P3 |
-| Alert Notifications | MEDIUM | HIGH | P3 |
-| Bandwidth Limiting | LOW | HIGH | P3 |
-
-**Priority key:**
-- P1: Must have for launch
-- P2: Should have, add when possible
-- P3: Nice to have, future consideration
-
-## Competitor Feature Analysis
-
-| Feature | UniFi Native UI | This Dashboard | Our Approach |
-|---------|-----------------|----------------|---------------|
-| Device List | Full table with all metrics | Simplified, traffic-focused | Hide complexity, show status |
-| Traffic Status | Detailed graphs, technical metrics | High/Medium/Low/Idle | Family-friendly, at-a-glance |
-| Device Groups | Requires VLAN/Object config | Simple grouping UI | Zero network config required |
-| Firewall Rules | Full firewall management | Toggle existing rules only | Simpler, less dangerous |
-| Bandwidth Limits | QoS config, traffic rules | (Not in v1) | Defer — let native UI handle |
-| Historical Data | Full analytics suite | 24-hour trend view | Simpler, focused on status |
-| Authentication | Enterprise SSO, LDAP | Simple family auth | Household-appropriate |
-
-## Anti-Patterns Avoided
-
-Based on dashboard best practices research:
-
-| Anti-Pattern | Why Avoided | Our Approach |
-|--------------|-------------|--------------|
-| **Alert Fatigue** | Home users don't want constant notifications | Dashboard check model, not push alerts |
-| **Data Overload** | Non-technical users can't parse complex metrics | Simplified status (H/M/L/Idle), not raw Mbps |
-| **Green Dashboard, Angry Users** | Internal metrics don't match user experience | Traffic status is what users care about |
-| **Copy-Paste Dashboards** | Generic templates don't match specific needs | Purpose-built for family network monitoring |
-| **Monitoring Wrong Metrics** | CPU/memory don't matter to home users | Focus on bandwidth and connectivity |
+---
 
 ## Sources
 
-- [Network Monitoring Dashboard Best Practices (MoldStud)](https://moldstud.com/articles/p-best-practices-and-tools-for-building-a-network-monitoring-dashboard)
-- [8 Network Monitoring Best Practices for 2025 (Clouddle)](https://clouddle.com/network-monitoring-best-practices/)
-- [Network Dashboard Design (Paessler)](https://blog.paessler.com/network-dashboard-design-turning-data-chaos-into-team-focused-insights)
-- [UniFi Network 9.3 Features](https://blog.ui.com/article/introducing-network-9-3)
-- [UniFi Network 9.4 Features](https://blog.ui.com/article/releasing-unifi-network-9-4)
-- [UniFi Network 9.5 Features](https://blog.ui.com/article/releasing-unifi-network-9-5)
-- [pfSense vs UniFi Comparison](https://medium.com/@planedrop/pfsense-vs-unifi-in-depth-testing-and-experience-cce36ab72441)
-- [UniFi API Documentation](https://developer.ui.com/site-manager-api/list-sites)
-- [UniFi API Getting Started](https://help.ui.com/hc/en-us/articles/30076656117655-Getting-Started-with-the-Official-UniFi-API)
-- [Site Manager Remote Management](https://help.ui.com/hc/en-us/articles/20680072882967-UniFi-Remote-Management-via-Site-Manager)
-- [10 Monitoring Anti-Patterns (FlareWarden)](https://flarewarden.com/insights/monitoring-anti-patterns)
-- [Dashboard Anti-Patterns (StartingBlock)](https://startingblockonline.org/dashboard-anti-patterns-12-mistakes-and-the-patterns-that-replace-them/)
-- [10 Common Network Monitoring Mistakes (Galactis)](https://www.galactis.ai/resources/blog/10-common-network-monitoring-mistakes-to-avoid-2026)
-- [React Firewall Rules Dashboard (shadcn.io)](https://www.shadcn.io/blocks/dashboard-firewall-rules)
-- [Family Parental Control Apps (TechTimes)](https://www.techtimes.com/articles/315395/20260325/best-parental-control-apps-manage-screentime-web-risks-social-media-kids-devices.htm)
-
----
-*Feature research for: Network Monitoring Dashboard (Home/Consumer)*
-*Researched: 2026-04-14*
+- aiounifi library `firewall_policy.py` (Kane610/aiounifi, master) — HIGH confidence: confirmed `source.client_macs?: list[str]` field in FirewallPolicyEndpoint TypedDict
+- Pulumi UniFi Registry `firewall/rule` — HIGH confidence: confirmed legacy `srcMac`, `srcAddress`, `srcFirewallGroupIds` fields
+- UniFi community: "Firewall Policy source Mac address" thread — MEDIUM confidence: confirmed MAC-based policy targeting is supported in newer firmware
+- OPNsense documentation (docs.opnsense.org/manual/firewall.html) — HIGH confidence: confirmed no native per-device rule view; alias-based matching is the standard
+- Project codebase: `src/lib/unifi/types.ts`, `src/lib/unifi/client.ts`, `src/components/dashboard/client-table.tsx`, `src/app/api/statusz/route.ts` — HIGH confidence (primary source)
+- Web search: Ubiquiti zone-based firewall docs (help.ui.com) — HIGH confidence: confirmed ZBF uses zone_id not IP addresses for broad policies

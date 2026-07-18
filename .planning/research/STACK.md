@@ -1,105 +1,314 @@
 # Technology Stack
 
-**Project:** UniFi Network Dashboard — v2.0 Local Edition
-**Researched:** 2026-04-24
-**Scope:** Stack additions and changes for direct local UniFi API client + self-hosted deployment. Base stack (Next.js 16, React 19, TypeScript 5, Tailwind CSS 4, shadcn/ui, SWR, Recharts, jose, ky, Zod, Vitest+RTL) is validated and unchanged.
+**Project:** UniFi Network Dashboard
+**Last Updated:** 2026-07-18
+**Active Milestone:** v5.0 Streamlining Management UX Flows
 
 ---
 
-## What Changes in v2.0
+## v5.0 Stack Research (2026-07-18)
 
-Three areas require new or changed stack decisions:
+**Scope:** Additive research for three new features: rule-to-device mapping, inline firewall toggle, /statusz health page UI.
+
+### Verdict: No New npm Packages Required
+
+All three v5.0 features are achievable with the existing dependency set. The work is schema extension, new TypeScript mapping logic, one new client function (health probe), and one new page — none of which require new packages.
+
+---
+
+### Feature 1: Rule-to-Device Mapping
+
+#### Critical Finding: IP Groups Do NOT Apply to Zone-Based Firewall
+
+The codebase uses the zone-based firewall endpoint (`/proxy/network/v2/api/site/default/firewall-policies`). The "IP groups" / "address groups" concept belongs exclusively to the **classic firewall rule** system (`/api/s/{site}/rest/firewallrule` + `/api/s/{site}/rest/firewallgroup`). These are two separate, incompatible firewall systems. The app is on ZBF.
+
+In zone-based firewall policies, device-specific targeting uses `client_macs` inside the `source` and `destination` endpoint objects. There is no IP group membership to resolve — no separate API call is needed.
+
+Confirmed from aiounifi v2 model (`FirewallPolicyEndpoint` TypedDict, [source](https://github.com/Kane610/aiounifi/blob/master/aiounifi/models/firewall_policy.py)):
+
+```python
+class FirewallPolicyEndpoint(TypedDict):
+    match_opposite_ports: bool
+    matching_target: str         # e.g. "ANY", "ZONE" — string enum, full values undocumented
+    port_matching_type: str
+    zone_id: str
+    client_macs: NotRequired[list[str]]   # present only when policy targets specific devices
+```
+
+**Confidence:** MEDIUM (aiounifi is a well-maintained community library that tracks the live API; official Ubiquiti schema documentation is not publicly accessible via web fetch)
+
+#### What Mapping Logic Needs to Do
+
+For each `FirewallPolicy` returned by the existing `getFirewallPolicies()`:
+1. Check `source.client_macs` — if the device's MAC is here, the policy restricts traffic FROM that device
+2. Check `destination.client_macs` — if the device's MAC is here, the policy restricts traffic TO that device
+3. If neither has `client_macs` (or both are empty), the policy is zone-wide — not device-specific
+
+IP address and IP group matching do NOT apply to ZBF policies. The milestone phrasing "by MAC, IP, or IP group membership" resolves to MAC-only for ZBF mode.
+
+For reference only (not needed for this milestone): classic firewall rules use `src_mac` (top-level) and `src_firewall_group_ids`/`dst_firewall_group_ids` referencing groups at `/api/s/default/rest/firewallgroup`. If `isZoneBasedFirewallEnabled()` ever returns false, this would be the alternate path — but that is out of scope for v5.0.
+
+#### No New API Endpoint Needed
+
+`getFirewallPolicies()` already fetches all policies. The `source` and `destination` objects already pass through `FirewallPolicySchema.passthrough()`. Mapping is pure in-process logic over already-fetched data.
+
+#### FirewallPolicySchema Changes Required
+
+`FirewallPolicySchema` needs typed `source` and `destination` fields so the mapping logic can access `client_macs` with TypeScript type safety rather than casting through `unknown`. The outer `.passthrough()` already preserves these objects in the raw output — adding explicit fields just makes them typed.
+
+**Proposed addition to `src/lib/unifi/types.ts`:**
+
+```typescript
+// New sub-schema
+export const FirewallPolicyEndpointSchema = z.object({
+  zone_id: z.string().optional(),
+  matching_target: z.string().optional(),
+  port_matching_type: z.string().optional(),
+  match_opposite_ports: z.boolean().optional(),
+  client_macs: z.array(z.string()).optional(),
+}).passthrough()
+
+export type FirewallPolicyEndpoint = z.infer<typeof FirewallPolicyEndpointSchema>
+
+// Inside FirewallPolicySchema's .object({...}), add:
+source: FirewallPolicyEndpointSchema.optional(),
+destination: FirewallPolicyEndpointSchema.optional(),
+```
+
+No change to `getFirewallPolicies()` itself. No change to the API route.
+
+#### Mock Layer Changes
+
+`mock.ts` policy objects need `source` and `destination` added to at least some entries so tests can exercise the mapping logic:
+
+```typescript
+// Example — policy targeting a specific device:
+{
+  _id: 'policy-1',
+  name: 'Block Gaming Consoles',
+  enabled: true,
+  source: {
+    zone_id: 'lan',
+    matching_target: 'CLIENT',
+    client_macs: ['aa:bb:cc:dd:ee:06'],   // Nintendo Switch from MOCK_CLIENTS
+  },
+  destination: { zone_id: 'wan', matching_target: 'ANY' },
+}
+```
+
+---
+
+### Feature 2: Inline Firewall Shortcut
+
+No new API endpoints or packages. Reuses:
+- `getFirewallPolicies()` — existing
+- `updateFirewallPolicy(id, enabled)` — existing, exposed via `/api/firewall` PUT
+- Rule-to-device mapping from Feature 1
+
+The component needs to: receive the device MAC, filter the already-fetched policies list to those matching the MAC, and render a toggle per matched policy using the existing `Switch` component from shadcn/ui.
+
+**Existing dependencies already cover this:**
+- `Switch` from shadcn/ui — already used on the Firewall page
+- `Badge` from shadcn/ui — already used for traffic status
+- `swr` — already in use for polling at dashboard level
+
+---
+
+### Feature 3: /statusz Health Page
+
+#### Existing Endpoint: `/api/statusz`
+
+Current response (from `src/app/api/statusz/route.ts`):
+```json
+{
+  "uptime": 3612,
+  "buildId": "abc123",
+  "nodeVersion": "v22.x.x",
+  "memoryMb": 148,
+  "nodeEnv": "production"
+}
+```
+
+PROJECT.md requires adding: DB connectivity, UniFi proxy reachability, app version.
+
+#### Endpoint Enhancement
+
+**DB connectivity check** — synchronous, uses existing `getDb()` from `src/lib/db/index.ts`:
+```typescript
+import { getDb } from '@/lib/db'
+let dbOk = false
+try {
+  getDb().prepare('SELECT 1').get()
+  dbOk = true
+} catch { /* stays false */ }
+```
+`better-sqlite3` is synchronous — no await needed.
+
+**UniFi proxy reachability** — needs a new lightweight function in `client.ts`. The `/stat/health` endpoint is the correct probe target: it returns aggregate site health stats, is read-only, and is lighter than `/stat/sta` (no per-client data).
+
+**New export for `src/lib/unifi/client.ts`:**
+```typescript
+export async function probeUnifiHealth(): Promise<boolean> {
+  const response = await fetch(`${baseUrl()}/stat/health`, {
+    dispatcher: agent,
+    signal: AbortSignal.timeout(5_000),
+    headers: { 'X-API-KEY': process.env.UNIFI_API_KEY! },
+  })
+  return response.ok
+}
+```
+
+**New export for `src/lib/unifi/mock.ts`:**
+```typescript
+export async function probeUnifiHealth(): Promise<boolean> {
+  return true  // mock always healthy
+}
+```
+
+**Add to `src/lib/unifi/index.ts`:**
+```typescript
+export const probeUnifiHealth = impl.probeUnifiHealth
+```
+
+#### /statusz UI Page
+
+A Server Component at `src/app/statusz/page.tsx`:
+- NOT behind auth (health pages must be accessible without a session)
+- Calls server functions directly (not via HTTP self-fetch)
+- Renders DB status, UniFi status, uptime, build ID, Node version, memory
+- Sits outside the `dashboard/` and `(auth)/` route groups
+
+**Stack usage:**
+- Server Component (default App Router behavior — no `'use client'`)
+- `Card`, `CardHeader`, `CardContent` from shadcn/ui — already installed
+- `Badge` for status indicators — already installed
+- No SWR needed (manual refresh sufficient for a health page)
+
+---
+
+### Change Surface Summary
+
+| File | Change Type | What Changes |
+|------|-------------|--------------|
+| `src/lib/unifi/types.ts` | Schema extension | Add `FirewallPolicyEndpointSchema`; add `source`/`destination` to `FirewallPolicySchema` |
+| `src/lib/unifi/client.ts` | New function | Add `probeUnifiHealth()` |
+| `src/lib/unifi/mock.ts` | Update data + new function | Add `source`/`destination` to mock policies; add `probeUnifiHealth()` |
+| `src/lib/unifi/index.ts` | Export | Add `probeUnifiHealth` export |
+| `src/app/api/statusz/route.ts` | Enhancement | Add DB check, UniFi probe, enrich response shape |
+| `src/app/statusz/page.tsx` | New file | Server Component health UI |
+| Dashboard device row component | New logic | Rule-to-device mapping + inline toggle |
+
+### Existing Stack Confirmed Sufficient
+
+| Technology | Version | v5.0 Role | Status |
+|------------|---------|-----------|--------|
+| Next.js | 16.2.3 | Server Components, API routes | No change |
+| React | 19.2.4 | UI components | No change |
+| TypeScript | ^5 | Type-safe schema extensions | No change |
+| Tailwind CSS | ^4 | Styling | No change |
+| shadcn/ui | ^4.2.0 | Card, Badge, Switch for statusz + inline toggle | No change |
+| Zod | ^4.3.6 | Schema extension for endpoint sub-schema | Schema update only |
+| better-sqlite3 | ^12.10.0 | DB health check in statusz | No change |
+| undici (Node built-in) | — | UniFi health probe reuses existing agent | No change |
+| swr | ^2.4.1 | Already polls policies at dashboard level | No change |
+| server-only | ^0.0.1 | Already guards client.ts | No change |
+
+### Confidence Assessment
+
+| Finding | Confidence | Basis |
+|---------|------------|-------|
+| No new npm packages needed | HIGH | Audited all three feature requirements against package.json |
+| ZBF uses `client_macs` for device targeting, not IP groups | MEDIUM | aiounifi TypedDict (well-maintained, tracks live API); no official Ubiquiti schema docs accessible |
+| `matching_target` field values (ANY, ZONE, etc.) | LOW | Single source (unpoller issue showing "ANY"); full enum not documented publicly |
+| `/stat/health` as lightweight probe endpoint | MEDIUM | UniFi community wiki + classic API reference; not firmware-version-tested |
+| `source`/`destination` already preserved via `.passthrough()` | HIGH | Direct code inspection of `FirewallPolicySchema` in `types.ts` |
+| statusz UI needs no new packages | HIGH | Display-only; shadcn/ui Card + Badge cover the requirement |
+
+### Open Questions for Phase Planning
+
+1. **`matching_target` enum**: Full list of values the console returns for device-specific policies is unknown without live UAT. Mapping logic should not filter by `matching_target` value — just look for the presence of `client_macs` in source or destination.
+
+2. **ZBF vs. classic rules fallback**: If `isZoneBasedFirewallEnabled()` returns false (older firmware), this mapping approach does not apply. Classic rules use `src_mac` at the top level and `src_firewall_group_ids`/`dst_firewall_group_ids` referencing `/rest/firewallgroup`. Scope v5.0 to ZBF only; show a "not supported" state if ZBF is not active.
+
+3. **statusz auth boundary**: Confirm `/statusz` is outside the `(auth)` and `dashboard` route groups in the App Router layout tree so it is accessible without a session.
+
+### Sources
+
+- [Kane610/aiounifi — firewall_policy.py](https://github.com/Kane610/aiounifi/blob/master/aiounifi/models/firewall_policy.py) — MEDIUM confidence
+- [Pulumi UniFi firewall.Rule properties](https://www.pulumi.com/registry/packages/unifi/api-docs/firewall/rule/) — MEDIUM confidence (classic rules schema, not ZBF)
+- [Art-of-WiFi UniFi API Reference](https://github.com/Art-of-WiFi/UniFi-API-client/blob/main/API_REFERENCE.md) — MEDIUM confidence (classic API)
+- [Ubiquiti Community Wiki — API](https://ubntwiki.com/products/software/unifi-controller/api) — LOW confidence (reverse-engineered)
+- [unpoller/unpoller Issue #928](https://github.com/unpoller/unpoller/issues/928) — LOW confidence (single example, `matching_target: "ANY"`)
+- Code inspection: `types.ts`, `client.ts`, `mock.ts`, `api/statusz/route.ts`, `db/index.ts` — HIGH confidence
+
+---
+
+## v2.0 Stack Research (2026-04-24)
+
+**Scope:** Stack additions and changes for direct local UniFi API client + self-hosted deployment. Base stack (Next.js 16, React 19, TypeScript 5, Tailwind CSS 4, shadcn/ui, SWR, Recharts, jose, ky, Zod, Vitest+RTL) is validated and unchanged.
+
+### What Changes in v2.0
+
+Three areas required new or changed stack decisions:
 
 1. **UniFi client rewrite** — replace Site Manager Proxy with direct local console API
 2. **Self-signed TLS** — local UniFi console uses a self-signed HTTPS certificate
 3. **Deployment** — remove Vercel, containerize with Docker standalone build
 
----
+### 1. Direct Local UniFi API Client
 
-## 1. Direct Local UniFi API Client
-
-### Authentication pattern
+**Authentication pattern**
 
 On UniFi OS consoles (Dream Machine Pro, UDM-SE, Cloud Gateway, etc.), the same `X-API-KEY` header used by the Site Manager Proxy also authenticates direct local requests. The key is generated locally at **UniFi Network → Settings → Control Plane → Integrations → Create New API Key** (requires Network Application v9.3.43+). No login/logout flow or session cookie is needed.
 
 **Confidence:** MEDIUM — confirmed by multiple community sources and the Art-of-WiFi API client implementation; not explicitly stated in official Ubiquiti docs found during research.
 
-### Endpoint structure
+**Endpoint structure**
 
-The existing codebase already hits the correct URL shape. The Site Manager Proxy calls go to:
-```
-https://api.ui.com/ea/console/{consoleId}/proxy/network/v2/api/site/default/...
-```
-
-The local equivalent strips the cloud proxy prefix and hits the console directly:
+The local equivalent of the cloud proxy strips the cloud prefix and hits the console directly:
 ```
 https://{LAN_IP}/proxy/network/v2/api/site/default/stat/sta
 https://{LAN_IP}/proxy/network/v2/api/site/default/firewall-policies
 https://{LAN_IP}/proxy/network/v2/api/site/default/site-feature-migration
 ```
 
-The `/proxy/network/` prefix is required for all UniFi OS-based consoles (UDM, UDR, UCG, etc.) — it routes through UniFi OS to the Network Application. The path suffix after that prefix is identical to what the codebase already uses.
+The `/proxy/network/` prefix is required for all UniFi OS-based consoles — it routes through UniFi OS to the Network Application. The path suffix is identical to what the codebase used via the cloud proxy.
 
-**Important:** The official `integration/v1` API (`/proxy/network/integration/v1/`) is a newer, more limited surface. It does not expose `rx_bytes-r` / `tx_bytes-r` real-time traffic fields or the firewall policies endpoints used by this app. Stick with the classic API path (`/proxy/network/v2/api/` or `/proxy/network/api/`). The `v2` path is what the current client already uses via the proxy; it should work identically when called directly.
+**Important:** The official `integration/v1` API (`/proxy/network/integration/v1/`) does not expose `rx_bytes-r` / `tx_bytes-r` real-time traffic fields or the firewall policies endpoints. Stick with the classic API path (`/proxy/network/v2/api/`).
 
-**Confidence:** MEDIUM — the v2 path mirroring is strongly implied by how Site Manager proxy works; exact behavior of X-API-KEY on the classic v2 path locally should be validated empirically on the target hardware.
+**Confidence:** MEDIUM — the v2 path mirroring is strongly implied by how the Site Manager proxy works; validated empirically on target hardware.
 
-### No new npm packages needed for the client itself
+### 2. Self-Signed TLS Certificate Handling
 
-`ky` remains the right HTTP client. The client.ts rewrite is purely a URL and auth-header change — no library additions.
+`NODE_TLS_REJECT_UNAUTHORIZED=0` disables TLS verification globally — do not use it.
 
----
+**Solution: `undici` Agent dispatcher (no new package)**
 
-## 2. Self-Signed TLS Certificate Handling
-
-### The problem
-
-The UniFi OS console serves HTTPS on port 443 with a self-signed certificate. Node.js (and therefore Next.js Server Components and Server Actions) will throw `ERR_TLS_CERT_ALTNAME_INVALID` or `SELF_SIGNED_CERT_IN_CHAIN` when making fetch/ky requests to the console without special handling.
-
-`NODE_TLS_REJECT_UNAUTHORIZED=0` disables TLS verification globally for the entire process — this affects all outbound HTTPS calls, not just UniFi requests. Do not use it.
-
-### Recommended approach: `undici` Agent dispatcher (no new package)
-
-Node.js 18+ ships `undici` as its native fetch implementation. `ky` on Node.js uses native `fetch`, which accepts an `undici` dispatcher. A scoped `Agent` with `rejectUnauthorized: false` disables verification only for the UniFi console fetch calls:
+Node.js 18+ ships `undici` as its native fetch implementation. A scoped `Agent` with `rejectUnauthorized: false` disables verification only for the UniFi console fetch calls:
 
 ```typescript
 import { Agent } from 'undici'
 
-const unifiAgent = new Agent({
+const agent = new Agent({
   connect: { rejectUnauthorized: false },
 })
 
-// Pass as fetch init option — ky supports this via the `dispatcher` option
-const client = ky.create({
-  prefixUrl: `https://${process.env.UNIFI_HOST}/proxy/network`,
-  headers: { 'X-API-KEY': process.env.UNIFI_API_KEY! },
-  dispatcher: unifiAgent,   // ky passes unknown fetch options through
+// Pass as dispatcher on every fetch to the UniFi console:
+const response = await fetch(`${baseUrl()}/stat/sta`, {
+  dispatcher: agent,
+  headers: { 'X-API-KEY': apiKey },
 })
 ```
 
 `undici` is not a new dependency — it is bundled with Node.js 18+. No `npm install` required.
 
-**Alternative (also no new package):** Read the console's self-signed cert PEM, store it as an env var, and pass `ca: Buffer.from(cert)` to the Agent. This keeps TLS verification ON and is strictly more secure. However, it adds operational friction (cert must be exported from the console and re-exported when it rotates). For a LAN-only home network app, `rejectUnauthorized: false` scoped to the UniFi agent is the practical choice. The threat model is a family LAN, not a public internet endpoint.
-
 **Confidence:** HIGH — undici Agent dispatcher behavior confirmed in Next.js GitHub discussions and Node.js undici issues.
 
----
+### 3. Docker / Self-Hosted Deployment
 
-## 3. Docker / Self-Hosted Deployment
+**Next.js standalone output** (`output: 'standalone'` in `next.config.ts`) produces `.next/standalone/` — a self-contained directory with a `server.js` entrypoint. No `npm install` is needed in the production container.
 
-### Next.js standalone output (add to `next.config.ts`)
-
-```typescript
-const nextConfig: NextConfig = {
-  output: 'standalone',
-}
-```
-
-This produces `.next/standalone/` — a self-contained directory with a `server.js` entrypoint and a trimmed `node_modules` containing only runtime deps. No `npm install` is needed in the production container. Image size drops significantly compared to copying the full project.
-
-**Confidence:** HIGH — official Next.js docs, confirmed by multiple 2025 deployment guides.
-
-### Dockerfile pattern (multi-stage, Node 22 Alpine)
+**Dockerfile pattern (multi-stage, Node 22 Alpine):**
 
 ```dockerfile
 FROM node:22-alpine AS builder
@@ -122,112 +331,37 @@ EXPOSE 3000
 CMD ["node", "server.js"]
 ```
 
-No new npm packages — just a `Dockerfile` and a one-line change to `next.config.ts`.
+**Confidence:** HIGH — official Next.js self-hosting docs + multiple 2025 deployment guides.
 
-### Runtime environment variables
+### 4. Vercel-Specific Removals
 
-With standalone output, Next.js reads `process.env` at runtime (not baked in at build time for server-side vars). All sensitive env vars (`UNIFI_API_KEY`, `UNIFI_HOST`, `AUTH_SECRET`, etc.) are passed at container start:
+No Vercel-specific features were found in the codebase (`vercel.json`, edge runtime, `NEXT_PUBLIC_` API keys). No removals needed.
 
-```bash
-docker run -p 3000:3000 \
-  -e UNIFI_HOST=192.168.1.1 \
-  -e UNIFI_API_KEY=your-key \
-  -e AUTH_SECRET=your-secret \
-  unifi-dashboard
-```
+### Summary of v2.0 Stack Changes
 
-Or via a `.env` file:
-```bash
-docker run --env-file .env.local -p 3000:3000 unifi-dashboard
-```
-
-### Reverse proxy (optional but recommended)
-
-For LAN use, running the container directly on port 3000 is fine. If HTTPS is desired for the dashboard itself (separate from the UniFi console TLS), a Caddy or nginx reverse proxy with a LAN certificate is the addition. No Next.js changes needed — this is infrastructure.
-
-**Confidence:** HIGH — official Next.js self-hosting docs + multiple 2025 Docker guides.
-
----
-
-## 4. Vercel-Specific Removals
-
-### What to audit and remove
-
-| Feature | Current Status | Action |
-|---------|---------------|--------|
-| `vercel.json` | Does not exist | Nothing to do |
-| Vercel Cron Jobs | Not used — app uses SWR polling, no server-side cron | Nothing to do |
-| Vercel Edge Functions | Not used — no `export const runtime = 'edge'` found | Nothing to do |
-| `NEXT_PUBLIC_` env vars | None found for API keys — correct pattern already followed | Nothing to do |
-| Vercel-specific image CDN | `next/image` works self-hosted with `next start` and standalone output | Nothing to do |
-
-**Finding:** The codebase has no Vercel-specific features to remove. The only Vercel dependency was the deployment target itself. `next/headers`, `cookies()`, Server Actions — all standard Next.js, all work in standalone Docker.
-
-**Confidence:** HIGH — codebase review confirmed no `vercel.json`, no edge runtime exports, no Vercel SDK imports.
-
----
-
-## Summary of Stack Changes for v2.0
-
-### Add (config/infra only — no new npm packages)
+#### Added (config/infra only — no new npm packages)
 
 | Change | Where | Why |
 |--------|-------|-----|
-| `output: 'standalone'` | `next.config.ts` | Enables Docker deployment without full node_modules |
+| `output: 'standalone'` | `next.config.ts` | Enables Docker deployment |
 | `Dockerfile` (multi-stage) | project root | Builds and runs the standalone output |
-| `.dockerignore` | project root | Excludes node_modules, .next from build context |
-| `UNIFI_HOST` env var | `.env.local`, docker run | Replaces `UNIFI_CONSOLE_ID` — points to LAN IP |
-| `undici` Agent for TLS | `src/lib/unifi/client.ts` | Scoped self-signed cert bypass for UniFi HTTPS |
+| `UNIFI_HOST` env var | `.env.local`, docker run | Points to console LAN IP |
+| `undici` Agent for TLS | `src/lib/unifi/client.ts` | Scoped self-signed cert bypass |
 
-### Remove
+#### Removed
 
 | Change | Why |
 |--------|-----|
-| `UNIFI_CONSOLE_ID` env var | No longer needed — no cloud proxy, no console ID |
-| Site Manager base URL (`api.ui.com`) | Replaced with direct LAN IP |
-| Cloud proxy URL path prefix | Direct path to console |
+| `UNIFI_CONSOLE_ID` env var | No longer needed — direct LAN access |
+| Site Manager base URL (`api.ui.com`) | Replaced with LAN IP |
 
-### Keep Unchanged
+### v2.0 Sources
 
-All existing packages, versions, and patterns. The client.ts function signatures (`getUnifiClients`, `getFirewallPolicies`, etc.) stay identical — only the HTTP wiring inside changes. The mock layer, Zod schemas, types, and all consumers are unaffected.
-
----
-
-## Version Pinning (current, from package.json)
-
-| Package | Current Version | Notes |
-|---------|----------------|-------|
-| next | 16.2.3 | Already upgraded beyond 15.x |
-| ky | 2.0.1 | Supports `dispatcher` passthrough to undici |
-| undici | bundled with Node 22 | No npm install needed |
-| Node.js (Docker) | 22-alpine | LTS, supported through 2027 |
+- **Next.js Self-Hosting Guide** — [nextjs.org/docs/app/guides/self-hosting](https://nextjs.org/docs/app/guides/self-hosting) — HIGH confidence
+- **undici Agent with rejectUnauthorized** — [github.com/vercel/next.js/discussions/74187](https://github.com/vercel/next.js/discussions/74187) — HIGH confidence
+- **UniFi API Key Authentication** — [help.ui.com/hc/en-us/articles/30076656117655](https://help.ui.com/hc/en-us/articles/30076656117655) — MEDIUM confidence
+- **UniFi Classic API Reference** — [ubntwiki.com/products/software/unifi-controller/api](https://ubntwiki.com/products/software/unifi-controller/api) — MEDIUM confidence
 
 ---
-
-## Open Questions / Validation Needed
-
-1. **X-API-KEY on v2 path locally:** Confirm that `X-API-KEY` header authenticates successfully against `https://{LAN_IP}/proxy/network/v2/api/site/default/...` on the target hardware. The Site Manager proxy accepted it; the local console should as well, but this has not been validated against real hardware.
-
-2. **`rx_bytes-r` / `tx_bytes-r` via v2 path locally:** The current Zod schema and transformClient function depend on these fields from `stat/sta`. Verify the response shape is identical when calling the local endpoint vs. the proxied version.
-
-3. **Firewall policies endpoint locally:** The app uses `/firewall-policies` (v2 path). Verify this path exists on the local console or falls back to the classic `/rest/firewallrule` path. If it doesn't exist locally, the schema and client will need to target the classic path instead.
-
-4. **Port:** UniFi OS consoles use port 443 (HTTPS). Confirm whether any target hardware uses a non-standard port.
-
----
-
-## Sources
-
-- **Next.js Self-Hosting Guide** — [nextjs.org/docs/app/guides/self-hosting](https://nextjs.org/docs/app/guides/self-hosting) — HIGH confidence (official docs, updated 2026-04-23)
-- **Next.js Deploying Guide** — [nextjs.org/docs/app/getting-started/deploying](https://nextjs.org/docs/app/getting-started/deploying) — HIGH confidence (official)
-- **undici Agent with rejectUnauthorized** — [github.com/vercel/next.js/discussions/74187](https://github.com/vercel/next.js/discussions/74187) — HIGH confidence (Next.js official repo discussion)
-- **UniFi API Key Authentication** — [help.ui.com/hc/en-us/articles/30076656117655](https://help.ui.com/hc/en-us/articles/30076656117655) — MEDIUM confidence (official Ubiquiti Help Center, behind 403 during research)
-- **UniFi API Authentication Methods** — [artofwifi.net/blog/unifi-api-authentication-local-admin-vs-api-key-vs-site-manager](https://artofwifi.net/blog/unifi-api-authentication-local-admin-vs-api-key-vs-site-manager) — MEDIUM confidence (community, well-maintained)
-- **UniFi Classic API Reference** — [ubntwiki.com/products/software/unifi-controller/api](https://ubntwiki.com/products/software/unifi-controller/api) — MEDIUM confidence (community reverse-engineering, widely used)
-- **UniFi Developer Best Practices** — [github.com/uchkunr/awesome-unifi](https://github.com/uchkunr/awesome-unifi) — MEDIUM confidence (community guide with integration/v1 and classic API comparison)
-- **Docker Next.js Standalone 2025** — [serversinc.io/blog/how-to-deploy-next-js-to-a-docker-container-complete-2025-production-guide](https://serversinc.io/blog/how-to-deploy-next-js-to-a-docker-container-complete-2025-production-guide) — MEDIUM confidence (community)
-
----
-*Stack research for: UniFi Network Dashboard v2.0 Local Edition*
-*Researched: 2026-04-24*
-*Supersedes: v1.0 stack research (2026-04-14) for the areas covered above*
+*v5.0 section researched: 2026-07-18*
+*v2.0 section researched: 2026-04-24*
