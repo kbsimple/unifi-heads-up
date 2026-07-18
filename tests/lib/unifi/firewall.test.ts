@@ -146,7 +146,7 @@ describe('isZoneBasedFirewallEnabled', () => {
       status: 200,
       statusText: 'OK',
       json: () => Promise.resolve(mockResponse),
-    } as unknown as Response)
+    } as unknown as Awaited<ReturnType<typeof fetch>>)
 
     const result = await isZoneBasedFirewallEnabled()
 
@@ -163,7 +163,7 @@ describe('isZoneBasedFirewallEnabled', () => {
       status: 200,
       statusText: 'OK',
       json: () => Promise.resolve(mockResponse),
-    } as unknown as Response)
+    } as unknown as Awaited<ReturnType<typeof fetch>>)
 
     const result = await isZoneBasedFirewallEnabled()
 
@@ -178,7 +178,7 @@ describe('isZoneBasedFirewallEnabled', () => {
       status: 200,
       statusText: 'OK',
       json: () => Promise.resolve(mockResponse),
-    } as unknown as Response)
+    } as unknown as Awaited<ReturnType<typeof fetch>>)
 
     const result = await isZoneBasedFirewallEnabled()
 
@@ -210,7 +210,7 @@ describe('getFirewallPolicies', () => {
       status: 200,
       statusText: 'OK',
       json: () => Promise.resolve(mockResponse),
-    } as unknown as Response)
+    } as unknown as Awaited<ReturnType<typeof fetch>>)
 
     const result = await getFirewallPolicies()
 
@@ -234,7 +234,7 @@ describe('getFirewallPolicies', () => {
       status: 200,
       statusText: 'OK',
       json: () => Promise.resolve(mockResponse),
-    } as unknown as Response)
+    } as unknown as Awaited<ReturnType<typeof fetch>>)
 
     const result = await getFirewallPolicies()
 
@@ -252,7 +252,7 @@ describe('getFirewallPolicies', () => {
       status: 200,
       statusText: 'OK',
       json: () => Promise.resolve(mockResponse),
-    } as unknown as Response)
+    } as unknown as Awaited<ReturnType<typeof fetch>>)
 
     const result = await getFirewallPolicies()
 
@@ -295,13 +295,13 @@ describe('updateFirewallPolicy', () => {
         status: 200,
         statusText: 'OK',
         json: () => Promise.resolve(fullPolicyFromServer),
-      } as unknown as Response)
+      } as unknown as Awaited<ReturnType<typeof fetch>>)
       .mockResolvedValueOnce({
         ok: true,
         status: 200,
         statusText: 'OK',
         json: () => Promise.resolve({ ...fullPolicyFromServer, enabled: false }),
-      } as unknown as Response)
+      } as unknown as Awaited<ReturnType<typeof fetch>>)
 
     const result = await updateFirewallPolicy('policy-1', false)
 
@@ -332,13 +332,13 @@ describe('updateFirewallPolicy', () => {
         status: 200,
         statusText: 'OK',
         json: () => Promise.resolve(fullPolicyFromServer),
-      } as unknown as Response)
+      } as unknown as Awaited<ReturnType<typeof fetch>>)
       .mockResolvedValueOnce({
         ok: true,
         status: 200,
         statusText: 'OK',
         json: () => Promise.resolve({ ...fullPolicyFromServer, enabled: true }),
-      } as unknown as Response)
+      } as unknown as Awaited<ReturnType<typeof fetch>>)
 
     const result = await updateFirewallPolicy('policy-1', true)
 
@@ -353,7 +353,7 @@ describe('updateFirewallPolicy', () => {
       status: 404,
       statusText: 'Not Found',
       text: () => Promise.resolve('{"error":"Policy not found"}'),
-    } as unknown as Response)
+    } as unknown as Awaited<ReturnType<typeof fetch>>)
 
     await expect(updateFirewallPolicy('missing-id', false)).rejects.toThrow(
       /404.*Not Found.*Policy not found/
@@ -367,13 +367,13 @@ describe('updateFirewallPolicy', () => {
         status: 200,
         statusText: 'OK',
         json: () => Promise.resolve(fullPolicyFromServer),
-      } as unknown as Response)
+      } as unknown as Awaited<ReturnType<typeof fetch>>)
       .mockResolvedValueOnce({
         ok: false,
         status: 422,
         statusText: 'Unprocessable Entity',
         text: () => Promise.resolve('{"error":"Missing required fields"}'),
-      } as unknown as Response)
+      } as unknown as Awaited<ReturnType<typeof fetch>>)
 
     await expect(updateFirewallPolicy('policy-1', false)).rejects.toThrow(
       /422.*Unprocessable Entity.*Missing required fields/

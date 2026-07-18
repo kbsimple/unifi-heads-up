@@ -19,7 +19,7 @@ function mockFetchWith(clients: object[]) {
     status: 200,
     statusText: 'OK',
     json: () => Promise.resolve(clients),
-  } as unknown as Response)
+  } as unknown as Awaited<ReturnType<typeof fetch>>)
 }
 
 const BASE_CLIENT = {

@@ -48,7 +48,7 @@ describe('getUnifiClients', () => {
       status: 200,
       statusText: 'OK',
       json: () => Promise.resolve(mockResponse),
-    } as unknown as Response)
+    } as unknown as Awaited<ReturnType<typeof fetch>>)
 
     const result = await getUnifiClients()
 
@@ -90,7 +90,7 @@ describe('getUnifiClients', () => {
       status: 200,
       statusText: 'OK',
       json: () => Promise.resolve(mockResponse),
-    } as unknown as Response)
+    } as unknown as Awaited<ReturnType<typeof fetch>>)
 
     const result = await getUnifiClients()
     const client = result.clients[0]
@@ -126,7 +126,7 @@ describe('getUnifiClients', () => {
       status: 200,
       statusText: 'OK',
       json: () => Promise.resolve(mockResponse),
-    } as unknown as Response)
+    } as unknown as Awaited<ReturnType<typeof fetch>>)
 
     const result = await getUnifiClients()
 
@@ -154,7 +154,7 @@ describe('getUnifiClients', () => {
       status: 200,
       statusText: 'OK',
       json: () => Promise.resolve(mockResponse),
-    } as unknown as Response)
+    } as unknown as Awaited<ReturnType<typeof fetch>>)
 
     const result = await getUnifiClients()
 
@@ -184,7 +184,7 @@ describe('getUnifiClients', () => {
       status: 200,
       statusText: 'OK',
       json: () => Promise.resolve([]),
-    } as unknown as Response)
+    } as unknown as Awaited<ReturnType<typeof fetch>>)
     await getUnifiClients()
     expect(fetch).toHaveBeenCalledWith(
       'https://192.168.1.1/proxy/network/v2/api/site/default/stat/sta',
