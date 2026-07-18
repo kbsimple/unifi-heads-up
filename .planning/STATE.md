@@ -5,7 +5,7 @@ milestone_name: Quality & Testing
 status: complete
 stopped_at: ""
 last_updated: "2026-06-11T01:12:25Z"
-last_activity: "2026-07-17 - Completed quick task 260717-lbr: Fix Last Busy column not refreshing on page load"
+last_activity: "2026-07-17 - Completed quick task 260717-trs: Add discrete time-range selector to traffic charts"
 progress:
   total_phases: 1
   completed_phases: 1
@@ -138,6 +138,7 @@ None.
 | 260717-dab | Fix dashboard rx/tx swap and seed Last Busy from DB snapshots | 2026-07-17 | cd12916 | [260717-dab-dashboard-activity-bugs](./quick/260717-dab-dashboard-activity-bugs/) |
 | 260717-rgt | Add regression tests for dashboard rx/tx swap and DB-backed lastBusy fixes | 2026-07-17 | bd53de4 | [260717-rgt-dashboard-bug-regression-tests](./quick/260717-rgt-dashboard-bug-regression-tests/) |
 | 260717-lbr | Fix Last Busy column not refreshing on page load | 2026-07-17 | b15c698 | [260717-lbr-last-busy-refresh](./quick/260717-lbr-last-busy-refresh/) |
+| 260717-trs | Add discrete time-range selector to site and per-device traffic charts | 2026-07-17 | 8e48aed | [260717-trs-time-range-selector](./quick/260717-trs-time-range-selector/) |
 
 ### Blockers/Concerns
 
