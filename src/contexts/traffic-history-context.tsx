@@ -92,11 +92,14 @@ export function TrafficHistoryProvider({ children }: { children: React.ReactNode
         // Seed lastBusy from DB-persisted values on first poll (survives page reloads)
         if (!dbSeededRef.current) {
           dbSeededRef.current = true
+          let seeded = false
           for (const client of data.clients) {
             if (client.lastBusy !== null && !lastBusyRef.current.has(client.id)) {
               lastBusyRef.current.set(client.id, client.lastBusy)
+              seeded = true
             }
           }
+          if (seeded) setSampleCount((c) => c + 1)
         }
 
         const now = data.timestamp

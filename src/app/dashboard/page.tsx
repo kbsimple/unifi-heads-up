@@ -1,5 +1,7 @@
 import { verifySession } from '@/lib/dal'
 import { getUnifiClients } from '@/lib/unifi'
+import { getDb } from '@/lib/db'
+import { queryAllLastBusy } from '@/lib/insights/queries'
 import { ClientList } from '@/components/dashboard/client-list'
 
 export default async function DashboardPage() {
@@ -7,7 +9,12 @@ export default async function DashboardPage() {
 
   let initialClients
   try {
-    initialClients = await getUnifiClients()
+    const result = await getUnifiClients()
+    const lastBusyMap = queryAllLastBusy(getDb())
+    initialClients = {
+      ...result,
+      clients: result.clients.map((c) => ({ ...c, lastBusy: lastBusyMap[c.mac] ?? null })),
+    }
   } catch {
     initialClients = { clients: [], timestamp: Date.now() }
   }

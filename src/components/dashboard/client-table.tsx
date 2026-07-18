@@ -105,8 +105,8 @@ export function ClientTable({ clients, activeOnly = false }: ClientTableProps) {
         cmp = STATUS_ORDER[a.trafficStatus] - STATUS_ORDER[b.trafficStatus]
         break
       case 'lastBusy': {
-            const aTime = getClientLastBusy(a.id) ?? 0
-            const bTime = getClientLastBusy(b.id) ?? 0
+            const aTime = Math.max(getClientLastBusy(a.id) ?? 0, a.lastBusy ?? 0)
+            const bTime = Math.max(getClientLastBusy(b.id) ?? 0, b.lastBusy ?? 0)
             cmp = aTime - bTime
             break
           }
@@ -171,7 +171,7 @@ export function ClientTable({ clients, activeOnly = false }: ClientTableProps) {
         </thead>
         <tbody>
           {sorted.map((client) => {
-            const lastBusy = getClientLastBusy(client.id)
+            const lastBusy = Math.max(getClientLastBusy(client.id) ?? 0, client.lastBusy ?? 0) || null
             const isExpanded = expandedMac === client.mac
             const history = historyData[client.mac]
             const chartData = (history ?? []).map((b) => ({
