@@ -5,13 +5,6 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { LogoutButton } from '@/components/logout-button'
 
-/**
- * Dashboard layout with navigation bar
- * Per D-01, D-02: Three navigation tabs (Dashboard, Firewall, Insights)
- * Per D-02: Active tab has sky-600 accent color
- * Per D-09: Top navigation bar with app name left, logout right
- * Per D-10: Simple layout for future dashboard content
- */
 export default function DashboardLayout({
   children,
 }: {
@@ -19,56 +12,41 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname()
 
+  const linkClass = (active: boolean) =>
+    `text-sm font-medium transition-colors ${
+      active ? 'text-sky-600 border-b-2 border-sky-600' : 'text-zinc-400 hover:text-zinc-100'
+    }`
+
   return (
     <div className="min-h-screen bg-zinc-950">
-      {/* Navigation bar - 64px height per UI-SPEC */}
-      <header className="h-16 bg-zinc-900 border-b border-zinc-800 px-6 flex items-center justify-between">
-        {/* App name and navigation tabs - left aligned */}
-        <div className="flex items-center gap-6">
-          <h1 className="text-xl font-semibold text-zinc-100">
-            Unifi Dashboard
-          </h1>
-          {/* Navigation tabs - per D-01, D-02: Dashboard, Firewall, Insights */}
-          <nav className="flex items-center gap-4">
-            <Link
-              href="/dashboard"
-              className={`text-sm font-medium transition-colors ${
-                pathname === '/dashboard'
-                  ? 'text-sky-600 border-b-2 border-sky-600'
-                  : 'text-zinc-400 hover:text-zinc-100'
-              }`}
-            >
-              Dashboard
-            </Link>
-            <Link
-              href="/dashboard/firewall"
-              className={`text-sm font-medium transition-colors ${
-                pathname === '/dashboard/firewall'
-                  ? 'text-sky-600 border-b-2 border-sky-600'
-                  : 'text-zinc-400 hover:text-zinc-100'
-              }`}
-            >
-              Firewall
-            </Link>
-            <Link
-              href="/dashboard/insights"
-              className={`text-sm font-medium transition-colors ${
-                pathname === '/dashboard/insights' || pathname.startsWith('/dashboard/insights/')
-                  ? 'text-sky-600 border-b-2 border-sky-600'
-                  : 'text-zinc-400 hover:text-zinc-100'
-              }`}
-            >
-              Insights
-            </Link>
-          </nav>
+      <header className="bg-zinc-900 border-b border-zinc-800">
+        <div className="h-16 px-4 md:px-6 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4 md:gap-6 min-w-0">
+            <h1 className="hidden md:block text-xl font-semibold text-zinc-100 shrink-0">
+              Unifi Dashboard
+            </h1>
+            <nav className="flex items-center gap-4 md:gap-6">
+              <Link href="/dashboard" className={linkClass(pathname === '/dashboard')}>
+                Dashboard
+              </Link>
+              <Link href="/dashboard/firewall" className={linkClass(pathname === '/dashboard/firewall')}>
+                Firewall
+              </Link>
+              <Link
+                href="/dashboard/insights"
+                className={linkClass(
+                  pathname === '/dashboard/insights' || pathname.startsWith('/dashboard/insights/')
+                )}
+              >
+                Insights
+              </Link>
+            </nav>
+          </div>
+          <LogoutButton />
         </div>
-
-        {/* Logout button - right aligned */}
-        <LogoutButton />
       </header>
 
-      {/* Main content area */}
-      <main className="p-6">
+      <main className="p-4 md:p-6">
         {children}
       </main>
     </div>
