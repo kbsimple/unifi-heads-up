@@ -8,6 +8,15 @@ A web application for monitoring home network traffic and managing firewall rule
 
 **Visibility and control over home network traffic.** If everything else fails, users must be able to see which devices are actively using bandwidth and pause/resume internet access for specific devices or groups.
 
+## Current Milestone: v5.0 Streamlining Management UX Flows
+
+**Goal:** Reduce friction in common management actions so users can act on what they see without navigating away.
+
+**Target features:**
+- Rule-to-device mapping: understand which firewall rules reference a given device (by MAC, IP, or IP group membership)
+- Firewall shortcut in device activity: inline rule toggle in the expanded device row, powered by the mapping layer
+- /statusz health page: DB + UniFi proxy status, app version
+
 ## Requirements
 
 ### Validated
@@ -31,7 +40,10 @@ A web application for monitoring home network traffic and managing firewall rule
 
 ### Active
 
-*(No active requirements — next milestone to be defined)*
+- [ ] App can map firewall rules to devices by MAC/IP (including indirect membership via IP groups)
+- [ ] User can see which firewall rules apply to a device from the device activity expanded row
+- [ ] User can toggle applicable firewall rules directly from the device activity row without navigating to the Firewall page
+- [ ] User can view app health status (/statusz): DB connectivity, UniFi proxy reachability, app version
 
 ### Out of Scope
 
@@ -69,7 +81,7 @@ A web application for monitoring home network traffic and managing firewall rule
 ## Current State
 
 **Shipped:** v4.0 Quality & Testing (2026-06-11)
-**Next:** v5.0 — to be defined
+**Active:** v5.0 Streamlining Management UX Flows
 
 The app is fully self-hosted on LAN via Docker, records continuous bandwidth snapshots into SQLite, shows an insights page with per-device usage patterns, lets users star and filter firewall rules, supports time-limited scheduling of firewall rules, and is now covered by a Playwright E2E test suite (15 browser-level tests) that runs against a real standalone Next.js server before each deploy.
 
@@ -116,4 +128,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-11 after v4.0 Quality & Testing milestone*
+*Last updated: 2026-07-18 after v5.0 milestone start*

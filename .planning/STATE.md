@@ -1,36 +1,36 @@
 ---
 gsd_state_version: 1.0
-milestone: v4.0
-milestone_name: Quality & Testing
-status: complete
+milestone: v5.0
+milestone_name: Streamlining Management UX Flows
+status: in_progress
 stopped_at: ""
-last_updated: "2026-06-11T01:12:25Z"
-last_activity: "2026-07-17 - Completed quick task 260717-trs: Add discrete time-range selector to traffic charts"
+last_updated: "2026-07-18T00:00:00Z"
+last_activity: "2026-07-18 - Milestone v5.0 started, defining requirements"
 progress:
-  total_phases: 1
-  completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-24)
+See: .planning/PROJECT.md (updated 2026-07-18)
 
-**Core value:** Visibility and control over home network traffic — users must be able to see which devices are actively using bandwidth and pause/resume internet access for specific devices or groups.
-**Current focus:** v4.0 shipped — planning next milestone
+**Core value:** Visibility and control over home network traffic — users must be able to see which devices are actively using bandwidth and pause/resume internet access for specific devices.
+**Current focus:** v5.0 — Streamlining Management UX Flows
 
 ## Current Position
 
-Phase: Phase 12 — End-to-End Tests (v4.0, complete 2026-06-11)
-Plan: 12-02 (complete — all plans done)
-Status: v4.0 complete — Phase 12 finished, all 2 plans done
-Last activity: 2026-06-11 — Completed 12-02-PLAN.md — Dashboard, Firewall, and Insights E2E specs; 15/15 tests passing
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements for v5.0
+Last activity: 2026-07-18 — Milestone v5.0 started
 
-Progress: [██████████] 100% — v3.0 shipped, no new milestone roadmap yet
+Progress: [░░░░░░░░░░] 0% — roadmap not yet created
 
 ## Performance Metrics
 
