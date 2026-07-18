@@ -70,6 +70,7 @@ Progress: [░░░░░░░░░░] 0% — 0/5 phases complete
 - Phase 11 added: Firewall rule scheduling — temporary duration on enabled rules with auto-disable
 - Phase 12 added: End-to-end tests — real Next.js server + mock UniFi API + browser-level assertions (Playwright)
 - Phases 13–17 added: v5.0 Streamlining Management UX Flows — schema/mock, statusz page, mapping logic, device-rules API, inline toggle UI
+- Phase 18 added: Per-Client App Visibility (DPI) — show top apps per device in expanded row using UniFi DPI data
 
 ### Decisions
 

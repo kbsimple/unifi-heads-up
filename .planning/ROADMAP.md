@@ -59,6 +59,7 @@ Full archive: `.planning/milestones/v4.0-ROADMAP.md`
 - [ ] **Phase 15: Mapping Logic** - Implement mapping.ts to determine which firewall rules apply to a device by MAC/IP using ZBF or legacy mode
 - [ ] **Phase 16: Device Rules API Route** - Add GET /api/firewall/device-rules route that composes the mapping layer and returns applicable rules for a device
 - [ ] **Phase 17: Inline Toggle UI** - Add inline firewall rule list with toggles to the expanded device row in the dashboard
+- [ ] **Phase 18: Per-Client App Visibility (DPI)** - Show top applications per device (YouTube, Netflix, etc.) in the expanded row using UniFi Deep Packet Inspection data
 
 ---
 
@@ -216,6 +217,18 @@ Full archive: `.planning/milestones/v4.0-ROADMAP.md`
 **Plans**: TBD
 **UI hint**: yes
 
+### Phase 18: Per-Client App Visibility (DPI)
+**Goal**: Users can see which applications a device is using (e.g. YouTube, Netflix, Zoom) in the expanded device row, powered by UniFi Deep Packet Inspection
+**Depends on**: Phase 8 (SQLite snapshot infrastructure — recorder pattern reused for DPI snapshots)
+**Requirements**: TBD
+**Success Criteria** (what must be TRUE):
+  1. Expanding a device row shows a "Top Apps" section listing the top applications by data volume for the selected time window
+  2. App names are human-readable (e.g. "YouTube", "Netflix") — not raw numeric IDs
+  3. Data reflects actual traffic deltas over the window (not cumulative totals from the controller)
+  4. When DPI is disabled on the controller or the device has no DPI data, a clear "DPI not available" message is shown instead of an empty state
+**Plans**: TBD
+**UI hint**: yes
+
 ---
 
 ## Progress
@@ -239,3 +252,4 @@ Full archive: `.planning/milestones/v4.0-ROADMAP.md`
 | 15. Mapping Logic | v5.0 | 0/? | Not started | - |
 | 16. Device Rules API Route | v5.0 | 0/? | Not started | - |
 | 17. Inline Toggle UI | v5.0 | 0/? | Not started | - |
+| 18. Per-Client App Visibility (DPI) | v5.0 | 0/? | Not started | - |
