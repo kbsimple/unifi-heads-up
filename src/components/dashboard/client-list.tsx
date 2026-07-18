@@ -1,15 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import useSWR from 'swr'
 import { ClientCard } from './client-card'
 import { ClientTable } from './client-table'
 import { LastUpdated } from './last-updated'
 import { EmptyState } from './empty-state'
 import { ErrorState } from './error-state'
-import { TrafficChart, formatHourLabel } from './traffic-chart'
+import { TrafficChart, WindowSelector, formatHourLabel } from './traffic-chart'
 import { TrafficHistoryProvider, useTrafficHistory } from '@/contexts/traffic-history-context'
 import { bytesPerSecToMbps } from '@/lib/unifi/traffic'
+import { formatBucketLabel } from '@/lib/unifi/format'
+import { bucketSecondsForWindow } from '@/lib/insights/queries'
+import type { HistoryBucket } from '@/lib/insights/queries'
 import { Card, CardContent } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
 import type { ClientsResponse } from '@/lib/unifi/types'
@@ -22,16 +25,17 @@ interface ClientListProps {
 
 function ClientListInner({ initialData }: ClientListProps) {
   const [activeOnly, setActiveOnly] = useState(false)
+  const [siteWindow, setSiteWindow] = useState<number>(1440)
+  const [siteApiData, setSiteApiData] = useState<HistoryBucket[] | null>(null)
   const { data, error, isLoading, mutate } = useSWR<ClientsResponse>(
     '/api/clients',
     fetcher,
     {
       fallbackData: initialData,
-      refreshInterval: 60000, // Per DEVI-05: 60 second polling
+      refreshInterval: 60000,
       revalidateOnFocus: true,
       revalidateOnReconnect: true,
       onErrorRetry: (error, key, config, revalidate, { retryCount }) => {
-        // Retry with exponential backoff, max 3 retries (per RESEARCH.md Pitfall 2)
         if (retryCount >= 3) return
         setTimeout(() => revalidate({ retryCount }), 5000 * retryCount)
       },
@@ -40,7 +44,18 @@ function ClientListInner({ initialData }: ClientListProps) {
 
   const { siteHistory, isHistoryAvailable } = useTrafficHistory()
 
-  // Error state with retry button (UIUX-05)
+  useEffect(() => {
+    if (siteWindow === 1440) {
+      setSiteApiData(null)
+      return
+    }
+    setSiteApiData(null)
+    fetch(`/api/insights/site-history?window=${siteWindow}`)
+      .then((r) => r.json())
+      .then((d: HistoryBucket[]) => setSiteApiData(d))
+      .catch(() => setSiteApiData([]))
+  }, [siteWindow])
+
   if (error) {
     return <ErrorState onRetry={() => mutate()} />
   }
@@ -49,12 +64,16 @@ function ClientListInner({ initialData }: ClientListProps) {
   const clients = activeOnly ? allClients.filter(c => c.trafficStatus !== 'idle') : allClients
   const lastUpdated = data?.timestamp ? new Date(data.timestamp) : new Date()
 
-  const siteChartData = siteHistory.map((sample) => ({
-    time: formatHourLabel(sample.hourStart),
-    bandwidth: bytesPerSecToMbps(sample.avgDownload + sample.avgUpload),
-  }))
+  const siteChartData = siteWindow === 1440
+    ? siteHistory.map((sample) => ({
+        time: formatHourLabel(sample.hourStart),
+        bandwidth: bytesPerSecToMbps(sample.avgDownload + sample.avgUpload),
+      }))
+    : (siteApiData ?? []).map((b) => ({
+        time: formatBucketLabel(b.bucketTs, bucketSecondsForWindow(siteWindow)),
+        bandwidth: b.avgMbps,
+      }))
 
-  // Empty state when no clients
   if (allClients.length === 0) {
     return <EmptyState />
   }
@@ -74,11 +93,14 @@ function ClientListInner({ initialData }: ClientListProps) {
         </label>
       </div>
 
-      {/* Site traffic section (D-14) — shown once history is available */}
-      {isHistoryAvailable && (
+      {/* Site traffic section — shown once history is available or non-24h window selected */}
+      {(isHistoryAvailable || siteWindow !== 1440) && (
         <Card className="bg-zinc-900 border-zinc-800 rounded-lg">
           <CardContent className="p-4">
-            <h3 className="text-sm font-medium text-zinc-400 mb-3">Site Traffic (24h)</h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-medium text-zinc-400">Site Traffic</h3>
+              <WindowSelector value={siteWindow} onChange={setSiteWindow} />
+            </div>
             <TrafficChart data={siteChartData} />
           </CardContent>
         </Card>

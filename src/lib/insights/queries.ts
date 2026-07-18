@@ -61,46 +61,97 @@ export function queryTopDevices(db: Database, minutes: number): TopDevice[] {
 }
 
 export interface HistoryBucket {
-  hourTs: number  // unix timestamp (start of hour, UTC)
+  bucketTs: number  // unix seconds (start of bucket)
   avgMbps: number
 }
 
-/**
- * Returns exactly `hours` hourly buckets as a time series ending at the current
- * hour. Missing hours are filled with avgMbps=0.
- */
+export const VALID_WINDOWS = [5, 30, 60, 180, 720, 1440] as const
+export type WindowMinutes = typeof VALID_WINDOWS[number]
+
+const BUCKET_SECONDS: Record<number, number> = {
+  5:    60,
+  30:   60,
+  60:   300,
+  180:  300,
+  720:  900,
+  1440: 3600,
+}
+
+export function bucketSecondsForWindow(windowMinutes: number): number {
+  return BUCKET_SECONDS[windowMinutes] ?? 3600
+}
+
+function fillBuckets(
+  rows: Array<{ bucketTs: number; avgMbps: number }>,
+  windowSec: number,
+  bucketSec: number
+): HistoryBucket[] {
+  const nowSec = Math.floor(Date.now() / 1000)
+  const startBucket = Math.floor((nowSec - windowSec) / bucketSec) * bucketSec
+  const endBucket = Math.floor(nowSec / bucketSec) * bucketSec
+  const count = Math.floor((endBucket - startBucket) / bucketSec) + 1
+
+  const byBucket = new Map<number, number>()
+  for (const row of rows) {
+    byBucket.set(row.bucketTs, row.avgMbps)
+  }
+
+  return Array.from({ length: count }, (_, i) => {
+    const ts = startBucket + i * bucketSec
+    return { bucketTs: ts, avgMbps: byBucket.get(ts) ?? 0 }
+  })
+}
+
+export function queryDeviceHistoryRecent(
+  db: Database,
+  mac: string,
+  windowMinutes: number
+): HistoryBucket[] {
+  const bucketSec = bucketSecondsForWindow(windowMinutes)
+  const windowSec = windowMinutes * 60
+
+  const rows = db
+    .prepare<[number, number, string, number], { bucketTs: number; avgMbps: number }>(
+      `SELECT (recorded_at / CAST(? AS INTEGER)) * CAST(? AS INTEGER) AS bucketTs,
+              (AVG(download_bps) + AVG(upload_bps)) * 8 / 1000000.0 AS avgMbps
+       FROM snapshots
+       WHERE client_mac = ?
+         AND recorded_at >= CAST(strftime('%s','now') AS INTEGER) - ?
+       GROUP BY bucketTs
+       ORDER BY bucketTs`
+    )
+    .all(bucketSec, bucketSec, mac, windowSec)
+
+  return fillBuckets(rows, windowSec, bucketSec)
+}
+
+export function querySiteHistoryRecent(
+  db: Database,
+  windowMinutes: number
+): HistoryBucket[] {
+  const bucketSec = bucketSecondsForWindow(windowMinutes)
+  const windowSec = windowMinutes * 60
+
+  const rows = db
+    .prepare<[number, number, number], { bucketTs: number; avgMbps: number }>(
+      `SELECT (recorded_at / CAST(? AS INTEGER)) * CAST(? AS INTEGER) AS bucketTs,
+              (SUM(download_bps) + SUM(upload_bps)) * 8 / 1000000.0 AS avgMbps
+       FROM snapshots
+       WHERE recorded_at >= CAST(strftime('%s','now') AS INTEGER) - ?
+       GROUP BY bucketTs
+       ORDER BY bucketTs`
+    )
+    .all(bucketSec, bucketSec, windowSec)
+
+  return fillBuckets(rows, windowSec, bucketSec)
+}
+
 export function queryDeviceHistory(
   db: Database,
   mac: string,
   hours: number
 ): HistoryBucket[] {
-  const rows = db
-    .prepare<[string, number], { hourTs: number; avgMbps: number }>(
-      `
-      SELECT (recorded_at / 3600) * 3600 AS hourTs,
-             (AVG(download_bps) + AVG(upload_bps)) * 8 / 1000000.0 AS avgMbps
-      FROM snapshots
-      WHERE client_mac = ?
-        AND recorded_at >= strftime('%s','now') - (? * 3600)
-      GROUP BY hourTs
-      ORDER BY hourTs
-      `
-    )
-    .all(mac, hours)
-
-  const nowSec = Math.floor(Date.now() / 1000)
-  const currentHourTs = Math.floor(nowSec / 3600) * 3600
-  const startTs = currentHourTs - (hours - 1) * 3600
-
-  const byHour = new Map<number, number>()
-  for (const row of rows) {
-    byHour.set(row.hourTs, row.avgMbps)
-  }
-
-  return Array.from({ length: hours }, (_, i) => {
-    const ts = startTs + i * 3600
-    return { hourTs: ts, avgMbps: byHour.get(ts) ?? 0 }
-  })
+  return queryDeviceHistoryRecent(db, mac, hours * 60)
 }
 
 /**

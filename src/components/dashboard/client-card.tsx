@@ -3,11 +3,12 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { TrafficBadge } from './traffic-badge'
-import { TrafficChart } from './traffic-chart'
+import { TrafficChart, WindowSelector } from './traffic-chart'
 import { useTrafficHistory } from '@/contexts/traffic-history-context'
-import { formatTimeAgo, formatRate, formatPacificHour } from '@/lib/unifi/format'
+import { formatTimeAgo, formatRate, formatBucketLabel } from '@/lib/unifi/format'
 import type { NetworkClient } from '@/lib/unifi/types'
 import type { HistoryBucket } from '@/lib/insights/queries'
+import { bucketSecondsForWindow } from '@/lib/insights/queries'
 
 interface ClientCardProps {
   client: NetworkClient
@@ -15,16 +16,21 @@ interface ClientCardProps {
 
 export function ClientCard({ client }: ClientCardProps) {
   const [showHistory, setShowHistory] = useState(false)
+  const [historyWindow, setHistoryWindow] = useState<number>(1440)
   const [dbHistory, setDbHistory] = useState<HistoryBucket[] | null>(null)
   const [historyLoading, setHistoryLoading] = useState(false)
   const { getClientLastBusy } = useTrafficHistory()
   const lastBusy = getClientLastBusy(client.id)
 
   useEffect(() => {
+    setDbHistory(null)
+  }, [historyWindow])
+
+  useEffect(() => {
     if (!showHistory || dbHistory !== null) return
 
     setHistoryLoading(true)
-    fetch(`/api/insights/device-history?mac=${encodeURIComponent(client.mac)}`)
+    fetch(`/api/insights/device-history?mac=${encodeURIComponent(client.mac)}&window=${historyWindow}`)
       .then((r) => r.json())
       .then((data: HistoryBucket[]) => {
         setDbHistory(data)
@@ -35,10 +41,10 @@ export function ClientCard({ client }: ClientCardProps) {
       .finally(() => {
         setHistoryLoading(false)
       })
-  }, [showHistory, client.mac, dbHistory])
+  }, [showHistory, client.mac, historyWindow, dbHistory])
 
   const chartData = (dbHistory ?? []).map((b) => ({
-    time: formatPacificHour(b.hourTs),
+    time: formatBucketLabel(b.bucketTs, bucketSecondsForWindow(historyWindow)),
     bandwidth: b.avgMbps,
   }))
 
@@ -81,6 +87,9 @@ export function ClientCard({ client }: ClientCardProps) {
 
         {showHistory && (
           <div className="mt-3">
+            <div className="flex justify-end mb-2">
+              <WindowSelector value={historyWindow} onChange={setHistoryWindow} />
+            </div>
             {historyLoading ? (
               <p className="text-sm text-zinc-500 py-3 text-center">Loading history…</p>
             ) : (

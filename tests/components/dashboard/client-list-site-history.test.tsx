@@ -57,7 +57,7 @@ const mockInitial: ClientsResponse = {
 describe('ClientList site traffic section (UAT-04-05)', () => {
   beforeEach(() => vi.mocked(useTrafficHistory).mockReset())
 
-  it('does NOT render Site Traffic (24h) when history is unavailable', () => {
+  it('does NOT render Site Traffic when history is unavailable', () => {
     vi.mocked(useTrafficHistory).mockReturnValue({
       siteHistory: [],
       getClientHistory: () => [],
@@ -66,10 +66,10 @@ describe('ClientList site traffic section (UAT-04-05)', () => {
     })
 
     render(<ClientList initialData={mockInitial} />)
-    expect(screen.queryByText(/Site Traffic \(24h\)/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/^Site Traffic$/i)).not.toBeInTheDocument()
   })
 
-  it('renders Site Traffic (24h) section with TrafficChart when history IS available', () => {
+  it('renders Site Traffic section with TrafficChart when history IS available', () => {
     const now = Date.now()
     vi.mocked(useTrafficHistory).mockReturnValue({
       siteHistory: [
@@ -82,7 +82,7 @@ describe('ClientList site traffic section (UAT-04-05)', () => {
     })
 
     render(<ClientList initialData={mockInitial} />)
-    expect(screen.getByText(/Site Traffic \(24h\)/i)).toBeInTheDocument()
+    expect(screen.getByText(/Site Traffic/i)).toBeInTheDocument()
     // TrafficChart renders via mocked ResponsiveContainer
     expect(screen.getAllByTestId('responsive-container').length).toBeGreaterThanOrEqual(1)
   })

@@ -2,7 +2,7 @@ import 'server-only'
 import { NextResponse } from 'next/server'
 import { getSession } from '@/lib/session'
 import { getDb } from '@/lib/db'
-import { queryDeviceHistoryRecent, VALID_WINDOWS } from '@/lib/insights/queries'
+import { querySiteHistoryRecent, VALID_WINDOWS } from '@/lib/insights/queries'
 
 export async function GET(req: Request) {
   const session = await getSession()
@@ -11,20 +11,15 @@ export async function GET(req: Request) {
   }
 
   const { searchParams } = new URL(req.url)
-  const mac = searchParams.get('mac')
   const windowParam = searchParams.get('window')
-
-  if (!mac || mac.trim() === '') {
-    return NextResponse.json({ error: 'INVALID_MAC' }, { status: 400 })
-  }
-
   const windowMinutes = windowParam ? parseInt(windowParam, 10) : 1440
+
   if (!VALID_WINDOWS.includes(windowMinutes as typeof VALID_WINDOWS[number])) {
     return NextResponse.json({ error: 'INVALID_WINDOW' }, { status: 400 })
   }
 
   try {
-    const data = queryDeviceHistoryRecent(getDb(), mac, windowMinutes)
+    const data = querySiteHistoryRecent(getDb(), windowMinutes)
     return NextResponse.json(data)
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error'

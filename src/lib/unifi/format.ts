@@ -41,6 +41,18 @@ export function getCurrentPacificHour(): number {
   )
 }
 
+export function formatBucketLabel(unixSec: number, bucketSec: number): string {
+  if (bucketSec >= 3600) {
+    return formatPacificHour(unixSec)
+  }
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: PACIFIC_TZ,
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  }).format(new Date(unixSec * 1000))
+}
+
 export function formatHourOfDay(hour: number): string {
   const ampm = hour >= 12 ? 'pm' : 'am'
   const h = hour % 12 || 12

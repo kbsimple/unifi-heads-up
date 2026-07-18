@@ -48,7 +48,7 @@ function stubContext(lastBusy: number | null = null) {
 
 // History bucket shape returned by /api/insights/device-history
 interface HistoryBucket {
-  hourTs: number
+  bucketTs: number
   avgMbps: number
 }
 
@@ -82,8 +82,8 @@ describe('ClientCard history expansion (UAT-04-04)', () => {
 
   it('renders TrafficChart when DB returns active buckets', async () => {
     const buckets: HistoryBucket[] = [
-      { hourTs: 1718445600, avgMbps: 5.2 },  // some valid unix timestamp
-      { hourTs: 1718449200, avgMbps: 3.1 },
+      { bucketTs: 1718445600, avgMbps: 5.2 },  // some valid unix timestamp
+      { bucketTs: 1718449200, avgMbps: 3.1 },
       // zero-traffic hours are not filtered by source, just show 0 bandwidth
     ]
     stubFetch(buckets)
@@ -111,7 +111,7 @@ describe('ClientCard history expansion (UAT-04-04)', () => {
 
   it('shows chart with zero data when DB returns all-zero buckets', async () => {
     const buckets: HistoryBucket[] = Array.from({ length: 24 }, (_, i) => ({
-      hourTs: 1718445600 + i * 3600,  // sequential hours
+      bucketTs: 1718445600 + i * 3600,  // sequential hours
       avgMbps: 0,
     }))
     stubFetch(buckets)

@@ -2,11 +2,12 @@
 
 import { Fragment, useState, useEffect } from 'react'
 import { TrafficBadge } from './traffic-badge'
-import { TrafficChart } from './traffic-chart'
+import { TrafficChart, WindowSelector } from './traffic-chart'
 import { useTrafficHistory } from '@/contexts/traffic-history-context'
-import { formatTimeAgo, formatRate, formatPacificHour } from '@/lib/unifi/format'
+import { formatTimeAgo, formatRate, formatBucketLabel } from '@/lib/unifi/format'
 import type { NetworkClient } from '@/lib/unifi/types'
 import type { HistoryBucket } from '@/lib/insights/queries'
+import { bucketSecondsForWindow } from '@/lib/insights/queries'
 
 interface ClientTableProps {
   clients: NetworkClient[]
@@ -53,22 +54,26 @@ export function ClientTable({ clients, activeOnly = false }: ClientTableProps) {
   const [sortColumn, setSortColumn] = useState<SortColumn>(null)
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
   const [expandedMac, setExpandedMac] = useState<string | null>(null)
+  const [historyWindow, setHistoryWindow] = useState<number>(1440)
   const [historyData, setHistoryData] = useState<Record<string, HistoryBucket[]>>({})
   const [historyLoading, setHistoryLoading] = useState<Set<string>>(new Set())
   const { getClientLastBusy } = useTrafficHistory()
 
+  const cacheKey = expandedMac ? `${expandedMac}:${historyWindow}` : null
+
   useEffect(() => {
-    if (!expandedMac || historyData[expandedMac] !== undefined) return
+    if (!cacheKey || !expandedMac || historyData[cacheKey] !== undefined) return
 
     setHistoryLoading((prev) => new Set(prev).add(expandedMac))
     const mac = expandedMac
-    fetch(`/api/insights/device-history?mac=${encodeURIComponent(mac)}`)
+    const key = cacheKey
+    fetch(`/api/insights/device-history?mac=${encodeURIComponent(mac)}&window=${historyWindow}`)
       .then((r) => r.json())
       .then((data: HistoryBucket[]) => {
-        setHistoryData((prev) => ({ ...prev, [mac]: data }))
+        setHistoryData((prev) => ({ ...prev, [key]: data }))
       })
       .catch(() => {
-        setHistoryData((prev) => ({ ...prev, [mac]: [] }))
+        setHistoryData((prev) => ({ ...prev, [key]: [] }))
       })
       .finally(() => {
         setHistoryLoading((prev) => {
@@ -77,7 +82,7 @@ export function ClientTable({ clients, activeOnly = false }: ClientTableProps) {
           return next
         })
       })
-  }, [expandedMac, historyData])
+  }, [cacheKey, expandedMac, historyWindow, historyData])
 
   function handleSort(column: Exclude<SortColumn, null>) {
     if (column === sortColumn) {
@@ -173,9 +178,9 @@ export function ClientTable({ clients, activeOnly = false }: ClientTableProps) {
           {sorted.map((client) => {
             const lastBusy = Math.max(getClientLastBusy(client.id) ?? 0, client.lastBusy ?? 0) || null
             const isExpanded = expandedMac === client.mac
-            const history = historyData[client.mac]
+            const history = cacheKey && isExpanded ? historyData[`${client.mac}:${historyWindow}`] : undefined
             const chartData = (history ?? []).map((b) => ({
-              time: formatPacificHour(b.hourTs),
+              time: formatBucketLabel(b.bucketTs, bucketSecondsForWindow(historyWindow)),
               bandwidth: b.avgMbps,
             }))
             return (
@@ -209,6 +214,10 @@ export function ClientTable({ clients, activeOnly = false }: ClientTableProps) {
                 {isExpanded && (
                   <tr className="border-b border-zinc-800 bg-zinc-950">
                     <td colSpan={COL_COUNT} className="px-4 py-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs text-zinc-500">Traffic history</span>
+                        <WindowSelector value={historyWindow} onChange={setHistoryWindow} />
+                      </div>
                       {historyLoading.has(client.mac) ? (
                         <p className="text-sm text-zinc-500 text-center py-2">Loading history…</p>
                       ) : (

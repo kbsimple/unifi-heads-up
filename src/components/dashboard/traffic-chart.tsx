@@ -15,6 +15,41 @@ interface TrafficChartProps {
   title?: string
 }
 
+export const WINDOW_OPTIONS = [
+  { minutes: 5,    label: '5m' },
+  { minutes: 30,   label: '30m' },
+  { minutes: 60,   label: '1h' },
+  { minutes: 180,  label: '3h' },
+  { minutes: 720,  label: '12h' },
+  { minutes: 1440, label: '24h' },
+] as const
+
+interface WindowSelectorProps {
+  value: number
+  onChange: (minutes: number) => void
+}
+
+export function WindowSelector({ value, onChange }: WindowSelectorProps) {
+  return (
+    <div className="flex gap-1">
+      {WINDOW_OPTIONS.map(({ minutes, label }) => (
+        <button
+          key={minutes}
+          type="button"
+          onClick={() => onChange(minutes)}
+          className={`px-2 py-0.5 text-xs rounded transition-colors ${
+            value === minutes
+              ? 'bg-sky-600 text-white'
+              : 'text-zinc-500 hover:text-zinc-200 hover:bg-zinc-700'
+          }`}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 export function formatHourLabel(timestamp: number): string {
   const hour = new Date(timestamp).getHours()
   const ampm = hour >= 12 ? 'pm' : 'am'

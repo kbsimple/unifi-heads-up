@@ -1,7 +1,7 @@
 // tests/lib/insights/queries.test.ts
 import { describe, it, expect, beforeEach } from 'vitest'
 import Database from 'better-sqlite3'
-import { queryAllLastBusy } from '@/lib/insights/queries'
+import { queryAllLastBusy, queryDeviceHistoryRecent, querySiteHistoryRecent } from '@/lib/insights/queries'
 
 function makeDb(): Database.Database {
   const db = new Database(':memory:')
@@ -90,5 +90,102 @@ describe('queryAllLastBusy (regression: Last Busy column)', () => {
   it('returns an empty object when the snapshots table is empty', () => {
     const result = queryAllLastBusy(db)
     expect(result).toEqual({})
+  })
+})
+
+describe('queryDeviceHistoryRecent (regression: time-range selector)', () => {
+  let db: Database.Database
+  let nowSec: number
+
+  beforeEach(() => {
+    db = makeDb()
+    nowSec = Math.floor(Date.now() / 1000)
+  })
+
+  it('returns buckets covering the full window even when no data exists', () => {
+    const result = queryDeviceHistoryRecent(db, MAC_A, 5)
+    // 5 minutes / 60-second buckets = 5 or 6 buckets
+    expect(result.length).toBeGreaterThanOrEqual(5)
+    expect(result.every((b) => b.avgMbps === 0)).toBe(true)
+    expect(result.every((b) => typeof b.bucketTs === 'number')).toBe(true)
+  })
+
+  it('fills missing buckets with 0 when data has gaps', () => {
+    // Insert at two separated points within a 5-minute window
+    insert(db, MAC_A, 1_000_000, 500_000, nowSec - 240)
+    insert(db, MAC_A, 1_000_000, 500_000, nowSec - 10)
+
+    const result = queryDeviceHistoryRecent(db, MAC_A, 5)
+    // Some buckets should have data; others should be 0
+    const zeroBuckets = result.filter((b) => b.avgMbps === 0)
+    const dataBuckets = result.filter((b) => b.avgMbps > 0)
+    expect(zeroBuckets.length).toBeGreaterThan(0)
+    expect(dataBuckets.length).toBeGreaterThan(0)
+  })
+
+  it('converts bps to Mbps correctly', () => {
+    // 1_000_000 dl + 500_000 ul = 1_500_000 bytes/sec * 8 / 1_000_000 = 12.0 Mbps
+    insert(db, MAC_A, 1_000_000, 500_000, nowSec - 10)
+
+    const result = queryDeviceHistoryRecent(db, MAC_A, 5)
+    const bucket = result.find((b) => b.avgMbps > 0)
+    expect(bucket).toBeDefined()
+    expect(bucket!.avgMbps).toBeCloseTo(12.0, 1)
+  })
+
+  it('ignores snapshots outside the window', () => {
+    // Insert data well outside the 5-minute window
+    insert(db, MAC_A, 1_000_000, 500_000, nowSec - 3600)
+
+    const result = queryDeviceHistoryRecent(db, MAC_A, 5)
+    expect(result.every((b) => b.avgMbps === 0)).toBe(true)
+  })
+
+  it('returns only data for the specified MAC', () => {
+    insert(db, MAC_A, 1_000_000, 500_000, nowSec - 10)
+    insert(db, MAC_B, 2_000_000, 1_000_000, nowSec - 10)
+
+    const resultA = queryDeviceHistoryRecent(db, MAC_A, 5)
+    const resultB = queryDeviceHistoryRecent(db, MAC_B, 5)
+
+    const mbpsA = resultA.find((b) => b.avgMbps > 0)?.avgMbps ?? 0
+    const mbpsB = resultB.find((b) => b.avgMbps > 0)?.avgMbps ?? 0
+    expect(mbpsA).toBeCloseTo(12.0, 0)
+    expect(mbpsB).toBeCloseTo(24.0, 0)
+  })
+})
+
+describe('querySiteHistoryRecent (regression: site chart time-range selector)', () => {
+  let db: Database.Database
+  let nowSec: number
+
+  beforeEach(() => {
+    db = makeDb()
+    nowSec = Math.floor(Date.now() / 1000)
+  })
+
+  it('returns all-zero buckets when table is empty', () => {
+    const result = querySiteHistoryRecent(db, 5)
+    expect(result.length).toBeGreaterThanOrEqual(5)
+    expect(result.every((b) => b.avgMbps === 0)).toBe(true)
+  })
+
+  it('sums bandwidth across all MACs in the same bucket', () => {
+    // Two devices in the same ~10-second window → same 60s bucket
+    insert(db, MAC_A, 1_000_000, 0, nowSec - 5)
+    insert(db, MAC_B, 1_000_000, 0, nowSec - 5)
+
+    const result = querySiteHistoryRecent(db, 5)
+    const bucket = result.find((b) => b.avgMbps > 0)
+    expect(bucket).toBeDefined()
+    // 2 devices × 1_000_000 bytes/sec × 8 / 1_000_000 = 16 Mbps
+    expect(bucket!.avgMbps).toBeCloseTo(16.0, 0)
+  })
+
+  it('excludes data outside the requested window', () => {
+    insert(db, MAC_A, 5_000_000, 0, nowSec - 7200)  // 2 hours ago, outside 5m window
+
+    const result = querySiteHistoryRecent(db, 5)
+    expect(result.every((b) => b.avgMbps === 0)).toBe(true)
   })
 })
