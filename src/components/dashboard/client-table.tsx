@@ -179,7 +179,13 @@ export function ClientTable({ clients, activeOnly = false }: ClientTableProps) {
             const lastBusy = Math.max(getClientLastBusy(client.id) ?? 0, client.lastBusy ?? 0) || null
             const isExpanded = expandedMac === client.mac
             const history = cacheKey && isExpanded ? historyData[`${client.mac}:${historyWindow}`] : undefined
-            const chartData = (history ?? []).map((b) => ({
+            // While new window's data loads, show previously cached data (dimmed) to avoid height flash
+            const fallbackHistory = isExpanded && history === undefined
+              ? Object.entries(historyData).find(([k]) => k.startsWith(`${client.mac}:`))?.[1]
+              : undefined
+            const displayHistory = history ?? fallbackHistory
+            const isChartLoading = historyLoading.has(client.mac) || (isExpanded && history === undefined)
+            const chartData = (displayHistory ?? []).map((b) => ({
               time: formatBucketLabel(b.bucketTs, bucketSecondsForWindow(historyWindow)),
               bandwidth: b.avgMbps,
             }))
@@ -218,10 +224,12 @@ export function ClientTable({ clients, activeOnly = false }: ClientTableProps) {
                         <span className="text-xs text-zinc-500">Traffic history</span>
                         <WindowSelector value={historyWindow} onChange={setHistoryWindow} />
                       </div>
-                      {historyLoading.has(client.mac) ? (
+                      {isChartLoading && !displayHistory ? (
                         <p className="text-sm text-zinc-500 text-center py-2">Loading history…</p>
                       ) : (
-                        <TrafficChart data={chartData} />
+                        <div className={isChartLoading ? 'opacity-40 transition-opacity' : 'transition-opacity'}>
+                          <TrafficChart data={chartData} />
+                        </div>
                       )}
                     </td>
                   </tr>

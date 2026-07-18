@@ -77,7 +77,9 @@ describe('ClientCard history expansion (UAT-04-04)', () => {
     global.fetch = vi.fn().mockReturnValue(new Promise(() => {}))
     render(<ClientCard client={mockClient} />)
     fireEvent.click(screen.getByRole('button', { name: /View History/i }))
-    expect(await screen.findByText(/Loading history/i)).toBeInTheDocument()
+    // Chart is shown immediately (dimmed via aria-busy) rather than replaced by loading text
+    const chart = await screen.findByLabelText(/Traffic chart showing bandwidth over time/i)
+    expect(chart.closest('[aria-busy="true"]')).toBeInTheDocument()
   })
 
   it('renders TrafficChart when DB returns active buckets', async () => {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { TrafficBadge } from './traffic-badge'
 import { TrafficChart, WindowSelector } from './traffic-chart'
@@ -21,27 +21,26 @@ export function ClientCard({ client }: ClientCardProps) {
   const [historyLoading, setHistoryLoading] = useState(false)
   const { getClientLastBusy } = useTrafficHistory()
   const lastBusy = getClientLastBusy(client.id)
+  // Track which window we've already fetched so close→reopen doesn't re-fetch
+  const loadedWindowRef = useRef<number | null>(null)
 
   useEffect(() => {
-    setDbHistory(null)
-  }, [historyWindow])
+    if (!showHistory) return
+    if (loadedWindowRef.current === historyWindow) return  // data already loaded for this window
 
-  useEffect(() => {
-    if (!showHistory || dbHistory !== null) return
-
+    let cancelled = false
+    loadedWindowRef.current = historyWindow
     setHistoryLoading(true)
     fetch(`/api/insights/device-history?mac=${encodeURIComponent(client.mac)}&window=${historyWindow}`)
       .then((r) => r.json())
       .then((data: HistoryBucket[]) => {
-        setDbHistory(data)
+        if (!cancelled) { setDbHistory(data); setHistoryLoading(false) }
       })
       .catch(() => {
-        setDbHistory([])
+        if (!cancelled) { setDbHistory([]); setHistoryLoading(false) }
       })
-      .finally(() => {
-        setHistoryLoading(false)
-      })
-  }, [showHistory, client.mac, historyWindow, dbHistory])
+    return () => { cancelled = true }
+  }, [showHistory, client.mac, historyWindow])
 
   const chartData = (dbHistory ?? []).map((b) => ({
     time: formatBucketLabel(b.bucketTs, bucketSecondsForWindow(historyWindow)),
@@ -90,11 +89,12 @@ export function ClientCard({ client }: ClientCardProps) {
             <div className="flex justify-end mb-2">
               <WindowSelector value={historyWindow} onChange={setHistoryWindow} />
             </div>
-            {historyLoading ? (
-              <p className="text-sm text-zinc-500 py-3 text-center">Loading history…</p>
-            ) : (
+            <div
+              className={historyLoading ? 'opacity-40 transition-opacity' : 'transition-opacity'}
+              aria-busy={historyLoading}
+            >
               <TrafficChart data={chartData} />
-            )}
+            </div>
           </div>
         )}
       </CardContent>
