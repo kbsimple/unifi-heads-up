@@ -1,6 +1,7 @@
 {
   "name": "unifi-api",
   "version": "0.1.0",
+  "releaseDate": "2026-07-18",
   "private": true,
   "scripts": {
     "dev": "next dev -H 0.0.0.0",

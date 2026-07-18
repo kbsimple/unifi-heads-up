@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server'
 import 'server-only'
-
-const startedAt = Date.now()
+import { checkDbHealth, checkUnifiProxy, getAppVersion } from '@/lib/statusz'
 
 export async function GET() {
+  const [db, unifi] = await Promise.all([checkDbHealth(), checkUnifiProxy()])
+  const app = getAppVersion()
+
   return NextResponse.json({
-    uptime: Math.floor((Date.now() - startedAt) / 1000),
-    buildId: process.env.NEXT_BUILD_ID ?? process.env.BUILD_ID ?? 'dev',
-    nodeVersion: process.version,
-    memoryMb: Math.round(process.memoryUsage().rss / 1024 / 1024),
-    nodeEnv: process.env.NODE_ENV ?? 'unknown',
+    db: { ok: db.ok, latencyMs: db.latencyMs },
+    unifi: { ok: unifi.ok, latencyMs: unifi.latencyMs },
+    app: { version: app.version, releaseDate: app.releaseDate },
   })
 }
