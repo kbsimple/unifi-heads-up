@@ -49,6 +49,8 @@ export interface NetworkClient {
   signal: number | null
   // Per DEVI-02: Traffic status
   trafficStatus: 'idle' | 'low' | 'medium' | 'high'
+  // Unix ms of last snapshot where combined bandwidth >= 1 Mbps (from DB). Null if no history.
+  lastBusy: number | null
 }
 
 /**

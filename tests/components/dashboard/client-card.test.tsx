@@ -32,6 +32,7 @@ describe('ClientCard', () => {
     uploadRate: 250000,
     signal: null,
     trafficStatus: 'medium',
+    lastBusy: null,
   }
 
   it('should display device name, IP, MAC, and badge', () => {

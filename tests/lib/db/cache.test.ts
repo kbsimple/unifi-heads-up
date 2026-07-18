@@ -18,6 +18,7 @@ const mockClient: NetworkClient = {
   uploadRate: 125000,
   signal: -45,
   trafficStatus: 'medium',
+  lastBusy: null,
 }
 
 const mockClient2: NetworkClient = {
@@ -32,6 +33,7 @@ const mockClient2: NetworkClient = {
   uploadRate: 50000,
   signal: null,
   trafficStatus: 'high',
+  lastBusy: null,
 }
 
 describe('latest_clients cache', () => {
@@ -95,6 +97,7 @@ describe('latest_clients cache', () => {
         uploadRate: 0,
         signal: null,
         trafficStatus: 'idle',
+        lastBusy: null,
       }
 
       upsertLatestClients([clientWithNulls])

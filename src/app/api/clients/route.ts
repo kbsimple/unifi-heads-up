@@ -2,12 +2,21 @@
 import { NextResponse } from 'next/server'
 import { getSession } from '@/lib/session'
 import { getUnifiClients } from '@/lib/unifi'
-import { getLatestClients, upsertLatestClients } from '@/lib/db'
+import { getLatestClients, upsertLatestClients, getDb } from '@/lib/db'
+import { queryAllLastBusy } from '@/lib/insights/queries'
 import { ERROR_MESSAGES } from '@/lib/definitions'
-import type { ClientsResponse } from '@/lib/unifi/types'
+import type { ClientsResponse, NetworkClient } from '@/lib/unifi/types'
 
 interface ClientsCacheResponse extends ClientsResponse {
   cacheStatus: 'hit' | 'stale' | 'miss'
+}
+
+function enrichWithLastBusy(clients: NetworkClient[]): NetworkClient[] {
+  const lastBusyMap = queryAllLastBusy(getDb())
+  return clients.map((c) => ({
+    ...c,
+    lastBusy: lastBusyMap[c.mac] ?? null,
+  }))
 }
 
 // Max age for cache to be considered fresh (60 seconds, matching recorder interval)
@@ -47,7 +56,7 @@ export async function GET(req: Request): Promise<Response> {
     }
 
     return NextResponse.json<ClientsCacheResponse>({
-      clients: cached.clients,
+      clients: enrichWithLastBusy(cached.clients),
       timestamp: cached.timestamp,
       cacheStatus: isFresh ? 'hit' : 'stale',
     })
@@ -59,7 +68,7 @@ export async function GET(req: Request): Promise<Response> {
     // Cache the result for next request
     upsertLatestClients(data.clients)
     return NextResponse.json<ClientsCacheResponse>({
-      clients: data.clients,
+      clients: enrichWithLastBusy(data.clients),
       timestamp: data.timestamp,
       cacheStatus: 'miss',
     })

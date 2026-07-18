@@ -71,6 +71,8 @@ export function TrafficHistoryProvider({ children }: { children: React.ReactNode
   const lastBusyRef = useRef<Map<string, number>>(new Map())
   // Track last seen timestamp to avoid duplicate samples
   const lastTimestampRef = useRef<number>(0)
+  // Whether DB-sourced lastBusy values have been seeded into lastBusyRef
+  const dbSeededRef = useRef<boolean>(false)
   // Track how many hourly samples have been recorded (for isHistoryAvailable)
   const [sampleCount, setSampleCount] = React.useState(0)
 
@@ -86,6 +88,16 @@ export function TrafficHistoryProvider({ children }: { children: React.ReactNode
         // Avoid duplicate processing of same poll result
         if (data.timestamp === lastTimestampRef.current) return
         lastTimestampRef.current = data.timestamp
+
+        // Seed lastBusy from DB-persisted values on first poll (survives page reloads)
+        if (!dbSeededRef.current) {
+          dbSeededRef.current = true
+          for (const client of data.clients) {
+            if (client.lastBusy !== null && !lastBusyRef.current.has(client.id)) {
+              lastBusyRef.current.set(client.id, client.lastBusy)
+            }
+          }
+        }
 
         const now = data.timestamp
         const currentHourStart = Math.floor(now / 3600000) * 3600000
@@ -103,7 +115,8 @@ export function TrafficHistoryProvider({ children }: { children: React.ReactNode
           totalDownload += client.downloadRate
           totalUpload += client.uploadRate
           if (client.trafficStatus === 'medium' || client.trafficStatus === 'high') {
-            lastBusyRef.current.set(client.id, now)
+            const prev = lastBusyRef.current.get(client.id) ?? 0
+            if (now > prev) lastBusyRef.current.set(client.id, now)
           }
         }
 

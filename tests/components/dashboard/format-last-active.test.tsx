@@ -45,6 +45,7 @@ const clientWithIsoLastSeen = {
   uploadRate: 0,
   signal: null,
     trafficStatus: 'idle',
+  lastBusy: null,
 } satisfies NetworkClient
 
 describe('formatLastActive — ISO string coercion (SWR rehydration path)', () => {

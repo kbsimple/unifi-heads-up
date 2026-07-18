@@ -19,6 +19,28 @@ export interface HourlyBucket {
  *
  * Note: The snapshots table uses client_mac, download_bps, upload_bps columns.
  */
+/**
+ * Returns a map of client_mac → Unix milliseconds for the most recent snapshot
+ * where combined bandwidth >= 125000 bytes/sec (1 Mbps = medium threshold).
+ * Used to seed the dashboard "Last Busy" column from persistent history.
+ */
+export function queryAllLastBusy(db: Database): Record<string, number> {
+  const rows = db
+    .prepare<[], { mac: string; last_busy_sec: number }>(
+      `SELECT client_mac AS mac, MAX(recorded_at) AS last_busy_sec
+       FROM snapshots
+       WHERE download_bps + upload_bps >= 125000
+       GROUP BY client_mac`
+    )
+    .all()
+
+  const result: Record<string, number> = {}
+  for (const row of rows) {
+    result[row.mac] = row.last_busy_sec * 1000
+  }
+  return result
+}
+
 export function queryTopDevices(db: Database, minutes: number): TopDevice[] {
   const rows = db
     .prepare<[number], { mac: string; totalBytes: number; activeSeconds: number }>(

@@ -183,6 +183,7 @@ export function getLatestClients(
     uploadRate: row.upload_rate,
     signal: row.signal,
     trafficStatus: row.traffic_status as NetworkClient['trafficStatus'],
+    lastBusy: null,
   }))
 
   return { clients, timestamp }

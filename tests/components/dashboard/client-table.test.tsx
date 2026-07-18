@@ -29,6 +29,7 @@ function makeClient(overrides: Partial<NetworkClient> & { id: string; displayNam
     uploadRate: overrides.uploadRate ?? 0,
     signal: overrides.signal ?? null,
     trafficStatus: overrides.trafficStatus ?? 'idle',
+    lastBusy: overrides.lastBusy ?? null,
   }
 }
 

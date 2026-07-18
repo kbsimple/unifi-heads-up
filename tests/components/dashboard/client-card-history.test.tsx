@@ -34,6 +34,7 @@ const mockClient: NetworkClient = {
   uploadRate: 50_000,
   signal: null,
   trafficStatus: 'medium',
+  lastBusy: null,
 }
 
 function stubContext(lastBusy: number | null = null) {

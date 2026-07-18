@@ -19,6 +19,12 @@ vi.mock('server-only', () => ({}))
 vi.mock('@/lib/db', () => ({
   getLatestClients: vi.fn(),
   upsertLatestClients: vi.fn(),
+  getDb: vi.fn(() => ({})),
+}))
+
+// Mock insights queries (queryAllLastBusy used by enrichWithLastBusy)
+vi.mock('@/lib/insights/queries', () => ({
+  queryAllLastBusy: vi.fn(() => ({})),
 }))
 
 import { getUnifiClients } from '@/lib/unifi'
@@ -37,6 +43,7 @@ const mockClient = {
   uploadRate: 125000,
   signal: null as number | null,
   trafficStatus: 'low' as const,
+  lastBusy: null as number | null,
 }
 
 describe('GET /api/clients', () => {

@@ -47,6 +47,7 @@ describe('ClientList', () => {
         uploadRate: 250000,
         signal: null,
     trafficStatus: 'medium',
+        lastBusy: null,
       },
       {
         id: 'client-2',
@@ -60,6 +61,7 @@ describe('ClientList', () => {
         uploadRate: 100000,
         signal: null,
     trafficStatus: 'low',
+        lastBusy: null,
       },
     ],
     timestamp: Date.now(),

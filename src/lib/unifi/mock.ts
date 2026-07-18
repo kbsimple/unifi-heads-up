@@ -4,11 +4,13 @@
 // Do NOT add `import 'server-only'` here — index.ts enforces the server boundary.
 
 import type { NetworkClient, ClientsResponse, FirewallPolicy, UnifiSchedule } from './types'
+import { parsePacificDateTime } from './format'
 
 // Traffic thresholds (from traffic.ts): Idle <1 Mbps, Low 1–10, Medium 10–100, High >100
 // Conversion formula: (downloadRate + uploadRate) * 8 / 1_000_000 = Mbps
 // Bytes/s ranges: Idle <125K | Low 125K–1.25M | Medium 1.25M–12.5M | High >12.5M
 
+const NOW = Date.now()
 const MOCK_CLIENTS: NetworkClient[] = [
   {
     id: 'mock-1',
@@ -22,6 +24,7 @@ const MOCK_CLIENTS: NetworkClient[] = [
     uploadRate: 2_000_000,
     signal: null,
     trafficStatus: 'high',
+    lastBusy: NOW - 2 * 60_000,
   },
   {
     id: 'mock-2',
@@ -35,6 +38,7 @@ const MOCK_CLIENTS: NetworkClient[] = [
     uploadRate: 50_000,
     signal: null,
     trafficStatus: 'medium',
+    lastBusy: NOW - 5 * 60_000,
   },
   {
     id: 'mock-3',
@@ -48,6 +52,7 @@ const MOCK_CLIENTS: NetworkClient[] = [
     uploadRate: 100_000,
     signal: -58,
     trafficStatus: 'low',
+    lastBusy: NOW - 45 * 60_000,
   },
   {
     id: 'mock-4',
@@ -61,6 +66,7 @@ const MOCK_CLIENTS: NetworkClient[] = [
     uploadRate: 80_000,
     signal: -65,
     trafficStatus: 'low',
+    lastBusy: NOW - 2 * 3_600_000,
   },
   {
     id: 'mock-5',
@@ -74,6 +80,7 @@ const MOCK_CLIENTS: NetworkClient[] = [
     uploadRate: 0,
     signal: -72,
     trafficStatus: 'idle',
+    lastBusy: NOW - 6 * 3_600_000,
   },
   {
     id: 'mock-6',
@@ -87,6 +94,7 @@ const MOCK_CLIENTS: NetworkClient[] = [
     uploadRate: 1_000_000,
     signal: -45,
     trafficStatus: 'medium',
+    lastBusy: NOW - 30 * 60_000,
   },
 ]
 
@@ -115,7 +123,7 @@ export async function updateFirewallPolicy(
   const index = mockPolicies.findIndex(p => p._id === policyId)
   if (index === -1) throw new Error(`Mock policy not found: ${policyId}`)
   const scheduleEnd = schedule?.mode === 'ONE_TIME_ONLY'
-    ? (() => { const dt = new Date(`${schedule.date}T${schedule.time_range_end}`); return isNaN(dt.getTime()) ? undefined : dt.getTime() })()
+    ? (() => { const ms = parsePacificDateTime(schedule.date, schedule.time_range_end); return isNaN(ms) ? undefined : ms })()
     : schedule?.mode === 'ALWAYS' ? undefined : mockPolicies[index].scheduleEnd
   mockPolicies[index] = { ...mockPolicies[index], enabled, schedule, scheduleEnd }
   return { ...mockPolicies[index] }

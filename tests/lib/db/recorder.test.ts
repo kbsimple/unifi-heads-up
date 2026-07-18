@@ -13,6 +13,7 @@ const mockClient: NetworkClient = {
   uploadRate: 250,
   signal: null,
   trafficStatus: 'low',
+  lastBusy: null,
 }
 
 vi.mock('@/lib/unifi', () => ({
