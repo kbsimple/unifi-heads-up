@@ -5,7 +5,7 @@ milestone_name: Quality & Testing
 status: complete
 stopped_at: ""
 last_updated: "2026-06-11T01:12:25Z"
-last_activity: "2026-07-17 - Completed quick task 260717-dab: Fix dashboard rx/tx swap and seed Last Busy from DB snapshots"
+last_activity: "2026-07-17 - Completed quick task 260717-rgt: Add regression tests for dashboard rx/tx swap and DB-backed lastBusy fixes"
 progress:
   total_phases: 1
   completed_phases: 1
@@ -136,6 +136,7 @@ None.
 | 260610-icb | Fix insights tab bar chart click overlay (Recharts cursor/activeBar) | 2026-06-10 | 21d36c0 | [260610-icb-insights-bar-click-overlay](./quick/260610-icb-insights-bar-click-overlay/) |
 | 260610-dad | Fix Device Activity dropdown to show client display names instead of MAC addresses | 2026-06-10 | c255727 | [260610-dad-device-activity-display-names](./quick/260610-dad-device-activity-display-names/) |
 | 260717-dab | Fix dashboard rx/tx swap and seed Last Busy from DB snapshots | 2026-07-17 | cd12916 | [260717-dab-dashboard-activity-bugs](./quick/260717-dab-dashboard-activity-bugs/) |
+| 260717-rgt | Add regression tests for dashboard rx/tx swap and DB-backed lastBusy fixes | 2026-07-17 | bd53de4 | [260717-rgt-dashboard-bug-regression-tests](./quick/260717-rgt-dashboard-bug-regression-tests/) |
 
 ### Blockers/Concerns
 
