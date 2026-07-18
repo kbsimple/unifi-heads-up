@@ -30,6 +30,7 @@ vi.mock('@/lib/insights/queries', () => ({
 import { getUnifiClients } from '@/lib/unifi'
 import { getSession } from '@/lib/session'
 import { getLatestClients, upsertLatestClients } from '@/lib/db'
+import { queryAllLastBusy } from '@/lib/insights/queries'
 
 const mockClient = {
   id: 'client-1',
@@ -125,6 +126,56 @@ describe('GET /api/clients', () => {
     expect(getUnifiClients).toHaveBeenCalled()
     // Should cache the result
     expect(upsertLatestClients).toHaveBeenCalledWith([mockClient])
+  })
+
+  describe('lastBusy enrichment (regression: was not populated from DB)', () => {
+    const LAST_BUSY_TS = 1_750_000_000_000
+
+    it('injects lastBusy from queryAllLastBusy on cache hit', async () => {
+      vi.mocked(getSession).mockResolvedValue({ username: 'admin', expiresAt: new Date(Date.now() + 86400000) })
+      vi.mocked(queryAllLastBusy).mockReturnValue({ 'aa:bb:cc:dd:ee:ff': LAST_BUSY_TS })
+      vi.mocked(getLatestClients).mockReturnValueOnce({
+        clients: [mockClient],
+        timestamp: Date.now(),
+      })
+
+      const response = await GET(new Request('http://localhost/api/clients'))
+      const data = await response.json()
+
+      expect(response.status).toBe(200)
+      expect(data.clients[0].lastBusy).toBe(LAST_BUSY_TS)
+    })
+
+    it('injects lastBusy from queryAllLastBusy on cache miss', async () => {
+      vi.mocked(getSession).mockResolvedValue({ username: 'admin', expiresAt: new Date(Date.now() + 86400000) })
+      vi.mocked(queryAllLastBusy).mockReturnValue({ 'aa:bb:cc:dd:ee:ff': LAST_BUSY_TS })
+      vi.mocked(getLatestClients).mockReturnValue(null)
+      vi.mocked(getUnifiClients).mockResolvedValue({
+        clients: [mockClient],
+        timestamp: Date.now(),
+      })
+
+      const response = await GET(new Request('http://localhost/api/clients'))
+      const data = await response.json()
+
+      expect(response.status).toBe(200)
+      expect(data.clients[0].lastBusy).toBe(LAST_BUSY_TS)
+    })
+
+    it('leaves lastBusy null for clients with no matching DB record', async () => {
+      vi.mocked(getSession).mockResolvedValue({ username: 'admin', expiresAt: new Date(Date.now() + 86400000) })
+      vi.mocked(queryAllLastBusy).mockReturnValue({}) // no entries
+      vi.mocked(getLatestClients).mockReturnValueOnce({
+        clients: [mockClient],
+        timestamp: Date.now(),
+      })
+
+      const response = await GET(new Request('http://localhost/api/clients'))
+      const data = await response.json()
+
+      expect(response.status).toBe(200)
+      expect(data.clients[0].lastBusy).toBeNull()
+    })
   })
 
   it('should return 503 on network error when no cache', async () => {

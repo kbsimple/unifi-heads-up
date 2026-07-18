@@ -67,6 +67,38 @@ describe('getUnifiClients', () => {
     expect(result.timestamp).toBeDefined()
   })
 
+  it('maps tx_bytes-r to downloadRate and rx_bytes-r to uploadRate (regression: fields were previously swapped)', async () => {
+    // Use asymmetric values so a swap would cause a test failure
+    const mockResponse = [
+      {
+        _id: 'client-dir',
+        mac: 'aa:bb:cc:dd:ee:d0',
+        name: 'Streaming Device',
+        hostname: null,
+        ip: '192.168.1.200',
+        last_seen: null,
+        is_wired: true,
+        is_guest: false,
+        'rx_bytes-r': 500_000,   // AP received FROM device = device is uploading
+        'tx_bytes-r': 2_000_000, // AP transmitted TO device = device is downloading
+        signal: null,
+      },
+    ]
+
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      json: () => Promise.resolve(mockResponse),
+    } as unknown as Response)
+
+    const result = await getUnifiClients()
+    const client = result.clients[0]
+
+    expect(client.downloadRate).toBe(2_000_000) // tx_bytes-r — AP→device = download
+    expect(client.uploadRate).toBe(500_000)     // rx_bytes-r — device→AP = upload
+  })
+
   it('should handle API error and throw', async () => {
     vi.mocked(fetch).mockRejectedValue(new Error('Network error'))
 
