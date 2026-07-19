@@ -1,6 +1,7 @@
 import 'server-only'
 import { fetch, Agent } from 'undici'
 import { getDb } from '@/lib/db/index'
+import { getFirewallPolicies, isZoneBasedFirewallEnabled } from '@/lib/unifi'
 import pkg from '../../package.json'
 
 const unifiAgent = new Agent({ connect: { rejectUnauthorized: false } })
@@ -52,5 +53,44 @@ export function getAppVersion(): AppVersion {
   return {
     version: pkg.version,
     releaseDate: (pkg as { releaseDate?: string }).releaseDate ?? 'unknown',
+  }
+}
+
+export interface FirewallHealth {
+  isZBF: boolean
+  policyCount: number
+  zbfPolicies: number
+  legacyPolicies: number
+  error?: string
+}
+
+export async function checkFirewallHealth(): Promise<FirewallHealth> {
+  try {
+    const [isZBF, policies] = await Promise.all([
+      isZoneBasedFirewallEnabled(),
+      getFirewallPolicies(),
+    ])
+
+    let zbfPolicies = 0
+    let legacyPolicies = 0
+    for (const p of policies) {
+      const raw = p as Record<string, unknown>
+      const srcMacs = (raw.source as Record<string, unknown> | undefined)?.client_macs
+      const dstMacs = (raw.destination as Record<string, unknown> | undefined)?.client_macs
+      const hasZBFMacs = Array.isArray(srcMacs) || Array.isArray(dstMacs)
+      const hasLegacyMac = typeof raw.srcMac === 'string' || typeof raw.srcAddress === 'string'
+      if (hasZBFMacs) zbfPolicies++
+      if (hasLegacyMac) legacyPolicies++
+    }
+
+    return { isZBF, policyCount: policies.length, zbfPolicies, legacyPolicies }
+  } catch (err) {
+    return {
+      isZBF: false,
+      policyCount: 0,
+      zbfPolicies: 0,
+      legacyPolicies: 0,
+      error: err instanceof Error ? err.message : 'unknown',
+    }
   }
 }
