@@ -196,26 +196,27 @@ export async function isZoneBasedFirewallEnabled(): Promise<boolean> {
   const host = process.env.UNIFI_HOST
   const apiKey = process.env.UNIFI_API_KEY
 
-  if (!host || !apiKey) {
-    throw new Error('UNIFI_HOST and UNIFI_API_KEY environment variables are required')
+  if (!host || !apiKey) return false
+
+  try {
+    const response = await fetch(`${baseUrl()}/site-feature-migration`, {
+      dispatcher: agent,
+      signal: AbortSignal.timeout(10_000),
+      headers: {
+        'X-API-KEY': apiKey,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) return false
+
+    const data = await response.json() as unknown
+    const features = FeatureMigrationSchema.parse(data)
+    return features.some(f => f.feature === 'ZONE_BASED_FIREWALL' && f.enabled === true)
+  } catch {
+    // Endpoint unavailable or schema mismatch — assume legacy firewall mode
+    return false
   }
-
-  const response = await fetch(`${baseUrl()}/site-feature-migration`, {
-    dispatcher: agent,
-    signal: AbortSignal.timeout(10_000),
-    headers: {
-      'X-API-KEY': apiKey,
-      'Content-Type': 'application/json',
-    },
-  })
-
-  if (!response.ok) {
-    throw new Error(`UniFi API error: ${response.status} ${response.statusText}`)
-  }
-
-  const data = await response.json() as unknown
-  const features = FeatureMigrationSchema.parse(data)
-  return features.some(f => f.feature === 'ZONE_BASED_FIREWALL' && f.enabled === true)
 }
 
 /**

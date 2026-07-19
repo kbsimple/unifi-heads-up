@@ -10,17 +10,21 @@ interface DeviceRule {
   enabled: boolean
 }
 
-const fetcher = (url: string) => fetch(url).then(r => r.json())
+const fetcher = async (url: string) => {
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`${res.status}`)
+  return res.json()
+}
 
 export function InlineFirewallRules({ mac }: { mac: string }) {
   const key = `/api/firewall/device-rules?mac=${encodeURIComponent(mac)}`
-  const { data, isLoading } = useSWR<DeviceRule[]>(key, fetcher)
+  const { data, isLoading, error } = useSWR<DeviceRule[]>(key, fetcher)
 
   if (isLoading) {
     return <span className="text-xs text-zinc-600">Loading rules…</span>
   }
 
-  if (!data || data.length === 0) {
+  if (error || !data || data.length === 0) {
     return (
       <span className="relative group inline-flex items-center text-zinc-600 cursor-default">
         <ShieldOff className="h-3.5 w-3.5" aria-label="No firewall rules" />
