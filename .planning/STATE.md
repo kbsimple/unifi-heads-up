@@ -4,8 +4,8 @@ milestone: v5.0
 milestone_name: Streamlining Management UX Flows
 status: in_progress
 stopped_at: ""
-last_updated: "2026-07-18T00:00:00Z"
-last_activity: "2026-07-18 - Milestone v5.0 roadmap created (5 phases, 11 requirements)"
+last_updated: "2026-07-18T21:00:00Z"
+last_activity: "2026-07-18 - Firewall rules visibility fixed; inline schedule picker added"
 progress:
   total_phases: 5
   completed_phases: 0
@@ -146,6 +146,7 @@ None.
 | 260717-rgt | Add regression tests for dashboard rx/tx swap and DB-backed lastBusy fixes | 2026-07-17 | bd53de4 | [260717-rgt-dashboard-bug-regression-tests](./quick/260717-rgt-dashboard-bug-regression-tests/) |
 | 260717-lbr | Fix Last Busy column not refreshing on page load | 2026-07-17 | b15c698 | [260717-lbr-last-busy-refresh](./quick/260717-lbr-last-busy-refresh/) |
 | 260717-trs | Add discrete time-range selector to site and per-device traffic charts | 2026-07-17 | 8e48aed | [260717-trs-time-range-selector](./quick/260717-trs-time-range-selector/) |
+| 20260718-ifw | Add schedule picker (2h/6h/24h) to inline firewall rules in dashboard device rows | 2026-07-18 | 2f8d6bb | [20260718-ifw-inline-firewall-schedule](./quick/20260718-ifw-inline-firewall-schedule/) |
 
 ### Blockers/Concerns
 
@@ -206,15 +207,20 @@ Items acknowledged and deferred at milestone close on 2026-06-11 (v4.0):
 
 Future extension recorded: per-client DPI top-apps via `POST /proxy/network/api/s/default/stat/stadpi`.
 
-### 2026-07-18 — v5.0 milestone start + roadmap
+### 2026-07-18 — v5.0 milestone start + firewall rules debugging + inline schedule picker
 
 | # | Change | Commit |
 |---|--------|--------|
 | 1 | v5.0 requirements defined: 11 requirements across MAPP, FWUX, HLTH categories | — |
 | 2 | v5.0 roadmap created: Phases 13–17 mapped to all 11 requirements | — |
+| 3 | Fix invisible firewall rules: `isZoneBasedFirewallEnabled()` now returns false gracefully on non-OK response instead of throwing; `InlineFirewallRules` SWR fetcher now throws on non-OK so error state renders ShieldOff correctly | 0ec56fb |
+| 4 | Add firewall diagnostic section to `/statusz`: shows ZBF/legacy mode, policy count, ZBF vs legacy policy counts | 240c179 |
+| 5 | Fix device-rules matching: `getRulesForDevice` now tries both ZBF (`source.client_macs`) and legacy (`srcMac`) fields in a single pass, eliminating dependency on unreliable feature-flag endpoint | be0a1b8 |
+| 6 | Remove stale ZBF/legacy mismatch warning from statusz (no longer actionable after matching fix) | 7aca72d |
+| 7 | Add inline schedule picker: 2h/6h/24h clock popover + expiry badge on inline firewall rules in dashboard device expanded row | 2f8d6bb |
 
 ## Session Continuity
 
-Last session: 2026-07-18T00:00:00Z
-Stopped at: v5.0 roadmap created — Phases 13–17 defined, ready for Phase 13 planning
+Last session: 2026-07-18T21:00:00Z
+Stopped at: Firewall rules visibility fixed; inline schedule picker shipped — Phases 13–17 still not started
 Resume file: None
