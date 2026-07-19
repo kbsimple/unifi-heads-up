@@ -78,16 +78,6 @@ export default async function StatuszPage() {
             indicator={!firewall.error && firewall.policyCount > 0}
             detail={firewallMatchDetail}
           />
-          {!firewall.error && firewall.isZBF && firewall.zbfPolicies === 0 && (
-            <div className="py-3 text-xs text-amber-400">
-              ⚠ ZBF mode detected but no policies have source.client_macs — device rules will not match
-            </div>
-          )}
-          {!firewall.error && !firewall.isZBF && firewall.zbfPolicies > 0 && (
-            <div className="py-3 text-xs text-amber-400">
-              ⚠ Legacy mode detected but {firewall.zbfPolicies} policies use source.client_macs — device rules will not match
-            </div>
-          )}
         </div>
 
         <p className="text-zinc-600 text-xs mt-4 text-center">
