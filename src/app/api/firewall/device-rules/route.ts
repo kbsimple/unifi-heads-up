@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getSession } from '@/lib/session'
-import { getFirewallPolicies, isZoneBasedFirewallEnabled } from '@/lib/unifi'
+import { getFirewallPolicies } from '@/lib/unifi'
 import { getRulesForDevice } from '@/lib/unifi/mapping'
 import { ERROR_MESSAGES } from '@/lib/definitions'
 
@@ -22,12 +22,8 @@ export async function GET(request: Request) {
     )
   }
 
-  const [policies, isZBF] = await Promise.all([
-    getFirewallPolicies(),
-    isZoneBasedFirewallEnabled(),
-  ])
-
-  const matching = getRulesForDevice(policies, { mac }, isZBF)
+  const policies = await getFirewallPolicies()
+  const matching = getRulesForDevice(policies, { mac })
 
   return NextResponse.json(
     matching.map(p => ({ id: p._id, name: p.name, enabled: p.enabled }))
