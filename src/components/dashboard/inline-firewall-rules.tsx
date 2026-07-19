@@ -3,11 +3,14 @@
 import useSWR from 'swr'
 import { ShieldOff } from 'lucide-react'
 import { RuleToggle } from '@/components/firewall/rule-toggle'
+import { SchedulePicker } from '@/components/firewall/schedule-picker'
+import { ScheduleBadge } from '@/components/firewall/schedule-badge'
 
 interface DeviceRule {
   id: string
   name: string
   enabled: boolean
+  scheduleEnd?: number
 }
 
 const fetcher = async (url: string) => {
@@ -37,15 +40,21 @@ export function InlineFirewallRules({ mac }: { mac: string }) {
 
   return (
     <div className="flex flex-wrap gap-x-4 gap-y-2">
-      {data.map(rule => (
-        <div key={rule.id} className="flex items-center gap-2">
-          <RuleToggle
-            policy={{ _id: rule.id, name: rule.name, enabled: rule.enabled }}
-            extraMutateKeys={[key]}
-          />
-          <span className="text-xs text-zinc-300">{rule.name}</span>
-        </div>
-      ))}
+      {data.map(rule => {
+        const policy = { _id: rule.id, name: rule.name, enabled: rule.enabled, scheduleEnd: rule.scheduleEnd }
+        return (
+          <div key={rule.id}>
+            <div className="flex items-center gap-2">
+              <RuleToggle policy={policy} extraMutateKeys={[key]} />
+              <SchedulePicker policy={policy} extraMutateKeys={[key]} />
+              <span className="text-xs text-zinc-300">{rule.name}</span>
+            </div>
+            {rule.scheduleEnd !== undefined && (
+              <ScheduleBadge scheduleEnd={rule.scheduleEnd} />
+            )}
+          </div>
+        )
+      })}
     </div>
   )
 }

@@ -26,6 +26,6 @@ export async function GET(request: Request) {
   const matching = getRulesForDevice(policies, { mac })
 
   return NextResponse.json(
-    matching.map(p => ({ id: p._id, name: p.name, enabled: p.enabled }))
+    matching.map(p => ({ id: p._id, name: p.name, enabled: p.enabled, scheduleEnd: p.scheduleEnd }))
   )
 }

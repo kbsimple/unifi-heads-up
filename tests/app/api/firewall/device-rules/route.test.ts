@@ -22,8 +22,10 @@ function makeRequest(mac?: string) {
   return new Request(url)
 }
 
+const FUTURE_END = Date.now() + 2 * 3_600_000
+
 const zbfPolicies: FirewallPolicy[] = [
-  { _id: 'p1', name: 'Block Switch', enabled: true, source: { client_macs: ['aa:bb:cc:dd:ee:06'] } },
+  { _id: 'p1', name: 'Block Switch', enabled: true, scheduleEnd: FUTURE_END, source: { client_macs: ['aa:bb:cc:dd:ee:06'] } },
   { _id: 'p2', name: 'Unrelated',    enabled: true },
 ]
 
@@ -67,7 +69,7 @@ describe('GET /api/firewall/device-rules', () => {
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body).toHaveLength(1)
-    expect(body[0]).toEqual({ id: 'p1', name: 'Block Switch', enabled: true })
+    expect(body[0]).toMatchObject({ id: 'p1', name: 'Block Switch', enabled: true, scheduleEnd: FUTURE_END })
   })
 
   it('matches legacy policies (srcMac)', async () => {
@@ -106,12 +108,12 @@ describe('GET /api/firewall/device-rules', () => {
     expect(body).toEqual([])
   })
 
-  it('response shape contains only id, name, enabled — no extra fields', async () => {
+  it('response shape contains id, name, enabled, scheduleEnd', async () => {
     vi.mocked(getSession).mockResolvedValue({ username: 'admin', expiresAt: new Date() })
     vi.mocked(getFirewallPolicies).mockResolvedValue(zbfPolicies)
 
     const res = await GET(makeRequest('aa:bb:cc:dd:ee:06'))
     const body = await res.json()
-    expect(Object.keys(body[0]).sort()).toEqual(['enabled', 'id', 'name'])
+    expect(Object.keys(body[0]).sort()).toEqual(['enabled', 'id', 'name', 'scheduleEnd'])
   })
 })

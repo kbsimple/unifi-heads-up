@@ -10,6 +10,7 @@ import type { FirewallPolicy } from '@/lib/unifi/types'
 
 interface SchedulePickerProps {
   policy: FirewallPolicy
+  extraMutateKeys?: string[]
 }
 
 const PRESETS: { label: string; hours: number; ariaLabel: string }[] = [
@@ -18,7 +19,7 @@ const PRESETS: { label: string; hours: number; ariaLabel: string }[] = [
   { label: '24h', hours: 24, ariaLabel: 'Enable for 24 hours' },
 ]
 
-export function SchedulePicker({ policy }: SchedulePickerProps) {
+export function SchedulePicker({ policy, extraMutateKeys = [] }: SchedulePickerProps) {
   const [isPending, setIsPending] = useState(false)
   const [open, setOpen] = useState(false)
   const { mutate } = useSWRConfig()
@@ -39,6 +40,7 @@ export function SchedulePicker({ policy }: SchedulePickerProps) {
       })
       if (!response.ok) throw new Error('Failed to set schedule')
       await mutate('/api/firewall')
+      await Promise.all(extraMutateKeys.map(key => mutate(key)))
     } catch {
       toast.error('Unable to set schedule. Try again.')
     } finally {
@@ -57,6 +59,7 @@ export function SchedulePicker({ policy }: SchedulePickerProps) {
       })
       if (!response.ok) throw new Error('Failed to clear schedule')
       await mutate('/api/firewall')
+      await Promise.all(extraMutateKeys.map(key => mutate(key)))
     } catch {
       toast.error('Unable to clear schedule. Try again.')
     } finally {
