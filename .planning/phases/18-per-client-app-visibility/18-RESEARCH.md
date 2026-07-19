@@ -478,6 +478,27 @@ The facade pattern (client.ts → mock.ts → index.ts) is appropriate for API c
 
 ---
 
+## Live Hardware Validation — 2026-07-18
+
+**Result: stadpi endpoint does not return data on current firmware.**
+
+Two tests were run against the live Dream Router (UniFi OS / Network 9.x):
+
+| Test | MAC | Response |
+|------|-----|----------|
+| Idle device | real MAC | `{"meta":{"rc":"ok"},"data":[]}` |
+| Actively-trafficked device | real MAC | `{"meta":{"rc":"ok"},"data":[]}` |
+
+Both return `data: []` (empty array) with `meta.rc: "ok"`. The endpoint is reachable and authenticated (no 401/403/404), but returns no data regardless of device activity.
+
+**Conclusion:** The `stat/stadpi` v1 endpoint is non-functional on this firmware. The feature may have been migrated to a different API path (likely under the v2 API surface at `/proxy/network/v2/api/...`), or Traffic Identification may route data through a different internal mechanism in UniFi OS 9.x. The "DPI disabled" UI setting path has also moved — the old "Settings → Traffic Management → Deep Packet Inspection" toggle no longer exists in the current interface.
+
+**Impact on future DPI integration:** The planned dashboard integration (per-device top apps) is blocked until the correct API path on current firmware is identified. The recommended next step is to intercept the network calls made by the UniFi web UI's Traffic tab for a client to discover what endpoint it actually calls.
+
+**The probe tool served its purpose:** it confirmed the API is reachable and authenticated before any production integration was built.
+
+---
+
 ## Metadata
 
 **Confidence breakdown:**
@@ -488,6 +509,8 @@ The facade pattern (client.ts → mock.ts → index.ts) is appropriate for API c
 - cat_app.json structure: HIGH — fetched and confirmed from ubntwiki
 - dynamic.dpi.js runtime URL: LOW — not found; recommend static bundle
 - Auth mechanism (X-API-KEY on stadpi): MEDIUM — inferred from consistent auth pattern
+- stadpi data on firmware 9.x: CONFIRMED NON-FUNCTIONAL — live hardware test 2026-07-18
 
 **Research date:** 2026-07-18
-**Valid until:** 2026-08-18 (30 days — stadpi is a stable legacy endpoint)
+**Hardware validation:** 2026-07-18 — stadpi returns `data:[]` on all MACs on UniFi OS/Network 9.x
+**Valid until:** N/A — stadpi confirmed non-functional; revisit requires discovery of v2 DPI endpoint

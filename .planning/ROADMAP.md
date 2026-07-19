@@ -54,12 +54,12 @@ Full archive: `.planning/milestones/v4.0-ROADMAP.md`
 
 ### v5.0 Streamlining Management UX Flows
 
-- [ ] **Phase 13: Schema Extension & Mock Update** - Extend UniFi schema and mock data with ZBF MAC fields so mapping logic has realistic test fixtures
-- [ ] **Phase 14: /statusz Page** - Enhance the /api/statusz endpoint and add a /statusz UI page showing DB health, UniFi proxy reachability, and app version
-- [ ] **Phase 15: Mapping Logic** - Implement mapping.ts to determine which firewall rules apply to a device by MAC/IP using ZBF or legacy mode
-- [ ] **Phase 16: Device Rules API Route** - Add GET /api/firewall/device-rules route that composes the mapping layer and returns applicable rules for a device
-- [ ] **Phase 17: Inline Toggle UI** - Add inline firewall rule list with toggles to the expanded device row in the dashboard
-- [ ] **Phase 18: Per-Client App Visibility (DPI)** - Show top applications per device (YouTube, Netflix, etc.) in the expanded row using UniFi Deep Packet Inspection data
+- [x] **Phase 13: Schema Extension & Mock Update** - Extend UniFi schema and mock data with ZBF MAC fields so mapping logic has realistic test fixtures
+- [x] **Phase 14: /statusz Page** - Enhance the /api/statusz endpoint and add a /statusz UI page showing DB health, UniFi proxy reachability, and app version
+- [x] **Phase 15: Mapping Logic** - Implement mapping.ts to determine which firewall rules apply to a device by MAC/IP using ZBF or legacy mode
+- [x] **Phase 16: Device Rules API Route** - Add GET /api/firewall/device-rules route that composes the mapping layer and returns applicable rules for a device
+- [x] **Phase 17: Inline Toggle UI** - Add inline firewall rule list with toggles to the expanded device row in the dashboard
+- [x] **Phase 18: Per-Client App Visibility (DPI)** - Probe tool built and validated; stat/stadpi endpoint confirmed non-functional on firmware 9.x — full integration deferred pending v2 API path discovery
 
 ---
 
@@ -247,9 +247,9 @@ Full archive: `.planning/milestones/v4.0-ROADMAP.md`
 | 10. Insights Page | v3.0 | 3/3 | Complete | 2026-05-17 |
 | 11. Firewall Rule Scheduling | v3.0 | 2/2 | Complete | 2026-05-17 |
 | 12. End-to-End Tests | v4.0 | 2/2 | Complete | 2026-06-11 |
-| 13. Schema Extension & Mock Update | v5.0 | 0/? | Not started | - |
-| 14. /statusz Page | v5.0 | 0/? | Not started | - |
-| 15. Mapping Logic | v5.0 | 0/? | Not started | - |
-| 16. Device Rules API Route | v5.0 | 0/? | Not started | - |
-| 17. Inline Toggle UI | v5.0 | 0/? | Not started | - |
-| 18. Per-Client App Visibility (DPI) | v5.0 | 0/? | Not started | - |
+| 13. Schema Extension & Mock Update | v5.0 | 1/1 | Complete | 2026-07-18 |
+| 14. /statusz Page | v5.0 | 1/1 | Complete | 2026-07-18 |
+| 15. Mapping Logic | v5.0 | 1/1 | Complete | 2026-07-18 |
+| 16. Device Rules API Route | v5.0 | 1/1 | Complete | 2026-07-18 |
+| 17. Inline Toggle UI | v5.0 | 2/2 | Complete | 2026-07-18 |
+| 18. Per-Client App Visibility (DPI) | v5.0 | 2/2 | Complete (stadpi non-functional on fw 9.x; integration deferred) | 2026-07-18 |
