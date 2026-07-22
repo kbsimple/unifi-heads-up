@@ -62,7 +62,7 @@ export function queryTopDevices(db: Database, minutes: number): TopDevice[] {
 
 export interface HistoryBucket {
   bucketTs: number  // unix seconds (start of bucket)
-  avgMbps: number
+  avgMbps: number | null  // null when no measurements exist for this bucket
 }
 
 export const VALID_WINDOWS = [5, 30, 60, 180, 720, 1440] as const
@@ -98,7 +98,7 @@ function fillBuckets(
 
   return Array.from({ length: count }, (_, i) => {
     const ts = startBucket + i * bucketSec
-    return { bucketTs: ts, avgMbps: byBucket.get(ts) ?? 0 }
+    return { bucketTs: ts, avgMbps: byBucket.get(ts) ?? null }
   })
 }
 

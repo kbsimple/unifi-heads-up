@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { TrafficBadge } from './traffic-badge'
 import { TrafficChart, WindowSelector } from './traffic-chart'
+import { InlineFirewallRules } from './inline-firewall-rules'
 import { useTrafficHistory } from '@/contexts/traffic-history-context'
 import { formatTimeAgo, formatRate, formatBucketLabel } from '@/lib/unifi/format'
 import type { NetworkClient } from '@/lib/unifi/types'
@@ -97,6 +98,11 @@ export function ClientCard({ client }: ClientCardProps) {
             </div>
           </div>
         )}
+
+        <div className="mt-3 pt-3 border-t border-zinc-800 flex items-center gap-3">
+          <span className="text-xs text-zinc-500 shrink-0">Firewall rules</span>
+          <InlineFirewallRules mac={client.mac} />
+        </div>
       </CardContent>
     </Card>
   )

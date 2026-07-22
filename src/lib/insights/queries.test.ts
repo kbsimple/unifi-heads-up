@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3'
 import { describe, it, expect, beforeEach } from 'vitest'
-import { queryTopDevices, queryDeviceActivity } from './queries'
+import { queryTopDevices, queryDeviceActivity, queryDeviceHistoryRecent, querySiteHistoryRecent } from './queries'
 
 function createTestDb(): Database.Database {
   const db = new Database(':memory:')
@@ -186,5 +186,64 @@ describe('queryDeviceActivity', () => {
     const hour12 = result.find(b => b.hour === 12)
     expect(hour12!.avgMbps).toBe(0)
     expect(hour12!.active).toBe(false)
+  })
+})
+
+describe('queryDeviceHistoryRecent', () => {
+  let db: Database.Database
+
+  beforeEach(() => {
+    db = createTestDb()
+  })
+
+  it('returns null avgMbps for buckets with no measurements', () => {
+    // No snapshots inserted — all buckets should be null
+    const result = queryDeviceHistoryRecent(db, 'aa:bb:cc:dd:ee:01', 30)
+    expect(result.length).toBeGreaterThan(0)
+    for (const bucket of result) {
+      expect(bucket.avgMbps).toBeNull()
+    }
+  })
+
+  it('returns non-null avgMbps only for buckets with actual measurements', () => {
+    const insert = db.prepare(
+      'INSERT INTO snapshots (client_mac, download_bps, upload_bps, recorded_at) VALUES (?, ?, ?, ?)'
+    )
+    // Insert a snapshot at a known recent time (within 30 min window)
+    const recentTs = NOW - 60 // 1 minute ago, well within 30-min window
+    insert.run('aa:bb:cc:dd:ee:01', 1_000_000, 500_000, recentTs)
+
+    const result = queryDeviceHistoryRecent(db, 'aa:bb:cc:dd:ee:01', 30)
+
+    // At least one bucket must be non-null (the one containing the snapshot)
+    const nonNullBuckets = result.filter(b => b.avgMbps !== null)
+    expect(nonNullBuckets.length).toBeGreaterThan(0)
+
+    // All other buckets must be null (no measurements)
+    const nullBuckets = result.filter(b => b.avgMbps === null)
+    expect(nullBuckets.length).toBeGreaterThan(0)
+
+    // The non-null bucket should have the correct Mbps value
+    // 1_000_000 down + 500_000 up = 1_500_000 bytes/sec * 8 / 1_000_000 = 12 Mbps
+    for (const bucket of nonNullBuckets) {
+      expect(bucket.avgMbps).toBeCloseTo(12.0, 0)
+    }
+  })
+})
+
+describe('querySiteHistoryRecent', () => {
+  let db: Database.Database
+
+  beforeEach(() => {
+    db = createTestDb()
+  })
+
+  it('returns null avgMbps for buckets with no measurements', () => {
+    // No snapshots — all buckets should be null
+    const result = querySiteHistoryRecent(db, 30)
+    expect(result.length).toBeGreaterThan(0)
+    for (const bucket of result) {
+      expect(bucket.avgMbps).toBeNull()
+    }
   })
 })

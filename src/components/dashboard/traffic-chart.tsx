@@ -11,7 +11,7 @@ import {
 import { Card, CardContent } from '@/components/ui/card'
 
 interface TrafficChartProps {
-  data: Array<{ time: string; bandwidth: number }>
+  data: Array<{ time: string; bandwidth: number | null }>
   title?: string
 }
 
