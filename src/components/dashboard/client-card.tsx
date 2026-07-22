@@ -99,10 +99,12 @@ export function ClientCard({ client }: ClientCardProps) {
           </div>
         )}
 
-        <div className="mt-3 pt-3 border-t border-zinc-800 flex items-center gap-3">
-          <span className="text-xs text-zinc-500 shrink-0">Firewall rules</span>
-          <InlineFirewallRules mac={client.mac} />
-        </div>
+        {showHistory && (
+          <div className="mt-3 pt-3 border-t border-zinc-800 flex items-center gap-3">
+            <span className="text-xs text-zinc-500 shrink-0">Firewall rules</span>
+            <InlineFirewallRules mac={client.mac} />
+          </div>
+        )}
       </CardContent>
     </Card>
   )

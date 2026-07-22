@@ -11,6 +11,10 @@ vi.mock('@/contexts/traffic-history-context', () => ({
   useTrafficHistory: vi.fn(),
 }))
 
+vi.mock('@/components/dashboard/inline-firewall-rules', () => ({
+  InlineFirewallRules: () => <div data-testid="inline-firewall-rules" />,
+}))
+
 // Keep recharts renderable in jsdom — ResponsiveContainer measures parent (0px) and renders nothing
 vi.mock('recharts', async () => {
   const actual = await vi.importActual<typeof import('recharts')>('recharts')
@@ -141,6 +145,26 @@ describe('ClientCard history expansion (UAT-04-04)', () => {
     expect(global.fetch).toHaveBeenCalledWith(
       expect.stringContaining('/api/insights/device-history')
     )
+  })
+
+  it('does not show firewall rules section before history is expanded', () => {
+    stubFetch([])
+    render(<ClientCard client={mockClient} />)
+
+    expect(screen.queryByText('Firewall rules')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('inline-firewall-rules')).not.toBeInTheDocument()
+  })
+
+  it('shows firewall rules section after expanding history', async () => {
+    stubFetch([])
+    render(<ClientCard client={mockClient} />)
+
+    fireEvent.click(screen.getByRole('button', { name: /View History/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Firewall rules')).toBeInTheDocument()
+      expect(screen.getByTestId('inline-firewall-rules')).toBeInTheDocument()
+    })
   })
 
   it('does not re-fetch when closing and reopening history', async () => {
