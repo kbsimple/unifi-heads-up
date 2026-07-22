@@ -106,21 +106,28 @@ describe('queryDeviceHistoryRecent (regression: time-range selector)', () => {
     const result = queryDeviceHistoryRecent(db, MAC_A, 5)
     // 5 minutes / 60-second buckets = 5 or 6 buckets
     expect(result.length).toBeGreaterThanOrEqual(5)
-    expect(result.every((b) => b.avgMbps === null)).toBe(true)
     expect(result.every((b) => typeof b.bucketTs === 'number')).toBe(true)
+    // Past completed buckets have no measurements → 0 (genuine idle)
+    const pastBuckets = result.slice(0, -1)
+    expect(pastBuckets.every((b) => b.avgMbps === 0)).toBe(true)
+    // Current (last) bucket may not have been polled yet → null
+    expect(result[result.length - 1].avgMbps).toBeNull()
   })
 
-  it('fills missing buckets with null when data has gaps', () => {
+  it('fills past gaps with 0 and leaves current bucket null when data has gaps', () => {
     // Insert at two separated points within a 5-minute window
     insert(db, MAC_A, 1_000_000, 500_000, nowSec - 240)
     insert(db, MAC_A, 1_000_000, 500_000, nowSec - 10)
 
     const result = queryDeviceHistoryRecent(db, MAC_A, 5)
-    // Some buckets should have data; others should be null (no measurements)
-    const nullBuckets = result.filter((b) => b.avgMbps === null)
+    // Buckets with recorded data should be > 0
     const dataBuckets = result.filter((b) => b.avgMbps !== null && b.avgMbps > 0)
-    expect(nullBuckets.length).toBeGreaterThan(0)
     expect(dataBuckets.length).toBeGreaterThan(0)
+    // Past buckets with no data should be 0 (not null)
+    const pastZeroBuckets = result.slice(0, -1).filter((b) => b.avgMbps === 0)
+    expect(pastZeroBuckets.length).toBeGreaterThan(0)
+    // Current bucket is null
+    expect(result[result.length - 1].avgMbps).toBeNull()
   })
 
   it('converts bps to Mbps correctly', () => {
@@ -138,7 +145,10 @@ describe('queryDeviceHistoryRecent (regression: time-range selector)', () => {
     insert(db, MAC_A, 1_000_000, 500_000, nowSec - 3600)
 
     const result = queryDeviceHistoryRecent(db, MAC_A, 5)
-    expect(result.every((b) => b.avgMbps === null)).toBe(true)
+    // Past buckets: 0 (no in-window data); current bucket: null
+    const pastBuckets = result.slice(0, -1)
+    expect(pastBuckets.every((b) => b.avgMbps === 0)).toBe(true)
+    expect(result[result.length - 1].avgMbps).toBeNull()
   })
 
   it('returns only data for the specified MAC', () => {
@@ -164,10 +174,12 @@ describe('querySiteHistoryRecent (regression: site chart time-range selector)', 
     nowSec = Math.floor(Date.now() / 1000)
   })
 
-  it('returns all-null buckets when table is empty', () => {
+  it('returns 0 for past buckets and null for current bucket when table is empty', () => {
     const result = querySiteHistoryRecent(db, 5)
     expect(result.length).toBeGreaterThanOrEqual(5)
-    expect(result.every((b) => b.avgMbps === null)).toBe(true)
+    const pastBuckets = result.slice(0, -1)
+    expect(pastBuckets.every((b) => b.avgMbps === 0)).toBe(true)
+    expect(result[result.length - 1].avgMbps).toBeNull()
   })
 
   it('sums bandwidth across all MACs in the same bucket', () => {
@@ -186,6 +198,8 @@ describe('querySiteHistoryRecent (regression: site chart time-range selector)', 
     insert(db, MAC_A, 5_000_000, 0, nowSec - 7200)  // 2 hours ago, outside 5m window
 
     const result = querySiteHistoryRecent(db, 5)
-    expect(result.every((b) => b.avgMbps === null)).toBe(true)
+    const pastBuckets = result.slice(0, -1)
+    expect(pastBuckets.every((b) => b.avgMbps === 0)).toBe(true)
+    expect(result[result.length - 1].avgMbps).toBeNull()
   })
 })

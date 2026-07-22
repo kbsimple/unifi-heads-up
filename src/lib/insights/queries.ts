@@ -98,7 +98,10 @@ function fillBuckets(
 
   return Array.from({ length: count }, (_, i) => {
     const ts = startBucket + i * bucketSec
-    return { bucketTs: ts, avgMbps: byBucket.get(ts) ?? null }
+    const observed = byBucket.get(ts)
+    if (observed !== undefined) return { bucketTs: ts, avgMbps: observed }
+    // Current bucket hasn't been fully polled yet — show as a gap, not zero
+    return { bucketTs: ts, avgMbps: ts === endBucket ? null : 0 }
   })
 }
 

@@ -196,16 +196,20 @@ describe('queryDeviceHistoryRecent', () => {
     db = createTestDb()
   })
 
-  it('returns null avgMbps for buckets with no measurements', () => {
-    // No snapshots inserted — all buckets should be null
+  it('returns 0 for past buckets with no measurements, null only for the current bucket', () => {
+    // No snapshots inserted
     const result = queryDeviceHistoryRecent(db, 'aa:bb:cc:dd:ee:01', 30)
     expect(result.length).toBeGreaterThan(0)
-    for (const bucket of result) {
-      expect(bucket.avgMbps).toBeNull()
+    // All past completed buckets should be 0 (genuine zero traffic)
+    const pastBuckets = result.slice(0, -1)
+    for (const bucket of pastBuckets) {
+      expect(bucket.avgMbps).toBe(0)
     }
+    // The current (last) bucket is still being polled — show as gap
+    expect(result[result.length - 1].avgMbps).toBeNull()
   })
 
-  it('returns non-null avgMbps only for buckets with actual measurements', () => {
+  it('returns non-null avgMbps for buckets with actual measurements, 0 for past gaps', () => {
     const insert = db.prepare(
       'INSERT INTO snapshots (client_mac, download_bps, upload_bps, recorded_at) VALUES (?, ?, ?, ?)'
     )
@@ -215,19 +219,20 @@ describe('queryDeviceHistoryRecent', () => {
 
     const result = queryDeviceHistoryRecent(db, 'aa:bb:cc:dd:ee:01', 30)
 
-    // At least one bucket must be non-null (the one containing the snapshot)
-    const nonNullBuckets = result.filter(b => b.avgMbps !== null)
-    expect(nonNullBuckets.length).toBeGreaterThan(0)
-
-    // All other buckets must be null (no measurements)
-    const nullBuckets = result.filter(b => b.avgMbps === null)
-    expect(nullBuckets.length).toBeGreaterThan(0)
-
-    // The non-null bucket should have the correct Mbps value
+    // At least one bucket must have measured data
+    const measuredBuckets = result.filter(b => b.avgMbps !== null && b.avgMbps > 0)
+    expect(measuredBuckets.length).toBeGreaterThan(0)
     // 1_000_000 down + 500_000 up = 1_500_000 bytes/sec * 8 / 1_000_000 = 12 Mbps
-    for (const bucket of nonNullBuckets) {
+    for (const bucket of measuredBuckets) {
       expect(bucket.avgMbps).toBeCloseTo(12.0, 0)
     }
+
+    // Past buckets with no measurements should be 0
+    const pastZeroBuckets = result.slice(0, -1).filter(b => b.avgMbps === 0)
+    expect(pastZeroBuckets.length).toBeGreaterThan(0)
+
+    // Current bucket (last) should be null
+    expect(result[result.length - 1].avgMbps).toBeNull()
   })
 })
 
@@ -238,12 +243,14 @@ describe('querySiteHistoryRecent', () => {
     db = createTestDb()
   })
 
-  it('returns null avgMbps for buckets with no measurements', () => {
-    // No snapshots — all buckets should be null
+  it('returns 0 for past buckets with no measurements, null only for the current bucket', () => {
+    // No snapshots — past buckets should be 0, current bucket null
     const result = querySiteHistoryRecent(db, 30)
     expect(result.length).toBeGreaterThan(0)
-    for (const bucket of result) {
-      expect(bucket.avgMbps).toBeNull()
+    const pastBuckets = result.slice(0, -1)
+    for (const bucket of pastBuckets) {
+      expect(bucket.avgMbps).toBe(0)
     }
+    expect(result[result.length - 1].avgMbps).toBeNull()
   })
 })
