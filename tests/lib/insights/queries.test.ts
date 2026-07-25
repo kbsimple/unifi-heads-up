@@ -114,8 +114,9 @@ describe('queryDeviceHistoryRecent (regression: time-range selector)', () => {
     expect(result[result.length - 1].avgMbps).toBeNull()
   })
 
-  it('fills past gaps with 0 and leaves current bucket null when data has gaps', () => {
-    // Insert at two separated points within a 5-minute window
+  it('fills past gaps with 0; current bucket is null only when it has no data', () => {
+    // Insert at two separated points within a 5-minute window.
+    // nowSec - 240 is in an older bucket; nowSec - 10 is in the current bucket.
     insert(db, MAC_A, 1_000_000, 500_000, nowSec - 240)
     insert(db, MAC_A, 1_000_000, 500_000, nowSec - 10)
 
@@ -126,8 +127,8 @@ describe('queryDeviceHistoryRecent (regression: time-range selector)', () => {
     // Past buckets with no data should be 0 (not null)
     const pastZeroBuckets = result.slice(0, -1).filter((b) => b.avgMbps === 0)
     expect(pastZeroBuckets.length).toBeGreaterThan(0)
-    // Current bucket is null
-    expect(result[result.length - 1].avgMbps).toBeNull()
+    // Current bucket has data from nowSec-10, so it's non-null
+    expect(result[result.length - 1].avgMbps).not.toBeNull()
   })
 
   it('converts bps to Mbps correctly', () => {

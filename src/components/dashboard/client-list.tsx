@@ -42,7 +42,7 @@ function ClientListInner({ initialData }: ClientListProps) {
     }
   )
 
-  const { siteHistory, isHistoryAvailable } = useTrafficHistory()
+  const { siteHistory, isHistoryAvailable, getClientLastBusy } = useTrafficHistory()
 
   useEffect(() => {
     if (siteWindow === 1440) {
@@ -60,8 +60,18 @@ function ClientListInner({ initialData }: ClientListProps) {
     return <ErrorState onRetry={() => mutate()} />
   }
 
+  const STATUS_ORDER = { high: 3, medium: 2, low: 1, idle: 0 } as const
+
   const allClients = data?.clients ?? []
   const clients = activeOnly ? allClients.filter(c => c.trafficStatus !== 'idle') : allClients
+
+  const clientsSortedForMobile = [...clients].sort((a, b) => {
+    const statusDiff = STATUS_ORDER[b.trafficStatus] - STATUS_ORDER[a.trafficStatus]
+    if (statusDiff !== 0) return statusDiff
+    const aLastBusy = Math.max(getClientLastBusy(a.id) ?? 0, a.lastBusy ?? 0)
+    const bLastBusy = Math.max(getClientLastBusy(b.id) ?? 0, b.lastBusy ?? 0)
+    return bLastBusy - aLastBusy
+  })
   const lastUpdated = data?.timestamp ? new Date(data.timestamp) : new Date()
 
   const siteChartData = siteWindow === 1440
@@ -108,7 +118,7 @@ function ClientListInner({ initialData }: ClientListProps) {
 
       {/* Responsive layout: cards on mobile, table on desktop (UIUX-01) */}
       <div className="md:hidden space-y-3">
-        {clients.map((client) => (
+        {clientsSortedForMobile.map((client) => (
           <ClientCard key={client.mac} client={client} />
         ))}
       </div>
