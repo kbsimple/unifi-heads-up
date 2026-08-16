@@ -12,7 +12,7 @@ export function ScheduleBadge({ scheduleEnd }: ScheduleBadgeProps) {
 
   let displayText: string
   if (isExpired) {
-    displayText = 'Expired — set a new duration to enable'
+    displayText = 'Schedule expired'
   } else {
     const endDate = new Date(scheduleEnd)
     const timeStr = endDate.toLocaleTimeString('en-US', {
